@@ -1,0 +1,136 @@
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
+
+export const Route = createFileRoute("/auth")({
+  component: AuthPage,
+});
+
+function AuthPage() {
+  const { user, signIn, signUp } = useAuth();
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [loading, setLoading] = useState(false);
+  const [form, setForm] = useState({ email: "", password: "", fullName: "", agree: false });
+
+  useEffect(() => {
+    if (user) navigate({ to: "/" });
+  }, [user, navigate]);
+
+  const passwordStrength = (() => {
+    const p = form.password;
+    let s = 0;
+    if (p.length >= 8) s++;
+    if (/[A-Z]/.test(p)) s++;
+    if (/[0-9]/.test(p)) s++;
+    if (/[^A-Za-z0-9]/.test(p)) s++;
+    return s;
+  })();
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    if (mode === "signin") {
+      const { error } = await signIn(form.email, form.password);
+      if (error) toast.error(error);
+      else toast.success("Welcome back!");
+    } else {
+      if (!form.agree) { toast.error("Please agree to the Terms & Privacy."); setLoading(false); return; }
+      if (form.password.length < 8) { toast.error("Password must be at least 8 characters."); setLoading(false); return; }
+      const { error } = await signUp(form.email, form.password, form.fullName);
+      if (error) toast.error(error);
+      else toast.success("Account created! Check your email if confirmation is required.");
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="min-h-screen grid md:grid-cols-2 bg-background">
+      <div className="hidden md:block relative overflow-hidden bg-brand">
+        <img src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80" alt="" className="absolute inset-0 w-full h-full object-cover opacity-70" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-brand to-transparent" />
+        <div className="relative z-10 p-16 h-full flex flex-col">
+          <Link to="/" className="inline-flex items-center gap-2 text-brand-foreground font-display font-bold text-2xl">
+            <div className="size-10 rounded-xl bg-accent text-accent-foreground grid place-items-center">V</div>
+            Verdant
+          </Link>
+          <div className="mt-auto">
+            <h2 className="font-display font-bold text-5xl text-brand-foreground leading-tight">Fresh produce, <span className="italic text-accent">delivered.</span></h2>
+            <p className="text-brand-foreground/70 mt-4 max-w-sm">Join thousands of households getting weekly organic groceries from local farms.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-center p-6 md:p-12">
+        <div className="w-full max-w-md space-y-6">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+            <ArrowLeft className="size-4" /> Back to shop
+          </Link>
+
+          <div>
+            <h1 className="font-display font-bold text-3xl">
+              {mode === "signin" ? "Sign in to your account" : "Create your account"}
+            </h1>
+            <p className="text-muted-foreground mt-2 text-sm">
+              {mode === "signin" ? "Continue your fresh grocery journey." : "Start shopping in seconds."}
+            </p>
+          </div>
+
+          <form onSubmit={submit} className="space-y-4">
+            {mode === "signup" && (
+              <div>
+                <Label htmlFor="name">Full name</Label>
+                <Input id="name" required value={form.fullName} onChange={(e) => setForm((f) => ({ ...f, fullName: e.target.value }))} />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="email">Email</Label>
+              <Input id="email" type="email" required value={form.email} onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+            </div>
+            <div>
+              <Label htmlFor="password">Password</Label>
+              <Input id="password" type="password" required value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} />
+              {mode === "signup" && form.password && (
+                <div className="mt-2 flex gap-1">
+                  {[0, 1, 2, 3].map((i) => (
+                    <div key={i} className={`h-1 flex-1 rounded-full ${i < passwordStrength ? (passwordStrength <= 2 ? "bg-destructive" : passwordStrength === 3 ? "bg-warning" : "bg-success") : "bg-muted"}`} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {mode === "signin" ? (
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2"><Checkbox /> Remember me</label>
+                <a href="#" className="text-brand font-medium hover:underline">Forgot password?</a>
+              </div>
+            ) : (
+              <label className="flex items-start gap-2 text-sm">
+                <Checkbox checked={form.agree} onCheckedChange={(c) => setForm((f) => ({ ...f, agree: c === true }))} className="mt-0.5" />
+                <span className="text-muted-foreground">I agree to the <a href="#" className="text-brand underline">Terms</a> and <a href="#" className="text-brand underline">Privacy Policy</a>.</span>
+              </label>
+            )}
+
+            <Button type="submit" disabled={loading} size="lg" className="w-full rounded-full font-bold">
+              {loading ? "Please wait..." : mode === "signin" ? "Sign In" : "Create Account"}
+            </Button>
+          </form>
+
+          <p className="text-sm text-center text-muted-foreground">
+            {mode === "signin" ? (
+              <>Don't have an account? <button onClick={() => setMode("signup")} className="text-brand font-bold hover:underline">Sign up</button></>
+            ) : (
+              <>Already have one? <button onClick={() => setMode("signin")} className="text-brand font-bold hover:underline">Sign in</button></>
+            )}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}
