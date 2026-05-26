@@ -27,10 +27,10 @@ export function SiteHeader() {
         <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between">
           <div className="flex items-center gap-5">
             <span className="inline-flex items-center gap-1.5"><MapPin className="size-3.5" /> Store Locator</span>
-            <span className="inline-flex items-center gap-1.5"><Phone className="size-3.5" /> +1 (555) 000-GROC</span>
+            <span className="inline-flex items-center gap-1.5"><Phone className="size-3.5" /> +855 99 361 350</span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="opacity-80">Free delivery on orders over $30</span>
+            <span className="opacity-80">Free delivery on orders over $50</span>
             <button onClick={toggle} className="inline-flex items-center gap-1.5 hover:text-accent transition-colors">
               {theme === "light" ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
               {theme === "light" ? "Dark" : "Light"}
@@ -43,8 +43,8 @@ export function SiteHeader() {
       <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b">
         <div className="mx-auto max-w-7xl px-6 h-20 flex items-center gap-6">
           <Link to="/" className="flex items-center gap-2 shrink-0">
-            <div className="size-10 rounded-xl bg-brand text-brand-foreground grid place-items-center font-display font-bold text-xl">V</div>
-            <span className="font-display text-2xl font-bold tracking-tight text-brand hidden sm:inline">Verdant</span>
+            <img src="/logo.png" alt="BOSBA Premium Foods" className="size-20 rounded-xl object-contain" />
+            <span className="font-display text-2xl font-bold tracking-tight text-brand hidden sm:inline">BOSBA Premium Foods</span>
           </Link>
 
           <DropdownMenu>
