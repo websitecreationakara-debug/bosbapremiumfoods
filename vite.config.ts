@@ -38,6 +38,8 @@ export default defineConfig({
     spa: { enabled: true },
   },
   vite: {
+    // Pin the dev port so the Google OAuth redirect URI stays stable across restarts.
+    server: { port: 8081, strictPort: true },
     // Only the bare "kysely" specifier (not subpaths) maps to the shim that adds the
     // two migration constants @better-auth/kysely-adapter expects (see the shim file).
     resolve: {
