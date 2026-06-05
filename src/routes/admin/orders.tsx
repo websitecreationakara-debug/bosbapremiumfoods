@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { listOrders, updateOrderStatus } from "@/data/orders";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
@@ -10,15 +16,15 @@ function OrdersAdmin() {
   const qc = useQueryClient();
   const { data: orders = [] } = useQuery({
     queryKey: ["orders-admin"],
-    queryFn: async () => {
-      const { data } = await supabase.from("orders").select("*").order("created_at", { ascending: false });
-      return data ?? [];
-    },
+    queryFn: () => listOrders(),
   });
 
   const setStatus = async (id: string, status: string) => {
-    const { error } = await supabase.from("orders").update({ status }).eq("id", id);
-    if (error) return toast.error(error.message);
+    try {
+      await updateOrderStatus({ data: { id, status } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to update status");
+    }
     qc.invalidateQueries({ queryKey: ["orders-admin"] });
   };
 
@@ -28,7 +34,13 @@ function OrdersAdmin() {
       <div className="bg-card border rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted text-xs uppercase tracking-widest text-muted-foreground">
-            <tr><th className="text-left px-6 py-3">Order</th><th className="text-left px-6 py-3">Date</th><th className="text-left px-6 py-3">Items</th><th className="text-left px-6 py-3">Total</th><th className="text-left px-6 py-3">Status</th></tr>
+            <tr>
+              <th className="text-left px-6 py-3">Order</th>
+              <th className="text-left px-6 py-3">Date</th>
+              <th className="text-left px-6 py-3">Items</th>
+              <th className="text-left px-6 py-3">Total</th>
+              <th className="text-left px-6 py-3">Status</th>
+            </tr>
           </thead>
           <tbody>
             {orders.map((o) => (
@@ -39,7 +51,9 @@ function OrdersAdmin() {
                 <td className="px-6 py-3 font-bold">${Number(o.total).toFixed(2)}</td>
                 <td className="px-6 py-3">
                   <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
-                    <SelectTrigger className="w-36 h-8"><SelectValue /></SelectTrigger>
+                    <SelectTrigger className="w-36 h-8">
+                      <SelectValue />
+                    </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pending">Pending</SelectItem>
                       <SelectItem value="processing">Processing</SelectItem>
@@ -51,7 +65,13 @@ function OrdersAdmin() {
                 </td>
               </tr>
             ))}
-            {orders.length === 0 && <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No orders yet</td></tr>}
+            {orders.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                  No orders yet
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>

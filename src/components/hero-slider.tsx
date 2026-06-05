@@ -5,24 +5,24 @@ import { Link } from "@tanstack/react-router";
 
 const slides = [
   {
-    eyebrow: "Season's Best",
-    title: ["Purely", "Organic", "Roots."],
-    body: "Sustainably sourced, delivered within 2 hours from local farms.",
-    image: "https://images.unsplash.com/photo-1542838132-92c53300491e?w=1200&q=80",
-    cta: "Shop the Harvest",
+    eyebrow: "Sashimi Grade",
+    title: ["Ocean", "Fresh", "Catch."],
+    body: "Sashimi-grade seafood flown from Japanese waters to your door.",
+    image: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=1200&q=80",
+    cta: "Shop the Catch",
   },
   {
-    eyebrow: "New This Week",
-    title: ["Crisp", "Garden", "Greens."],
-    body: "Hand-picked at dawn. Crunch the freshest leaves of the season.",
-    image: "https://images.unsplash.com/photo-1610348725531-843dff563e2c?w=1200&q=80",
-    cta: "Browse Greens",
+    eyebrow: "Tsukiji Select",
+    title: ["Premium", "Bluefin", "Tuna."],
+    body: "Hand-cut at the market at dawn. The deepest cuts of the season.",
+    image: "https://images.unsplash.com/photo-1535007813616-79dc02ba4021?w=1200&q=80",
+    cta: "Browse Tuna",
   },
   {
     eyebrow: "Limited Offer",
-    title: ["Save", "30%", "on Pantry."],
-    body: "Stock up on cold-pressed oils, wild honey, and artisan staples.",
-    image: "https://images.unsplash.com/photo-1542838686-37da4a9fd1b3?w=1200&q=80",
+    title: ["Save", "30%", "on Uni."],
+    body: "Sea urchin, scallops, and ikura — packed fresh on ice, shipped overnight.",
+    image: "https://images.unsplash.com/photo-1607301405390-d831c242f59b?w=1200&q=80",
     cta: "Shop the Sale",
   },
 ];
@@ -71,7 +71,9 @@ export function HeroSlider() {
 
           <div className="flex flex-wrap items-center gap-4 mb-8">
             <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-              <Link to="/shop">{s.cta} <ArrowRight className="size-4 ml-2" /></Link>
+              <Link to="/shop">
+                {s.cta} <ArrowRight className="size-4 ml-2" />
+              </Link>
             </Button>
           </div>
 
@@ -83,8 +85,12 @@ export function HeroSlider() {
                 { label: "m", v: time.m },
                 { label: "s", v: time.s },
               ].map((t) => (
-                <div key={t.label} className="bg-brand-foreground/10 px-2.5 py-1.5 rounded-md font-mono font-bold text-sm min-w-[44px] text-center">
-                  {String(t.v).padStart(2, "0")}<span className="opacity-50 text-[10px] ml-0.5">{t.label}</span>
+                <div
+                  key={t.label}
+                  className="bg-brand-foreground/10 px-2.5 py-1.5 rounded-md font-mono font-bold text-sm min-w-[44px] text-center"
+                >
+                  {String(t.v).padStart(2, "0")}
+                  <span className="opacity-50 text-[10px] ml-0.5">{t.label}</span>
                 </div>
               ))}
             </div>

@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
 import { useCategories, useProducts } from "@/hooks/use-products";
-import { ArrowRight, Truck, Leaf, ShieldCheck, Clock } from "lucide-react";
+import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export const Route = createFileRoute("/_store/")({
@@ -10,10 +10,10 @@ export const Route = createFileRoute("/_store/")({
 });
 
 const features = [
-  { icon: Truck, title: "Free Delivery", body: "Free shipping on orders over $30" },
-  { icon: Leaf, title: "100% Organic", body: "Sourced from certified local farms" },
-  { icon: ShieldCheck, title: "Quality Promise", body: "Hand-picked at peak ripeness" },
-  { icon: Clock, title: "Fresh in 2 Hours", body: "From the field to your doorstep" },
+  { icon: Truck, title: "Chilled Delivery", body: "Free shipping on orders over $30" },
+  { icon: Fish, title: "Sashimi Grade", body: "Sourced from Japanese waters" },
+  { icon: ShieldCheck, title: "Quality Promise", body: "Inspected at the market at dawn" },
+  { icon: Snowflake, title: "Cold-Chain Fresh", body: "Packed on ice, shipped overnight" },
 ];
 
 function Home() {
@@ -49,7 +49,7 @@ function Home() {
         <div className="flex items-end justify-between mb-8">
           <div>
             <h2 className="font-display font-bold text-3xl md:text-4xl">Shop by Category</h2>
-            <p className="text-muted-foreground mt-1">Find exactly what you need.</p>
+            <p className="text-muted-foreground mt-1">From sashimi to shellfish, all in one place.</p>
           </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -60,11 +60,12 @@ function Home() {
               search={{ category: c.slug }}
               className="group relative aspect-square rounded-3xl bg-gradient-to-br from-brand/15 to-accent/30 border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all p-5 flex flex-col justify-between"
             >
-              <span className="text-3xl">{["🥬", "🍓", "🌿", "🥛", "🥖", "🌾"][i % 6]}</span>
+              <span className="text-3xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
               <div>
                 <p className="font-display font-bold text-sm">{c.name}</p>
                 <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  Shop <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
+                  Shop{" "}
+                  <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
                 </p>
               </div>
             </Link>
@@ -76,16 +77,21 @@ function Home() {
       <section className="mx-auto max-w-7xl px-6">
         <div className="flex items-end justify-between mb-8">
           <div>
-            <h2 className="font-display font-bold text-3xl md:text-4xl">Fresh This Morning</h2>
-            <p className="text-muted-foreground mt-1">Picked at dawn, delivered by noon.</p>
+            <h2 className="font-display font-bold text-3xl md:text-4xl">Today's Catch</h2>
+            <p className="text-muted-foreground mt-1">Landed this morning, on ice by noon.</p>
           </div>
-          <Link to="/shop" className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-brand hover:gap-3 transition-all">
+          <Link
+            to="/shop"
+            className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-brand hover:gap-3 transition-all"
+          >
             View all <ArrowRight className="size-4" />
           </Link>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {isLoading
-            ? Array.from({ length: 8 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />)
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />
+              ))
             : featured.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
@@ -94,18 +100,24 @@ function Home() {
       <section className="mx-auto max-w-7xl px-6">
         <div className="relative overflow-hidden rounded-3xl bg-accent p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground/70 mb-3">Become a member</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground/70 mb-3">
+              Become a member
+            </p>
             <h3 className="font-display font-bold text-3xl md:text-5xl text-accent-foreground leading-tight">
               Save 10% on every order. Forever.
             </h3>
             <p className="text-accent-foreground/80 mt-4 max-w-md">
-              Verdant Plus gives you free delivery, member-only deals, and early access to seasonal drops.
+              BOSBA Plus gives you free chilled delivery, member-only deals, and early access to the
+              day's freshest catch.
             </p>
-            <Link to="/auth" className="inline-flex mt-6 items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-bold hover:opacity-90">
-              Join Verdant Plus <ArrowRight className="size-4" />
+            <Link
+              to="/auth"
+              className="inline-flex mt-6 items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-bold hover:opacity-90"
+            >
+              Join BOSBA Plus <ArrowRight className="size-4" />
             </Link>
           </div>
-          <div className="hidden md:block text-9xl text-center">🌱</div>
+          <div className="hidden md:block text-9xl text-center">🍣</div>
         </div>
       </section>
     </div>

@@ -1,6 +1,8 @@
-import { createStart, createMiddleware } from "@tanstack/react-start";
+import { createStart, createMiddleware, createCsrfMiddleware } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 
 import { renderErrorPage } from "./lib/error-page";
+import { getAuth } from "./lib/auth";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -17,6 +19,20 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+// better-auth owns every /api/auth/* route; short-circuit those to its handler.
+const authMiddleware = createMiddleware().server(async ({ next }) => {
+  const request = getRequest();
+  if (new URL(request.url).pathname.startsWith("/api/auth")) {
+    return getAuth().handler(request);
+  }
+  return next();
+});
+
+// Server functions are same-origin RPC endpoints; reject cross-site requests.
+const csrfMiddleware = createCsrfMiddleware({
+  filter: (ctx) => ctx.handlerType === "serverFn",
+});
+
 export const startInstance = createStart(() => ({
-  requestMiddleware: [errorMiddleware],
+  requestMiddleware: [errorMiddleware, csrfMiddleware, authMiddleware],
 }));

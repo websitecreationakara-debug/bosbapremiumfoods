@@ -37,22 +37,30 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const add: CartCtx["add"] = (p, qty = 1) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === p.id);
-      if (existing) return prev.map((i) => (i.product.id === p.id ? { ...i, qty: i.qty + qty } : i));
+      if (existing)
+        return prev.map((i) => (i.product.id === p.id ? { ...i, qty: i.qty + qty } : i));
       return [...prev, { product: p, qty }];
     });
     setDrawerOpen(true);
   };
 
-  const remove: CartCtx["remove"] = (id) => setItems((prev) => prev.filter((i) => i.product.id !== id));
+  const remove: CartCtx["remove"] = (id) =>
+    setItems((prev) => prev.filter((i) => i.product.id !== id));
   const setQty: CartCtx["setQty"] = (id, qty) =>
-    setItems((prev) => (qty <= 0 ? prev.filter((i) => i.product.id !== id) : prev.map((i) => (i.product.id === id ? { ...i, qty } : i))));
+    setItems((prev) =>
+      qty <= 0
+        ? prev.filter((i) => i.product.id !== id)
+        : prev.map((i) => (i.product.id === id ? { ...i, qty } : i)),
+    );
   const clear = () => setItems([]);
 
   const count = items.reduce((a, i) => a + i.qty, 0);
   const subtotal = items.reduce((a, i) => a + (i.product.sale_price ?? i.product.price) * i.qty, 0);
 
   return (
-    <Ctx.Provider value={{ items, count, subtotal, drawerOpen, setDrawerOpen, add, remove, setQty, clear }}>
+    <Ctx.Provider
+      value={{ items, count, subtotal, drawerOpen, setDrawerOpen, add, remove, setQty, clear }}
+    >
       {children}
     </Ctx.Provider>
   );

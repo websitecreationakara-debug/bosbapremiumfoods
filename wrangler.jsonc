@@ -1,7 +1,20 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "tanstack-start-app",
+  "name": "bosbapremiumfoods",
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  "workers_dev": true,
+  "routes": [
+    { "pattern": "camitc.com", "custom_domain": true },
+    { "pattern": "www.camitc.com", "custom_domain": true }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "bosbapremiumfoods",
+      "database_id": "805a3495-3ef5-4861-81b6-cee0c2cb3d3b",
+      "migrations_dir": "drizzle/migrations"
+    }
+  ]
 }

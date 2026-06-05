@@ -41,26 +41,39 @@ function Shop() {
       <div className="grid lg:grid-cols-[240px_1fr] gap-8">
         <aside className="space-y-6">
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Search</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              Search
+            </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Apples, bread..." className="pl-9 rounded-full" />
+              <Input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Apples, bread..."
+                className="pl-9 rounded-full"
+              />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">Categories</label>
+            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+              Categories
+            </label>
             <div className="space-y-1">
               <button
                 onClick={() => setActiveCat(undefined)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeCat ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
-              >All Products</button>
+              >
+                All Products
+              </button>
               {categories.map((c) => (
                 <button
                   key={c.id}
                   onClick={() => setActiveCat(c.slug)}
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === c.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
-                >{c.name}</button>
+                >
+                  {c.name}
+                </button>
               ))}
             </div>
           </div>
@@ -69,16 +82,22 @@ function Shop() {
         <div>
           {isLoading ? (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              {Array.from({ length: 6 }).map((_, i) => <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />)}
+              {Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />
+              ))}
             </div>
           ) : filtered.length === 0 ? (
             <div className="text-center py-20 border rounded-3xl bg-card">
               <p className="font-display font-bold text-xl">No products found</p>
-              <p className="text-muted-foreground text-sm mt-1">Try a different category or search term.</p>
+              <p className="text-muted-foreground text-sm mt-1">
+                Try a different category or search term.
+              </p>
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              {filtered.map((p) => <ProductCard key={p.id} product={p} />)}
+              {filtered.map((p) => (
+                <ProductCard key={p.id} product={p} />
+              ))}
             </div>
           )}
         </div>

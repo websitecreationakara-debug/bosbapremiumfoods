@@ -46,7 +46,7 @@ export function SiteHeader() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="opacity-80">Free delivery on orders over $50</span>
+            <span className="opacity-80">Free chilled delivery on orders over $50</span>
             <button
               onClick={toggle}
               className="inline-flex items-center gap-1.5 hover:text-accent transition-colors"
@@ -98,7 +98,7 @@ export function SiteHeader() {
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <input
               type="search"
-              placeholder="Search fresh produce, pantry, dairy..."
+              placeholder="Search tuna, salmon, uni, scallops..."
               className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-none text-sm outline-none focus:ring-2 focus:ring-ring/30 transition-all"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {

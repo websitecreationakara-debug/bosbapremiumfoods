@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
@@ -21,8 +22,13 @@ function NotFoundComponent() {
       <div className="text-center max-w-md">
         <h1 className="font-display text-8xl font-bold text-brand">404</h1>
         <h2 className="mt-4 font-display text-xl font-bold">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">This shelf is empty. Let's get you back to fresh picks.</p>
-        <Link to="/" className="inline-flex mt-6 items-center justify-center rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold hover:opacity-90">
+        <p className="mt-2 text-sm text-muted-foreground">
+          This net came up empty. Let's get you back to the catch.
+        </p>
+        <Link
+          to="/"
+          className="inline-flex mt-6 items-center justify-center rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold hover:opacity-90"
+        >
           Back to shop
         </Link>
       </div>
@@ -39,9 +45,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <h1 className="font-display text-xl font-bold">Something went wrong</h1>
         <p className="mt-2 text-sm text-muted-foreground">{error.message}</p>
         <button
-          onClick={() => { router.invalidate(); reset(); }}
+          onClick={() => {
+            router.invalidate();
+            reset();
+          }}
           className="mt-6 rounded-full bg-primary text-primary-foreground px-6 py-2.5 text-sm font-bold"
-        >Try again</button>
+        >
+          Try again
+        </button>
       </div>
     </div>
   );
@@ -51,23 +62,44 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
+      {
+        name: "viewport",
+        content: "width=device-width, initial-scale=1, viewport-fit=cover",
+      },
       { title: "BOSBA Premium Foods" },
       { name: "description", content: "High Premium Quality Foods From Japan" },
+      { name: "theme-color", content: "#28457a" },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "default" },
+      { name: "apple-mobile-web-app-title", content: "BOSBA" },
       { property: "og:title", content: "BOSBA Premium Foods" },
       { property: "og:description", content: "High Premium Quality Foods From Japan" },
       { property: "og:type", content: "website" },
       { name: "twitter:title", content: "BOSBA Premium Foods" },
       { name: "twitter:description", content: "High Premium Quality Foods From Japan" },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/o2CDzeAcwUexXadSyG3Sks57zMi1/social-images/social-1779769529532-686086918_1643455840538679_1852951828791255588_n.webp" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/o2CDzeAcwUexXadSyG3Sks57zMi1/social-images/social-1779769529532-686086918_1643455840538679_1852951828791255588_n.webp" },
+      {
+        property: "og:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/o2CDzeAcwUexXadSyG3Sks57zMi1/social-images/social-1779769529532-686086918_1643455840538679_1852951828791255588_n.webp",
+      },
+      {
+        name: "twitter:image",
+        content:
+          "https://storage.googleapis.com/gpt-engineer-file-uploads/o2CDzeAcwUexXadSyG3Sks57zMi1/social-images/social-1779769529532-686086918_1643455840538679_1852951828791255588_n.webp",
+      },
       { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
+      { rel: "manifest", href: "/manifest.webmanifest" },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -79,7 +111,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <head><HeadContent /></head>
+      <head>
+        <HeadContent />
+      </head>
       <body>
         {children}
         <Scripts />
@@ -90,6 +124,13 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("/sw.js").catch(() => {});
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>

@@ -27,7 +27,9 @@ export function CartDrawer() {
             </div>
             <div>
               <p className="font-display font-bold text-lg">No products in cart</p>
-              <p className="text-sm text-muted-foreground mt-1">Start shopping our fresh harvest.</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Start shopping our fresh harvest.
+              </p>
             </div>
             <Button onClick={() => setDrawerOpen(false)} asChild>
               <Link to="/shop">Return to Shop</Link>
@@ -38,7 +40,10 @@ export function CartDrawer() {
             <div className="px-6 py-4 space-y-2 border-b bg-secondary/40">
               <p className="text-xs font-medium">
                 {remaining > 0 ? (
-                  <>Spend <span className="font-bold text-brand">${remaining.toFixed(2)}</span> more for free delivery</>
+                  <>
+                    Spend <span className="font-bold text-brand">${remaining.toFixed(2)}</span> more
+                    for free delivery
+                  </>
                 ) : (
                   <span className="text-brand font-bold">🎉 You qualify for free delivery!</span>
                 )}
@@ -52,23 +57,41 @@ export function CartDrawer() {
                 return (
                   <div key={product.id} className="flex gap-3">
                     <div className="size-20 rounded-xl bg-muted overflow-hidden shrink-0">
-                      {product.image_url && <img src={product.image_url} alt={product.title} className="w-full h-full object-cover" loading="lazy" />}
+                      {product.image_url && (
+                        <img
+                          src={product.image_url}
+                          alt={product.title}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <p className="font-medium text-sm leading-tight">{product.title}</p>
-                        <button onClick={() => remove(product.id)} className="text-muted-foreground hover:text-destructive">
+                        <button
+                          onClick={() => remove(product.id)}
+                          className="text-muted-foreground hover:text-destructive"
+                        >
                           <Trash2 className="size-4" />
                         </button>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">${unit.toFixed(2)} each</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        ${unit.toFixed(2)} each
+                      </p>
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-1 border rounded-full">
-                          <button onClick={() => setQty(product.id, qty - 1)} className="size-7 grid place-items-center hover:bg-muted rounded-full">
+                          <button
+                            onClick={() => setQty(product.id, qty - 1)}
+                            className="size-7 grid place-items-center hover:bg-muted rounded-full"
+                          >
                             <Minus className="size-3" />
                           </button>
                           <span className="text-xs font-semibold w-6 text-center">{qty}</span>
-                          <button onClick={() => setQty(product.id, qty + 1)} className="size-7 grid place-items-center hover:bg-muted rounded-full">
+                          <button
+                            onClick={() => setQty(product.id, qty + 1)}
+                            className="size-7 grid place-items-center hover:bg-muted rounded-full"
+                          >
                             <Plus className="size-3" />
                           </button>
                         </div>
@@ -85,7 +108,12 @@ export function CartDrawer() {
                 <span className="text-muted-foreground">Subtotal</span>
                 <span className="font-display font-bold text-lg">${subtotal.toFixed(2)}</span>
               </div>
-              <Button size="lg" className="w-full rounded-full" onClick={() => setDrawerOpen(false)} asChild>
+              <Button
+                size="lg"
+                className="w-full rounded-full"
+                onClick={() => setDrawerOpen(false)}
+                asChild
+              >
                 <Link to="/checkout">Proceed to Checkout</Link>
               </Button>
             </div>
