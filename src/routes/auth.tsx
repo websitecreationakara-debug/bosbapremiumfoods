@@ -13,11 +13,14 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { user, signIn, signUp, signInWithGoogle } = useAuth();
+  const { user, signIn, signUp, signInWithGoogle, verifyEmailOtp, resendOtp } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [step, setStep] = useState<"form" | "verify">("form");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", fullName: "", agree: false });
+  const [code, setCode] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
     if (user) navigate({ to: "/" });
@@ -38,8 +41,16 @@ function AuthPage() {
     setLoading(true);
     if (mode === "signin") {
       const { error } = await signIn(form.email, form.password);
-      if (error) toast.error(error);
-      else toast.success("Welcome back!");
+      if (error) {
+        // Unverified accounts can't sign in yet — better-auth re-sends a code; go verify.
+        if (/verif/i.test(error)) {
+          setPendingEmail(form.email);
+          setStep("verify");
+          toast.message("Verify your email — we sent a 6-digit code.");
+        } else {
+          toast.error(error);
+        }
+      } else toast.success("Welcome back!");
     } else {
       if (!form.agree) {
         toast.error("Please agree to the Terms & Privacy.");
@@ -53,7 +64,32 @@ function AuthPage() {
       }
       const { error } = await signUp(form.email, form.password, form.fullName);
       if (error) toast.error(error);
-      else toast.success("Account created! Check your email if confirmation is required.");
+      else {
+        setPendingEmail(form.email);
+        setStep("verify");
+        toast.success(`We sent a 6-digit code to ${form.email}.`);
+      }
+    }
+    setLoading(false);
+  };
+
+  const verify = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await verifyEmailOtp(pendingEmail, code.trim());
+    if (error) {
+      toast.error(error);
+      setLoading(false);
+      return;
+    }
+    // verify-email confirms the address but doesn't create a session — sign in to land them in.
+    const signInRes = await signIn(pendingEmail, form.password);
+    if (signInRes.error) {
+      toast.success("Email verified! Please sign in.");
+      setStep("form");
+      setMode("signin");
+    } else {
+      toast.success("Email verified!");
     }
     setLoading(false);
   };
@@ -97,7 +133,65 @@ function AuthPage() {
             <ArrowLeft className="size-4" /> Back to shop
           </Link>
 
-          <div>
+          {step === "verify" ? (
+            <div className="space-y-6">
+              <div>
+                <h1 className="font-display font-bold text-3xl">Verify your email</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Enter the 6-digit code we sent to{" "}
+                  <span className="font-medium text-foreground">{pendingEmail}</span>.
+                </p>
+              </div>
+              <form onSubmit={verify} className="space-y-4">
+                <div>
+                  <Label htmlFor="code">Verification code</Label>
+                  <Input
+                    id="code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    className="text-center text-2xl tracking-[0.5em] font-bold"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || code.length < 6}
+                  size="lg"
+                  className="w-full rounded-full font-bold"
+                >
+                  {loading ? "Verifying..." : "Verify email"}
+                </Button>
+              </form>
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const { error } = await resendOtp(pendingEmail);
+                    if (error) toast.error(error);
+                    else toast.success("Code resent.");
+                  }}
+                  className="text-brand font-medium hover:underline"
+                >
+                  Resend code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setCode("");
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Use a different email
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div>
             <h1 className="font-display font-bold text-3xl">
               {mode === "signin" ? "Sign in to your account" : "Create your account"}
             </h1>
@@ -257,6 +351,8 @@ function AuthPage() {
               </>
             )}
           </p>
+            </>
+          )}
         </div>
       </div>
     </div>

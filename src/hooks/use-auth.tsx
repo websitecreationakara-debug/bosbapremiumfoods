@@ -15,6 +15,8 @@ type AuthCtx = {
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
+  verifyEmailOtp: (email: string, otp: string) => Promise<{ error: string | null }>;
+  resendOtp: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -45,6 +47,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
+  const verifyEmailOtp: AuthCtx["verifyEmailOtp"] = async (email, otp) => {
+    const { error } = await authClient.emailOtp.verifyEmail({ email, otp });
+    return { error: error?.message ?? null };
+  };
+
+  const resendOtp: AuthCtx["resendOtp"] = async (email) => {
+    const { error } = await authClient.emailOtp.sendVerificationOtp({
+      email,
+      type: "email-verification",
+    });
+    return { error: error?.message ?? null };
+  };
+
   const signOut = async () => {
     await authClient.signOut();
   };
@@ -58,6 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signIn,
         signUp,
         signInWithGoogle,
+        verifyEmailOtp,
+        resendOtp,
         signOut,
       }}
     >
