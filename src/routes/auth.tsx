@@ -13,13 +13,23 @@ export const Route = createFileRoute("/auth")({
 });
 
 function AuthPage() {
-  const { user, signIn, signUp, signInWithGoogle, verifyEmailOtp, resendOtp } = useAuth();
+  const {
+    user,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    verifyEmailOtp,
+    resendOtp,
+    requestPasswordReset,
+    resetPasswordWithOtp,
+  } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [step, setStep] = useState<"form" | "verify">("form");
+  const [step, setStep] = useState<"form" | "verify" | "reset-request" | "reset-verify">("form");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", fullName: "", agree: false });
   const [code, setCode] = useState("");
+  const [newPw, setNewPw] = useState("");
   const [pendingEmail, setPendingEmail] = useState("");
 
   useEffect(() => {
@@ -90,6 +100,45 @@ function AuthPage() {
       setMode("signin");
     } else {
       toast.success("Email verified!");
+    }
+    setLoading(false);
+  };
+
+  const requestReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = form.email.trim();
+    if (!email) return toast.error("Enter your email.");
+    setLoading(true);
+    const { error } = await requestPasswordReset(email);
+    setLoading(false);
+    if (error) return toast.error(error);
+    setPendingEmail(email);
+    setCode("");
+    setNewPw("");
+    setStep("reset-verify");
+    toast.success(`We sent a reset code to ${email}.`);
+  };
+
+  const doReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPw.length < 8) return toast.error("Password must be at least 8 characters.");
+    setLoading(true);
+    const { error } = await resetPasswordWithOtp(pendingEmail, code.trim(), newPw);
+    if (error) {
+      toast.error(error);
+      setLoading(false);
+      return;
+    }
+    // Reset verifies the email too, so signing in straight away works.
+    const signInRes = await signIn(pendingEmail, newPw);
+    if (signInRes.error) {
+      toast.success("Password reset! Please sign in.");
+      setStep("form");
+      setMode("signin");
+      setCode("");
+      setNewPw("");
+    } else {
+      toast.success("Password reset!");
     }
     setLoading(false);
   };
@@ -186,6 +235,111 @@ function AuthPage() {
                   className="text-muted-foreground hover:text-foreground"
                 >
                   Use a different email
+                </button>
+              </div>
+            </div>
+          ) : step === "reset-request" ? (
+            <div className="space-y-6">
+              <div>
+                <h1 className="font-display font-bold text-3xl">Reset your password</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Enter your account email and we'll send you a 6-digit code.
+                </p>
+              </div>
+              <form onSubmit={requestReset} className="space-y-4">
+                <div>
+                  <Label htmlFor="reset-email">Email</Label>
+                  <Input
+                    id="reset-email"
+                    type="email"
+                    required
+                    value={form.email}
+                    onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  size="lg"
+                  className="w-full rounded-full font-bold"
+                >
+                  {loading ? "Sending..." : "Send reset code"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => setStep("form")}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : step === "reset-verify" ? (
+            <div className="space-y-6">
+              <div>
+                <h1 className="font-display font-bold text-3xl">Set a new password</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Enter the 6-digit code we sent to{" "}
+                  <span className="font-medium text-foreground">{pendingEmail}</span> and your new
+                  password.
+                </p>
+              </div>
+              <form onSubmit={doReset} className="space-y-4">
+                <div>
+                  <Label htmlFor="reset-code">Verification code</Label>
+                  <Input
+                    id="reset-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    className="text-center text-2xl tracking-[0.5em] font-bold"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="reset-newpw">New password</Label>
+                  <Input
+                    id="reset-newpw"
+                    type="password"
+                    required
+                    placeholder="At least 8 characters"
+                    value={newPw}
+                    onChange={(e) => setNewPw(e.target.value)}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || code.length < 6}
+                  size="lg"
+                  className="w-full rounded-full font-bold"
+                >
+                  {loading ? "Resetting..." : "Reset password"}
+                </Button>
+              </form>
+              <div className="flex items-center justify-between text-sm">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const { error } = await requestPasswordReset(pendingEmail);
+                    if (error) toast.error(error);
+                    else toast.success("Code resent.");
+                  }}
+                  className="text-brand font-medium hover:underline"
+                >
+                  Resend code
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setStep("form");
+                    setCode("");
+                    setNewPw("");
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  Back to sign in
                 </button>
               </div>
             </div>
@@ -293,9 +447,13 @@ function AuthPage() {
                 <label className="flex items-center gap-2">
                   <Checkbox /> Remember me
                 </label>
-                <a href="#" className="text-brand font-medium hover:underline">
+                <button
+                  type="button"
+                  onClick={() => setStep("reset-request")}
+                  className="text-brand font-medium hover:underline"
+                >
                   Forgot password?
-                </a>
+                </button>
               </div>
             ) : (
               <label className="flex items-start gap-2 text-sm">
