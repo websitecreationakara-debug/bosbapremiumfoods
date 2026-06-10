@@ -21,7 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Ban, Check, KeyRound, Trash2, UserPlus } from "lucide-react";
+import { Ban, Check, KeyRound, MailCheck, MailX, Trash2, UserPlus } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/users")({ component: UsersAdmin });
@@ -32,6 +32,7 @@ type AdminUser = {
   email: string;
   role?: string | null;
   banned?: boolean | null;
+  emailVerified?: boolean | null;
   createdAt: string | Date;
 };
 
@@ -71,6 +72,16 @@ function UsersAdmin() {
       : await authClient.admin.banUser({ userId: u.id });
     if (res.error) return toast.error(res.error.message ?? "Failed to update");
     toast.success(u.banned ? "User unbanned" : "User banned");
+    refresh();
+  };
+
+  const toggleVerified = async (u: AdminUser) => {
+    const res = await authClient.admin.updateUser({
+      userId: u.id,
+      data: { emailVerified: !u.emailVerified },
+    });
+    if (res.error) return toast.error(res.error.message ?? "Failed to update");
+    toast.success(u.emailVerified ? "Marked unverified" : "Email verified");
     refresh();
   };
 
@@ -116,11 +127,19 @@ function UsersAdmin() {
       userId: pwTarget.id,
       newPassword,
     });
+    if (res.error) {
+      setBusy(false);
+      return toast.error(res.error.message ?? "Failed to set password");
+    }
+    // A reset is useless if the account is still gated behind verification — un-gate it.
+    if (!pwTarget.emailVerified) {
+      await authClient.admin.updateUser({ userId: pwTarget.id, data: { emailVerified: true } });
+    }
     setBusy(false);
-    if (res.error) return toast.error(res.error.message ?? "Failed to set password");
     toast.success(`Password updated for ${pwTarget.email}`);
     setPwTarget(null);
     setNewPassword("");
+    refresh();
   };
 
   return (
@@ -171,19 +190,38 @@ function UsersAdmin() {
                     </Select>
                   </td>
                   <td className="px-6 py-3">
-                    <span
-                      className={
-                        u.banned
-                          ? "px-2 py-0.5 rounded text-xs font-bold uppercase bg-destructive/10 text-destructive"
-                          : "px-2 py-0.5 rounded text-xs font-bold uppercase bg-muted"
-                      }
-                    >
-                      {u.banned ? "Banned" : "Active"}
-                    </span>
+                    <div className="flex flex-wrap gap-1">
+                      <span
+                        className={
+                          u.banned
+                            ? "px-2 py-0.5 rounded text-xs font-bold uppercase bg-destructive/10 text-destructive"
+                            : "px-2 py-0.5 rounded text-xs font-bold uppercase bg-muted"
+                        }
+                      >
+                        {u.banned ? "Banned" : "Active"}
+                      </span>
+                      {!u.emailVerified && (
+                        <span className="px-2 py-0.5 rounded text-xs font-bold uppercase bg-warning/10 text-warning">
+                          Unverified
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-3">{new Date(u.createdAt).toLocaleDateString()}</td>
                   <td className="px-6 py-3 text-right">
                     <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        title={u.emailVerified ? "Mark unverified" : "Verify email"}
+                        onClick={() => toggleVerified(u)}
+                      >
+                        {u.emailVerified ? (
+                          <MailX className="size-4" />
+                        ) : (
+                          <MailCheck className="size-4 text-brand" />
+                        )}
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
