@@ -14,7 +14,7 @@ function Home() {
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
   const featured = products.slice(0, 8);
-  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
     { icon: Truck, title: "Chilled Delivery", body: `Free shipping on orders over $${shipThreshold}` },

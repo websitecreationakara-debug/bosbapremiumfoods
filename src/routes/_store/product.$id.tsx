@@ -17,7 +17,7 @@ function ProductDetail() {
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const [qty, setQty] = useState(1);
-  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   if (isLoading) {
     return (

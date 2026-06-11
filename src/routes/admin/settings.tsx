@@ -16,7 +16,7 @@ function SettingsAdmin() {
   const [form, setForm] = useState({
     banner_text: "",
     global_discount_pct: "0",
-    free_shipping_threshold: "30",
+    free_shipping_threshold: "50",
   });
 
   useEffect(() => {
@@ -24,7 +24,7 @@ function SettingsAdmin() {
       setForm({
         banner_text: data.banner_text ?? "",
         global_discount_pct: String(data.global_discount_pct ?? 0),
-        free_shipping_threshold: String(data.free_shipping_threshold ?? 30),
+        free_shipping_threshold: String(data.free_shipping_threshold ?? 50),
       });
   }, [data]);
 

@@ -32,7 +32,7 @@ export function SiteHeader() {
   const { theme, toggle } = useTheme();
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
-  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   return (
     <>

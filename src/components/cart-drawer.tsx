@@ -9,7 +9,7 @@ import { Link } from "@tanstack/react-router";
 export function CartDrawer() {
   const { items, drawerOpen, setDrawerOpen, setQty, remove, subtotal } = useCart();
   const { data: settings } = useStoreSettings();
-  const threshold = settings?.free_shipping_threshold ?? 30;
+  const threshold = settings?.free_shipping_threshold ?? 50;
   const progress = Math.min((subtotal / Number(threshold)) * 100, 100);
   const remaining = Math.max(Number(threshold) - subtotal, 0);
 

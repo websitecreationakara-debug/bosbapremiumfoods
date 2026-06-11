@@ -20,7 +20,7 @@ function Checkout() {
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
 
-  const threshold = Number(settings?.free_shipping_threshold ?? 30);
+  const threshold = Number(settings?.free_shipping_threshold ?? 50);
   const shipping = subtotal >= threshold || subtotal === 0 ? 0 : 4.99;
   const total = subtotal + shipping;
 
