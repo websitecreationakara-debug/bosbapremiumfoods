@@ -37,7 +37,7 @@ const empty = {
   price: "0",
   sale_price: "",
   category_id: "",
-  stock: "0",
+  stock: "",
   status: "published",
   image_url: "",
   badge: "",
@@ -90,7 +90,7 @@ function ProductsAdmin() {
       price: String(p.price),
       sale_price: p.sale_price != null ? String(p.sale_price) : "",
       category_id: p.category_id ?? "",
-      stock: String(p.stock),
+      stock: p.stock > 0 ? String(p.stock) : "",
       status: p.status,
       image_url: p.image_url ?? "",
       badge: p.badge ?? "",
@@ -106,7 +106,7 @@ function ProductsAdmin() {
       price: Number(form.price),
       sale_price: form.sale_price ? Number(form.sale_price) : null,
       category_id: form.category_id || null,
-      stock: Number(form.stock),
+      stock: form.stock.trim() === "" ? 0 : Number(form.stock),
       status: form.status,
       image_url: form.image_url || null,
       badge: form.badge || null,
@@ -236,11 +236,11 @@ function ProductsAdmin() {
                 />
               </div>
               <div>
-                <Label>Stock (0 = in stock, no limit)</Label>
+                <Label>Stock (blank = in stock, no limit)</Label>
                 <Input
-                  required
                   type="number"
                   min="0"
+                  placeholder="Unlimited"
                   value={form.stock}
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 />
