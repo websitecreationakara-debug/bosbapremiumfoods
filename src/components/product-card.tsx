@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { Star, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
@@ -12,7 +13,11 @@ export function ProductCard({ product }: { product: Product }) {
     : 0;
 
   return (
-    <article className="group relative bg-card rounded-3xl border overflow-hidden hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-1 transition-all duration-500">
+    <Link
+      to="/product/$id"
+      params={{ id: product.id }}
+      className="group relative block bg-card rounded-3xl border overflow-hidden hover:shadow-2xl hover:shadow-brand/10 hover:-translate-y-1 transition-all duration-500"
+    >
       <div className="relative aspect-square overflow-hidden bg-muted">
         {product.image_url ? (
           <img
@@ -49,7 +54,15 @@ export function ProductCard({ product }: { product: Product }) {
         </div>
 
         <div className="absolute inset-x-3 bottom-3 translate-y-[120%] group-hover:translate-y-0 transition-transform duration-300">
-          <Button onClick={() => add(product)} size="sm" className="w-full rounded-full shadow-lg">
+          <Button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              add(product);
+            }}
+            size="sm"
+            className="w-full rounded-full shadow-lg"
+          >
             <ShoppingBag className="size-4 mr-1.5" /> Add to Cart
           </Button>
         </div>
@@ -76,6 +89,6 @@ export function ProductCard({ product }: { product: Product }) {
           )}
         </div>
       </div>
-    </article>
+    </Link>
   );
 }

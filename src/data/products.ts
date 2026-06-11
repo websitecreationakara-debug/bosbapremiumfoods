@@ -30,6 +30,13 @@ export const listProducts = createServerFn({ method: "GET" })
     return rows;
   });
 
+export const getProduct = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    const [row] = await getDb().select().from(products).where(eq(products.id, data.id));
+    return row ?? null;
+  });
+
 export const createProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput) => d)
   .handler(async ({ data }) => {
