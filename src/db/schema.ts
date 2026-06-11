@@ -30,6 +30,16 @@ export const products = sqliteTable("products", {
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 
+export const media = sqliteTable("media", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  key: text("key").notNull().unique(),
+  url: text("url").notNull(),
+  filename: text("filename").notNull(),
+  content_type: text("content_type"),
+  size: integer("size").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey().$defaultFn(uuid),
   user_id: text("user_id").notNull(),

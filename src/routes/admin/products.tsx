@@ -1,8 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useProducts, useCategories } from "@/hooks/use-products";
 import { createProduct, updateProduct, deleteProduct } from "@/data/products";
-import { useQueryClient } from "@tanstack/react-query";
+import { listMedia, uploadMedia } from "@/data/media";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,9 +22,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/lib/types";
+import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
   component: ProductsAdmin,
@@ -45,16 +46,43 @@ const empty = {
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
   const { data: categories = [] } = useCategories();
+  const { data: mediaItems = [] } = useQuery({
+    queryKey: ["media"],
+    queryFn: () => listMedia() as Promise<Media[]>,
+  });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
   const editing = !!form.id;
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [picker, setPicker] = useState(false);
+
+  const onUpload = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { url } = await uploadMedia({ data: fd });
+      setForm((f) => ({ ...f, image_url: url }));
+      qc.invalidateQueries({ queryKey: ["media"] });
+      toast.success("Image uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
+  };
 
   const openNew = () => {
     setForm(empty);
+    setPicker(false);
     setOpen(true);
   };
   const openEdit = (p: Product) => {
+    setPicker(false);
     setForm({
       id: p.id,
       title: p.title,
@@ -265,13 +293,96 @@ function ProductsAdmin() {
                 </Select>
               </div>
             </div>
-            <div>
-              <Label>Image URL</Label>
-              <Input
-                value={form.image_url}
-                onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                placeholder="https://..."
+            <div className="space-y-2">
+              <Label>Product image</Label>
+              <div className="flex items-start gap-3">
+                <div className="size-20 rounded-lg border bg-muted overflow-hidden shrink-0 relative">
+                  {form.image_url ? (
+                    <>
+                      <img
+                        src={form.image_url}
+                        alt=""
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setForm({ ...form, image_url: "" })}
+                        className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5"
+                        aria-label="Remove image"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    </>
+                  ) : (
+                    <div className="w-full h-full grid place-items-center text-muted-foreground">
+                      <ImageIcon className="size-6" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 space-y-2">
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={uploading}
+                      onClick={() => fileRef.current?.click()}
+                    >
+                      {uploading ? (
+                        <Loader2 className="size-4 mr-1.5 animate-spin" />
+                      ) : (
+                        <Upload className="size-4 mr-1.5" />
+                      )}
+                      Upload
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPicker((v) => !v)}
+                    >
+                      <ImageIcon className="size-4 mr-1.5" /> Media library
+                    </Button>
+                  </div>
+                  <Input
+                    value={form.image_url}
+                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
+                    placeholder="or paste a URL https://..."
+                  />
+                </div>
+              </div>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                hidden
+                onChange={(e) => onUpload(e.target.files?.[0])}
               />
+              {picker && (
+                <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
+                  {mediaItems.length === 0 ? (
+                    <p className="text-xs text-muted-foreground p-2">
+                      No media yet — upload an image first.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-5 gap-2">
+                      {mediaItems.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => {
+                            setForm((f) => ({ ...f, image_url: m.url }));
+                            setPicker(false);
+                          }}
+                          className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
+                        >
+                          <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <Button type="submit" className="w-full">
               {editing ? "Save changes" : "Create product"}

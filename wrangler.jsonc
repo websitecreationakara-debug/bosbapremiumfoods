@@ -16,5 +16,11 @@
       "database_id": "805a3495-3ef5-4861-81b6-cee0c2cb3d3b",
       "migrations_dir": "drizzle/migrations"
     }
+  ],
+  "r2_buckets": [
+    {
+      "binding": "MEDIA",
+      "bucket_name": "bosbapremiumfoods-media"
+    }
   ]
 }

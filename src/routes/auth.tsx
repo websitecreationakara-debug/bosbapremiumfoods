@@ -52,11 +52,13 @@ function AuthPage() {
     if (mode === "signin") {
       const { error } = await signIn(form.email, form.password);
       if (error) {
-        // Unverified accounts can't sign in yet — better-auth re-sends a code; go verify.
+        // Unverified accounts can't sign in yet — generate a fresh code, then go verify.
         if (/verif/i.test(error)) {
           setPendingEmail(form.email);
+          const { error: sendErr } = await resendOtp(form.email);
           setStep("verify");
-          toast.message("Verify your email — we sent a 6-digit code.");
+          if (sendErr) toast.error(sendErr);
+          else toast.message("Verify your email — we sent a 6-digit code.");
         } else {
           toast.error(error);
         }

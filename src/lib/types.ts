@@ -21,6 +21,16 @@ export type Category = {
   created_at: string;
 };
 
+export type Media = {
+  id: string;
+  key: string;
+  url: string;
+  filename: string;
+  content_type: string | null;
+  size: number;
+  created_at: string;
+};
+
 export type CartItem = {
   product: Product;
   qty: number;
