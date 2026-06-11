@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
 
 const uuid = () => crypto.randomUUID();
 const nowIso = () => new Date().toISOString();
@@ -37,6 +37,8 @@ export const media = sqliteTable("media", {
   filename: text("filename").notNull(),
   content_type: text("content_type"),
   size: integer("size").notNull().default(0),
+  // Image bytes live in D1 (no R2). Kept nullable so the column adds cleanly via ALTER.
+  data: blob("data", { mode: "buffer" }),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 

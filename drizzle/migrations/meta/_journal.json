@@ -15,6 +15,13 @@
       "when": 1781153474505,
       "tag": "0001_great_bloodstorm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1781162970786,
+      "tag": "0002_fat_shooting_star",
+      "breakpoints": true
     }
   ]
 }

@@ -1,14 +1,24 @@
 import { createServerFn } from "@tanstack/react-start";
-import { env } from "cloudflare:workers";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { media } from "@/db/schema";
 import { requireAdmin } from "./_auth";
 
-const MAX_BYTES = 5 * 1024 * 1024;
+const MAX_BYTES = 1024 * 1024;
+
+// Never select the `data` blob when listing — it would pull every image's bytes.
+const metaColumns = {
+  id: media.id,
+  key: media.key,
+  url: media.url,
+  filename: media.filename,
+  content_type: media.content_type,
+  size: media.size,
+  created_at: media.created_at,
+};
 
 export const listMedia = createServerFn({ method: "GET" }).handler(async () => {
-  return getDb().select().from(media).orderBy(desc(media.created_at));
+  return getDb().select(metaColumns).from(media).orderBy(desc(media.created_at));
 });
 
 export const uploadMedia = createServerFn({ method: "POST" })
@@ -21,14 +31,10 @@ export const uploadMedia = createServerFn({ method: "POST" })
     const file = data.get("file");
     if (!(file instanceof File)) throw new Error("No file provided");
     if (!file.type.startsWith("image/")) throw new Error("Only image files are allowed");
-    if (file.size > MAX_BYTES) throw new Error("Image must be 5 MB or smaller");
+    if (file.size > MAX_BYTES) throw new Error("Image must be 1 MB or smaller");
 
     const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
     const key = `${crypto.randomUUID()}.${ext}`;
-    await env.MEDIA.put(key, await file.arrayBuffer(), {
-      httpMetadata: { contentType: file.type },
-    });
-
     const url = `/media/${key}`;
     await getDb().insert(media).values({
       key,
@@ -36,6 +42,7 @@ export const uploadMedia = createServerFn({ method: "POST" })
       filename: file.name,
       content_type: file.type,
       size: file.size,
+      data: Buffer.from(await file.arrayBuffer()),
     });
     return { url, key };
   });
@@ -44,10 +51,6 @@ export const deleteMedia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
-    const db = getDb();
-    const [row] = await db.select().from(media).where(eq(media.id, data.id));
-    if (!row) return { ok: true };
-    await env.MEDIA.delete(row.key);
-    await db.delete(media).where(eq(media.id, data.id));
+    await getDb().delete(media).where(eq(media.id, data.id));
     return { ok: true };
   });

@@ -1,9 +1,11 @@
 import { createStart, createMiddleware, createCsrfMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { env } from "cloudflare:workers";
+import { eq } from "drizzle-orm";
 
 import { renderErrorPage } from "./lib/error-page";
 import { getAuth } from "./lib/auth";
+import { getDb } from "./db";
+import { media } from "./db/schema";
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -29,21 +31,20 @@ const authMiddleware = createMiddleware().server(async ({ next }) => {
   return next();
 });
 
-// Stream uploaded media straight from the R2 bucket so it serves from the same origin.
+// Serve uploaded media stored as BLOBs in D1, same-origin under /media/<key>.
 const mediaMiddleware = createMiddleware().server(async ({ next }) => {
   const request = getRequest();
   const { pathname } = new URL(request.url);
   if (!pathname.startsWith("/media/")) return next();
 
   const key = decodeURIComponent(pathname.slice("/media/".length));
-  const object = await env.MEDIA.get(key);
-  if (!object) return new Response("Not found", { status: 404 });
+  const [row] = await getDb().select().from(media).where(eq(media.key, key));
+  if (!row?.data) return new Response("Not found", { status: 404 });
 
-  return new Response(object.body, {
+  return new Response(row.data, {
     headers: {
-      "content-type": object.httpMetadata?.contentType ?? "application/octet-stream",
+      "content-type": row.content_type ?? "application/octet-stream",
       "cache-control": "public, max-age=31536000, immutable",
-      etag: object.httpEtag,
     },
   });
 });
