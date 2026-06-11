@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useProduct } from "@/hooks/use-products";
+import { useProduct, useStoreSettings } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -14,8 +14,10 @@ export const Route = createFileRoute("/_store/product/$id")({
 function ProductDetail() {
   const { id } = Route.useParams();
   const { data: product, isLoading } = useProduct(id);
+  const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const [qty, setQty] = useState(1);
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
 
   if (isLoading) {
     return (
@@ -158,7 +160,7 @@ function ProductDetail() {
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
             <Truck className="size-4 text-brand" />
-            Free chilled delivery on orders over $30.
+            {`Free chilled delivery on orders over $${shipThreshold}.`}
           </div>
         </div>
       </div>

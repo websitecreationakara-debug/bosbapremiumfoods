@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
-import { useCategories } from "@/hooks/use-products";
+import { useCategories, useStoreSettings } from "@/hooks/use-products";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,6 +31,8 @@ export function SiteHeader() {
   const { user, isAdmin, signOut } = useAuth();
   const { theme, toggle } = useTheme();
   const { data: categories = [] } = useCategories();
+  const { data: settings } = useStoreSettings();
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
 
   return (
     <>
@@ -46,7 +48,7 @@ export function SiteHeader() {
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="opacity-80">Free chilled delivery on orders over $50</span>
+            <span className="opacity-80">{`Free chilled delivery on orders over $${shipThreshold}`}</span>
             <button
               onClick={toggle}
               className="inline-flex items-center gap-1.5 hover:text-accent transition-colors"

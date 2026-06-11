@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
-import { useCategories, useProducts } from "@/hooks/use-products";
+import { useCategories, useProducts, useStoreSettings } from "@/hooks/use-products";
 import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -9,17 +9,19 @@ export const Route = createFileRoute("/_store/")({
   component: Home,
 });
 
-const features = [
-  { icon: Truck, title: "Chilled Delivery", body: "Free shipping on orders over $30" },
-  { icon: Fish, title: "Sashimi Grade", body: "Sourced from Japanese waters" },
-  { icon: ShieldCheck, title: "Quality Promise", body: "Inspected at the market at dawn" },
-  { icon: Snowflake, title: "Cold-Chain Fresh", body: "Packed on ice, shipped overnight" },
-];
-
 function Home() {
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { data: settings } = useStoreSettings();
   const featured = products.slice(0, 8);
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 30);
+
+  const features = [
+    { icon: Truck, title: "Chilled Delivery", body: `Free shipping on orders over $${shipThreshold}` },
+    { icon: Fish, title: "Sashimi Grade", body: "Sourced from Japanese waters" },
+    { icon: ShieldCheck, title: "Quality Promise", body: "Inspected at the market at dawn" },
+    { icon: Snowflake, title: "Cold-Chain Fresh", body: "Packed on ice, shipped overnight" },
+  ];
 
   return (
     <div className="space-y-20 pb-12">
