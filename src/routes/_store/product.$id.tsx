@@ -51,7 +51,6 @@ function ProductDetail() {
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
     : 0;
-  const inStock = product.stock > 0;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -108,8 +107,8 @@ function ProductDetail() {
               {product.rating ?? 4.5}
             </span>
             <span className="opacity-50">·</span>
-            <span className={inStock ? "text-success font-medium" : "text-destructive font-medium"}>
-              {inStock ? `In stock (${product.stock})` : "Out of stock"}
+            <span className="text-success font-medium">
+              {product.stock > 0 ? `In stock (${product.stock})` : "In stock"}
             </span>
           </div>
 
@@ -149,12 +148,11 @@ function ProductDetail() {
             </div>
             <Button
               size="lg"
-              disabled={!inStock}
               onClick={() => add(product, qty)}
               className="flex-1 rounded-full font-bold"
             >
               <ShoppingBag className="size-4 mr-2" />
-              {inStock ? "Add to Cart" : "Out of stock"}
+              Add to Cart
             </Button>
           </div>
 

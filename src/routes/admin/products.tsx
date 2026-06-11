@@ -172,7 +172,7 @@ function ProductsAdmin() {
                   </div>
                 </td>
                 <td className="px-6 py-3 font-bold">${(p.sale_price ?? p.price).toFixed(2)}</td>
-                <td className="px-6 py-3">{p.stock}</td>
+                <td className="px-6 py-3">{p.stock > 0 ? p.stock : "∞"}</td>
                 <td className="px-6 py-3">
                   <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">
                     {p.status}
@@ -236,10 +236,11 @@ function ProductsAdmin() {
                 />
               </div>
               <div>
-                <Label>Stock</Label>
+                <Label>Stock (0 = in stock, no limit)</Label>
                 <Input
                   required
                   type="number"
+                  min="0"
                   value={form.stock}
                   onChange={(e) => setForm({ ...form, stock: e.target.value })}
                 />

@@ -76,7 +76,7 @@ export function ProductCard({ product }: { product: Product }) {
           <Star className="size-3 fill-warning text-warning" />
           <span>{product.rating ?? 4.5}</span>
           <span className="opacity-50">·</span>
-          <span>{product.stock > 0 ? "In stock" : "Out of stock"}</span>
+          <span>In stock</span>
         </div>
         <div className="flex items-baseline gap-2 pt-1">
           <span className="font-display font-bold text-lg text-brand">
