@@ -41,6 +41,7 @@ const empty = {
   status: "published",
   image_url: "",
   badge: "",
+  rating: "4.5",
 };
 
 function ProductsAdmin() {
@@ -94,6 +95,7 @@ function ProductsAdmin() {
       status: p.status,
       image_url: p.image_url ?? "",
       badge: p.badge ?? "",
+      rating: p.rating != null ? String(p.rating) : "",
     });
     setOpen(true);
   };
@@ -110,6 +112,7 @@ function ProductsAdmin() {
       status: form.status,
       image_url: form.image_url || null,
       badge: form.badge || null,
+      rating: form.rating.trim() === "" ? null : Number(form.rating),
     };
     try {
       if (editing) await updateProduct({ data: { id: form.id, ...payload } });
@@ -292,6 +295,18 @@ function ProductsAdmin() {
                     <SelectItem value="ORGANIC">ORGANIC</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div>
+                <Label>Rating (0–5)</Label>
+                <Input
+                  type="number"
+                  step="0.1"
+                  min="0"
+                  max="5"
+                  placeholder="4.5"
+                  value={form.rating}
+                  onChange={(e) => setForm({ ...form, rating: e.target.value })}
+                />
               </div>
             </div>
             <div className="space-y-2">

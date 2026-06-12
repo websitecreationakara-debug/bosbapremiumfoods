@@ -14,6 +14,7 @@ type ProductInput = {
   status: string;
   image_url: string | null;
   badge: string | null;
+  rating: number | null;
 };
 
 export const listProducts = createServerFn({ method: "GET" })
