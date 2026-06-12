@@ -9,10 +9,21 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const createCategory = createServerFn({ method: "POST" })
-  .inputValidator((d: { name: string; slug: string }) => d)
+  .inputValidator((d: { name: string; slug: string; image_url?: string | null }) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
     await getDb().insert(categories).values(data);
+    return { ok: true };
+  });
+
+export const updateCategory = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; image_url: string | null }) => d)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    await getDb()
+      .update(categories)
+      .set({ image_url: data.image_url })
+      .where(eq(categories.id, data.id));
     return { ok: true };
   });
 
