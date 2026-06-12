@@ -9,6 +9,7 @@ import {
   Users,
   Settings,
   Image,
+  GalleryHorizontalEnd,
   ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -19,6 +20,7 @@ export const Route = createFileRoute("/admin")({
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/banners", label: "Hero Banner", icon: GalleryHorizontalEnd },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },

@@ -22,6 +22,21 @@ export type Category = {
   created_at: string;
 };
 
+export type HeroSlide = {
+  id: string;
+  eyebrow: string | null;
+  title_top: string | null;
+  title_accent: string | null;
+  title_bottom: string | null;
+  body: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  cta_link: string;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+};
+
 export type Media = {
   id: string;
   key: string;

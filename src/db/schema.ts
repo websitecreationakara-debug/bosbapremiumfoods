@@ -15,6 +15,21 @@ export const categories = sqliteTable("categories", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
+export const hero_slides = sqliteTable("hero_slides", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  eyebrow: text("eyebrow"),
+  title_top: text("title_top"),
+  title_accent: text("title_accent"),
+  title_bottom: text("title_bottom"),
+  body: text("body"),
+  image_url: text("image_url"),
+  cta_label: text("cta_label"),
+  cta_link: text("cta_link").notNull().default("/shop"),
+  sort_order: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const products = sqliteTable("products", {
   id: text("id").primaryKey().$defaultFn(uuid),
   title: text("title").notNull(),

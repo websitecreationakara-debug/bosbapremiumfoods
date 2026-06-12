@@ -1,39 +1,18 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles } from "lucide-react";
-import { Link } from "@tanstack/react-router";
-
-const slides = [
-  {
-    eyebrow: "Sashimi Grade",
-    title: ["Ocean", "Fresh", "Catch."],
-    body: "Sashimi-grade seafood flown from Japanese waters to your door.",
-    image: "https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=1200&q=80",
-    cta: "Shop the Catch",
-  },
-  {
-    eyebrow: "Tsukiji Select",
-    title: ["Premium", "Bluefin", "Tuna."],
-    body: "Hand-cut at the market at dawn. The deepest cuts of the season.",
-    image: "https://images.unsplash.com/photo-1535007813616-79dc02ba4021?w=1200&q=80",
-    cta: "Browse Tuna",
-  },
-  {
-    eyebrow: "Limited Offer",
-    title: ["Save", "30%", "on Uni."],
-    body: "Sea urchin, scallops, and ikura — packed fresh on ice, shipped overnight.",
-    image: "https://images.unsplash.com/photo-1607301405390-d831c242f59b?w=1200&q=80",
-    cta: "Shop the Sale",
-  },
-];
+import { useHeroSlides } from "@/hooks/use-products";
 
 export function HeroSlider() {
+  const { data: slides = [] } = useHeroSlides();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
+    if (slides.length === 0) return;
+    setActive((a) => a % slides.length);
     const id = setInterval(() => setActive((a) => (a + 1) % slides.length), 6500);
     return () => clearInterval(id);
-  }, []);
+  }, [slides.length]);
 
   // Countdown to next midnight
   const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
@@ -55,27 +34,34 @@ export function HeroSlider() {
   }, []);
 
   const s = slides[active];
+  if (!s) return null;
 
   return (
     <section className="px-6 mx-auto max-w-7xl">
       <div className="relative rounded-[2.5rem] overflow-hidden bg-brand min-h-[480px] md:min-h-[560px] grid md:grid-cols-2">
         <div className="relative z-10 p-10 md:p-16 flex flex-col justify-center">
-          <span className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 bg-accent/20 text-accent rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-            <Sparkles className="size-3" /> {s.eyebrow}
-          </span>
+          {s.eyebrow && (
+            <span className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 bg-accent/20 text-accent rounded-full text-xs font-bold uppercase tracking-widest mb-6">
+              <Sparkles className="size-3" /> {s.eyebrow}
+            </span>
+          )}
           <h1 className="font-display font-bold text-5xl md:text-7xl text-brand-foreground leading-[1.05] mb-6">
-            {s.title[0]} <br />
-            <span className="italic text-accent">{s.title[1]}</span> {s.title[2]}
+            {s.title_top}
+            {s.title_top && <br />}
+            {s.title_accent && <span className="italic text-accent">{s.title_accent}</span>}{" "}
+            {s.title_bottom}
           </h1>
-          <p className="text-brand-foreground/75 text-lg max-w-md mb-8">{s.body}</p>
+          {s.body && <p className="text-brand-foreground/75 text-lg max-w-md mb-8">{s.body}</p>}
 
-          <div className="flex flex-wrap items-center gap-4 mb-8">
-            <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
-              <Link to="/shop">
-                {s.cta} <ArrowRight className="size-4 ml-2" />
-              </Link>
-            </Button>
-          </div>
+          {s.cta_label && (
+            <div className="flex flex-wrap items-center gap-4 mb-8">
+              <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
+                <a href={s.cta_link}>
+                  {s.cta_label} <ArrowRight className="size-4 ml-2" />
+                </a>
+              </Button>
+            </div>
+          )}
 
           <div className="flex items-center gap-3 text-brand-foreground/80">
             <span className="text-xs uppercase tracking-widest font-bold">Deal ends in</span>
@@ -100,8 +86,8 @@ export function HeroSlider() {
         <div className="relative min-h-[300px] md:min-h-[560px]">
           {slides.map((slide, i) => (
             <img
-              key={i}
-              src={slide.image}
+              key={slide.id}
+              src={slide.image_url ?? ""}
               alt=""
               loading={i === 0 ? "eager" : "lazy"}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === active ? "opacity-100" : "opacity-0"}`}
