@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listMedia, uploadMedia, deleteMedia } from "@/data/media";
+import { compressImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
 import { Upload, Trash2, Copy, Loader2 } from "lucide-react";
 import { toast } from "sonner";
@@ -26,7 +27,7 @@ function MediaAdmin() {
     try {
       for (const file of Array.from(files)) {
         const fd = new FormData();
-        fd.append("file", file);
+        fd.append("file", await compressImage(file));
         await uploadMedia({ data: fd });
       }
       toast.success(files.length > 1 ? `${files.length} images uploaded` : "Image uploaded");

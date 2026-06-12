@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCategories } from "@/hooks/use-products";
 import { createCategory, updateCategory, deleteCategory } from "@/data/categories";
 import { listMedia, uploadMedia } from "@/data/media";
+import { compressImage } from "@/lib/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -69,7 +70,7 @@ function CategoriesAdmin() {
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", await compressImage(file));
       const { url } = await uploadMedia({ data: fd });
       setImageUrl(url);
       qc.invalidateQueries({ queryKey: ["media"] });

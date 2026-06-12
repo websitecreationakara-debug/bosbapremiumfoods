@@ -4,7 +4,9 @@ import { getDb } from "@/db";
 import { media } from "@/db/schema";
 import { requireAdmin } from "./_auth";
 
-const MAX_BYTES = 1024 * 1024;
+// D1's hard limit is 2,000,000 bytes per row/BLOB; stay safely under it.
+// Large originals are downscaled client-side (src/lib/image.ts) before hitting this.
+const MAX_BYTES = 1_900_000;
 
 // Never select the `data` blob when listing — it would pull every image's bytes.
 const metaColumns = {
@@ -31,7 +33,8 @@ export const uploadMedia = createServerFn({ method: "POST" })
     const file = data.get("file");
     if (!(file instanceof File)) throw new Error("No file provided");
     if (!file.type.startsWith("image/")) throw new Error("Only image files are allowed");
-    if (file.size > MAX_BYTES) throw new Error("Image must be 1 MB or smaller");
+    if (file.size > MAX_BYTES)
+      throw new Error("Image is too large even after compression — try a smaller one");
 
     const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
     const key = `${crypto.randomUUID()}.${ext}`;

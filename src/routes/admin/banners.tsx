@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useHeroSlides } from "@/hooks/use-products";
 import { createHeroSlide, updateHeroSlide, deleteHeroSlide } from "@/data/banners";
 import { listMedia, uploadMedia } from "@/data/media";
+import { compressImage } from "@/lib/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,7 +61,7 @@ function BannersAdmin() {
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append("file", file);
+      fd.append("file", await compressImage(file));
       const { url } = await uploadMedia({ data: fd });
       setForm((f) => ({ ...f, image_url: url }));
       qc.invalidateQueries({ queryKey: ["media"] });
