@@ -66,24 +66,17 @@ function Home() {
                 <img
                   src={c.image_url}
                   alt=""
-                  className="absolute inset-0 w-full h-full object-cover transition-transform group-hover:scale-105"
+                  className="size-16 object-contain drop-shadow-md transition-transform group-hover:scale-110 group-hover:-rotate-6"
                 />
               ) : (
                 <span className="text-3xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
               )}
-              <div className="relative">
-                {c.image_url && (
-                  <span className="absolute -inset-x-5 -bottom-5 -top-8 bg-gradient-to-t from-black/70 to-transparent rounded-b-3xl" />
-                )}
-                <div className={c.image_url ? "relative text-white" : undefined}>
-                  <p className="font-display font-bold text-sm">{c.name}</p>
-                  <p
-                    className={`text-xs mt-1 flex items-center gap-1 ${c.image_url ? "text-white/80" : "text-muted-foreground"}`}
-                  >
-                    Shop{" "}
-                    <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
-                  </p>
-                </div>
+              <div>
+                <p className="font-display font-bold text-sm">{c.name}</p>
+                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                  Shop{" "}
+                  <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
+                </p>
               </div>
             </Link>
           ))}
