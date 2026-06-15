@@ -3,6 +3,7 @@ import { listProducts, getProduct } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
 import { getSettings } from "@/data/settings";
+import { countPendingOrders } from "@/data/orders";
 import type { Product, Category, HeroSlide, StoreSettings } from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
@@ -38,5 +39,15 @@ export function useStoreSettings() {
   return useQuery({
     queryKey: ["store_settings"],
     queryFn: () => getSettings() as Promise<StoreSettings | null>,
+  });
+}
+
+export function usePendingOrderCount(enabled: boolean) {
+  return useQuery({
+    queryKey: ["orders-pending-count"],
+    queryFn: () => countPendingOrders() as Promise<number>,
+    enabled,
+    refetchInterval: 30000,
+    refetchIntervalInBackground: true,
   });
 }

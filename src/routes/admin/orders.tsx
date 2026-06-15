@@ -17,6 +17,7 @@ function OrdersAdmin() {
   const { data: orders = [] } = useQuery({
     queryKey: ["orders-admin"],
     queryFn: () => listOrders(),
+    refetchInterval: 30000,
   });
 
   const setStatus = async (id: string, status: string) => {
@@ -26,6 +27,7 @@ function OrdersAdmin() {
       return toast.error(err instanceof Error ? err.message : "Failed to update status");
     }
     qc.invalidateQueries({ queryKey: ["orders-admin"] });
+    qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
   };
 
   return (
@@ -36,6 +38,7 @@ function OrdersAdmin() {
           <thead className="bg-muted text-xs uppercase tracking-widest text-muted-foreground">
             <tr>
               <th className="text-left px-6 py-3">Order</th>
+              <th className="text-left px-6 py-3">Customer</th>
               <th className="text-left px-6 py-3">Date</th>
               <th className="text-left px-6 py-3">Items</th>
               <th className="text-left px-6 py-3">Total</th>
@@ -46,6 +49,17 @@ function OrdersAdmin() {
             {orders.map((o) => (
               <tr key={o.id} className="border-t">
                 <td className="px-6 py-3 font-mono text-xs">{o.id.slice(0, 8)}</td>
+                <td className="px-6 py-3">
+                  <div className="font-medium">{o.customer_name ?? "—"}</div>
+                  {o.customer_email && (
+                    <div className="text-xs text-muted-foreground">{o.customer_email}</div>
+                  )}
+                  {(o.address || o.city || o.postal_code) && (
+                    <div className="text-xs text-muted-foreground">
+                      {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
+                    </div>
+                  )}
+                </td>
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">{Array.isArray(o.items) ? o.items.length : 0}</td>
                 <td className="px-6 py-3 font-bold">${Number(o.total).toFixed(2)}</td>
@@ -67,7 +81,7 @@ function OrdersAdmin() {
             ))}
             {orders.length === 0 && (
               <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                   No orders yet
                 </td>
               </tr>

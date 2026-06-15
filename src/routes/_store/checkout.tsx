@@ -5,7 +5,7 @@ import { useStoreSettings } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createOrder } from "@/data/orders";
 import { toast } from "sonner";
 
@@ -19,6 +19,11 @@ function Checkout() {
   const { data: settings } = useStoreSettings();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const addressRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const postalRef = useRef<HTMLInputElement>(null);
 
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
   const shipping = subtotal >= threshold || subtotal === 0 ? 0 : 4.99;
@@ -42,6 +47,11 @@ function Checkout() {
             qty: i.qty,
             price: i.product.sale_price ?? i.product.price,
           })),
+          customer_name: nameRef.current?.value ?? "",
+          customer_email: emailRef.current?.value ?? "",
+          address: addressRef.current?.value ?? "",
+          city: cityRef.current?.value ?? "",
+          postal_code: postalRef.current?.value ?? "",
         },
       });
     } catch (err) {
@@ -76,23 +86,23 @@ function Checkout() {
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Full name</Label>
-              <Input required defaultValue={user?.name ?? ""} />
+              <Input ref={nameRef} required defaultValue={user?.name ?? ""} />
             </div>
             <div>
               <Label>Email</Label>
-              <Input required type="email" defaultValue={user?.email ?? ""} />
+              <Input ref={emailRef} required type="email" defaultValue={user?.email ?? ""} />
             </div>
             <div className="sm:col-span-2">
               <Label>Address</Label>
-              <Input required placeholder="123 Garden Lane" />
+              <Input ref={addressRef} required placeholder="123 Garden Lane" />
             </div>
             <div>
               <Label>City</Label>
-              <Input required />
+              <Input ref={cityRef} required />
             </div>
             <div>
               <Label>Postal code</Label>
-              <Input required />
+              <Input ref={postalRef} required />
             </div>
           </div>
         </section>

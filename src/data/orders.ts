@@ -1,10 +1,21 @@
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
+import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders } from "@/db/schema";
+import { notifyNewOrder } from "@/lib/notify";
 import { requireAdmin, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
+
+type CreateOrderInput = {
+  total: number;
+  items: OrderItem[];
+  customer_name: string;
+  customer_email: string;
+  address: string;
+  city: string;
+  postal_code: string;
+};
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,
@@ -18,19 +29,43 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const createOrder = createServerFn({ method: "POST" })
-  .inputValidator((d: { total: number; items: OrderItem[] }) => d)
+  .inputValidator((d: CreateOrderInput) => d)
   .handler(async ({ data }) => {
     const user = await requireUser();
-    await getDb()
+    const [row] = await getDb()
       .insert(orders)
       .values({
         user_id: user.id,
         total: data.total,
         status: "pending",
         items: JSON.stringify(data.items ?? []),
-      });
+        customer_name: data.customer_name?.trim() || user.name,
+        customer_email: data.customer_email?.trim() || user.email,
+        address: data.address?.trim() || null,
+        city: data.city?.trim() || null,
+        postal_code: data.postal_code?.trim() || null,
+      })
+      .returning();
+
+    await notifyNewOrder({
+      id: row.id,
+      total: row.total,
+      items: data.items ?? [],
+      customer_name: row.customer_name,
+      customer_email: row.customer_email,
+      address: row.address,
+      city: row.city,
+      postal_code: row.postal_code,
+    });
+
     return { ok: true };
   });
+
+export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
+  await requireAdmin();
+  const [r] = await getDb().select({ n: count() }).from(orders).where(eq(orders.status, "pending"));
+  return r?.n ?? 0;
+});
 
 export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; status: string }) => d)

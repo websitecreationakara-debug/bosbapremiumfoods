@@ -1,6 +1,9 @@
 import { createFileRoute, Link, useNavigate, Outlet, useRouterState } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
+import { usePendingOrderCount } from "@/hooks/use-products";
+import { playChime } from "@/lib/chime";
 import {
   LayoutDashboard,
   Package,
@@ -34,9 +37,21 @@ function AdminLayout() {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
+  const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isAdmin);
+  const prevCount = useRef<number | null>(null);
+
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) navigate({ to: "/" });
   }, [loading, user, isAdmin, navigate]);
+
+  useEffect(() => {
+    // Alert only on an actual increase, never on first load.
+    if (prevCount.current !== null && pendingCount > prevCount.current) {
+      playChime();
+      toast.success(`🛎️ New order! ${pendingCount} pending.`, { duration: 6000 });
+    }
+    prevCount.current = pendingCount;
+  }, [pendingCount]);
 
   if (loading || !user || !isAdmin) {
     return (
@@ -60,6 +75,7 @@ function AdminLayout() {
         <nav className="flex-1 space-y-1">
           {nav.map((n) => {
             const active = "exact" in n && n.exact ? path === n.to : path.startsWith(n.to);
+            const badge = n.to === "/admin/orders" ? pendingCount : 0;
             return (
               <Link
                 key={n.to}
@@ -71,7 +87,13 @@ function AdminLayout() {
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent",
                 )}
               >
-                <n.icon className="size-4" /> {n.label}
+                <n.icon className="size-4" />
+                <span className="flex-1">{n.label}</span>
+                {badge > 0 && (
+                  <span className="inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full bg-destructive text-destructive-foreground text-xs font-bold">
+                    {badge}
+                  </span>
+                )}
               </Link>
             );
           })}

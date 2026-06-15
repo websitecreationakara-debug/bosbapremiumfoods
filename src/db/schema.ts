@@ -61,6 +61,13 @@ export const media = sqliteTable("media", {
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey().$defaultFn(uuid),
   user_id: text("user_id").notNull(),
+  // Customer contact + delivery captured at checkout. Nullable so the columns
+  // add cleanly via ALTER to pre-existing rows.
+  customer_name: text("customer_name"),
+  customer_email: text("customer_email"),
+  address: text("address"),
+  city: text("city"),
+  postal_code: text("postal_code"),
   // JSON array of line items, stored as text (parsed/stringified in the app layer).
   items: text("items").notNull().default("[]"),
   status: text("status").notNull().default("pending"),
