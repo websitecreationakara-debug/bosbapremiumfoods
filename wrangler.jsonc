@@ -13,7 +13,7 @@
     {
       "binding": "DB",
       "database_name": "bosbapremiumfoods",
-      "database_id": "805a3495-3ef5-4861-81b6-cee0c2cb3d3b",
+      "database_id": "7ba2d42f-28f8-4fa2-bde6-8f7b4f65327b",
       "migrations_dir": "drizzle/migrations"
     }
   ]

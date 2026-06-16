@@ -20,6 +20,10 @@ dist-ssr
 .wrangler/
 .dev.vars
 
+# D1 database dumps / backups (contain auth tokens + password hashes — never commit)
+d1-backup-*.sql
+d1-restore-*.sql
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
