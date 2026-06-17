@@ -112,6 +112,12 @@ function ProductDetail() {
             <span className="text-success font-medium">
               {product.stock > 0 ? `In stock (${product.stock})` : "In stock"}
             </span>
+            {product.weight && (
+              <>
+                <span className="opacity-50">·</span>
+                <span>{product.weight}</span>
+              </>
+            )}
           </div>
 
           <div className="flex items-baseline gap-3 mt-5">

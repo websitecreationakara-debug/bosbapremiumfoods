@@ -42,6 +42,7 @@ export const products = sqliteTable("products", {
   image_url: text("image_url"),
   badge: text("badge"),
   rating: real("rating").default(4.5),
+  weight: text("weight"),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });

@@ -10,6 +10,7 @@ export type Product = {
   image_url: string | null;
   badge: string | null;
   rating: number | null;
+  weight: string | null;
   created_at: string;
   updated_at: string;
 };

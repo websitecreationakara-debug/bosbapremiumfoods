@@ -43,6 +43,7 @@ const empty = {
   image_url: "",
   badge: "",
   rating: "4.5",
+  weight: "",
 };
 
 function ProductsAdmin() {
@@ -97,6 +98,7 @@ function ProductsAdmin() {
       image_url: p.image_url ?? "",
       badge: p.badge ?? "",
       rating: p.rating != null ? String(p.rating) : "",
+      weight: p.weight ?? "",
     });
     setOpen(true);
   };
@@ -114,6 +116,7 @@ function ProductsAdmin() {
       image_url: form.image_url || null,
       badge: form.badge || null,
       rating: form.rating.trim() === "" ? null : Number(form.rating),
+      weight: form.weight.trim() === "" ? null : form.weight.trim(),
     };
     try {
       if (editing) await updateProduct({ data: { id: form.id, ...payload } });
@@ -157,6 +160,7 @@ function ProductsAdmin() {
             <tr>
               <th className="text-left px-6 py-3">Product</th>
               <th className="text-left px-6 py-3">Price</th>
+              <th className="text-left px-6 py-3">Weight</th>
               <th className="text-left px-6 py-3">Stock</th>
               <th className="text-left px-6 py-3">Status</th>
               <th className="px-6 py-3"></th>
@@ -176,6 +180,7 @@ function ProductsAdmin() {
                   </div>
                 </td>
                 <td className="px-6 py-3 font-bold">${(p.sale_price ?? p.price).toFixed(2)}</td>
+                <td className="px-6 py-3 text-muted-foreground">{p.weight || "—"}</td>
                 <td className="px-6 py-3">{p.stock > 0 ? p.stock : "∞"}</td>
                 <td className="px-6 py-3">
                   <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">
@@ -307,6 +312,14 @@ function ProductsAdmin() {
                   placeholder="4.5"
                   value={form.rating}
                   onChange={(e) => setForm({ ...form, rating: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Weight</Label>
+                <Input
+                  placeholder="e.g. 250g, 1kg"
+                  value={form.weight}
+                  onChange={(e) => setForm({ ...form, weight: e.target.value })}
                 />
               </div>
             </div>
