@@ -2,23 +2,40 @@ import { useState, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useHeroSlides } from "@/hooks/use-products";
+import type { HeroSlide } from "@/lib/types";
 
 const FALLBACK_IMAGE =
   "https://images.unsplash.com/photo-1553621042-f6e147245754?w=1400&q=80";
+
+const FALLBACK_SLIDE: HeroSlide = {
+  id: "fallback",
+  eyebrow: null,
+  title_top: "Premium",
+  title_accent: "Bluefin Tuna",
+  title_bottom: null,
+  body: "Hand-cut at the market at dawn.\nThe deepest cuts of the season.",
+  image_url: FALLBACK_IMAGE,
+  cta_label: "Browse Tuna",
+  cta_link: "/shop",
+  sort_order: 0,
+  active: true,
+  created_at: "",
+};
 
 export function HeroSlider() {
   const { data: slides = [] } = useHeroSlides();
   const [active, setActive] = useState(0);
 
-  useEffect(() => {
-    if (slides.length <= 1) return;
-    setActive((a) => a % slides.length);
-    const id = setInterval(() => setActive((a) => (a + 1) % slides.length), 6500);
-    return () => clearInterval(id);
-  }, [slides.length]);
+  const list = slides.length > 0 ? slides : [FALLBACK_SLIDE];
 
-  const s = slides[active];
-  if (!s) return null;
+  useEffect(() => {
+    if (list.length <= 1) return;
+    setActive((a) => a % list.length);
+    const id = setInterval(() => setActive((a) => (a + 1) % list.length), 6500);
+    return () => clearInterval(id);
+  }, [list.length]);
+
+  const s = list[active] ?? list[0];
 
   const lineOne = s.title_top || "Premium";
   const lineTwo = [s.title_accent || "Bluefin Tuna", s.title_bottom].filter(Boolean).join(" ");
@@ -52,17 +69,17 @@ export function HeroSlider() {
               {sub}
             </p>
 
-            <Link
-              to={ctaLink}
+            <a
+              href={ctaLink}
               className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-bold text-brand-foreground transition-colors hover:bg-secondary-accent"
             >
               {ctaLabel} <ArrowRight className="size-4" />
-            </Link>
+            </a>
           </div>
 
-          {slides.length > 1 && (
+          {list.length > 1 && (
             <div className="flex gap-2 self-start">
-              {slides.map((_, i) => (
+              {list.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => setActive(i)}
@@ -78,7 +95,7 @@ export function HeroSlider() {
 
         {/* Right — full-bleed photography, halves meet flush */}
         <div className="relative min-h-[320px] bg-black md:min-h-full">
-          {slides.map((slide, i) => (
+          {list.map((slide, i) => (
             <img
               key={slide.id}
               src={slide.image_url || FALLBACK_IMAGE}
