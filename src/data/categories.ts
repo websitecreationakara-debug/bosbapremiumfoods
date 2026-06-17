@@ -9,7 +9,9 @@ export const listCategories = createServerFn({ method: "GET" }).handler(async ()
 });
 
 export const createCategory = createServerFn({ method: "POST" })
-  .inputValidator((d: { name: string; slug: string; image_url?: string | null }) => d)
+  .inputValidator(
+    (d: { name: string; slug: string; image_url?: string | null; parent_id?: string | null }) => d,
+  )
   .handler(async ({ data }) => {
     await requireAdmin();
     await getDb().insert(categories).values(data);
@@ -18,7 +20,13 @@ export const createCategory = createServerFn({ method: "POST" })
 
 export const updateCategory = createServerFn({ method: "POST" })
   .inputValidator(
-    (d: { id: string; image_url?: string | null; name?: string; slug?: string }) => d,
+    (d: {
+      id: string;
+      image_url?: string | null;
+      name?: string;
+      slug?: string;
+      parent_id?: string | null;
+    }) => d,
   )
   .handler(async ({ data }) => {
     await requireAdmin();
@@ -33,6 +41,12 @@ export const deleteCategory = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
-    await getDb().delete(categories).where(eq(categories.id, data.id));
+    const db = getDb();
+    // Detach any children so they don't dangle, then delete the category.
+    await db
+      .update(categories)
+      .set({ parent_id: null })
+      .where(eq(categories.parent_id, data.id));
+    await db.delete(categories).where(eq(categories.id, data.id));
     return { ok: true };
   });

@@ -20,6 +20,7 @@ export type Category = {
   name: string;
   slug: string;
   image_url: string | null;
+  parent_id: string | null;
   created_at: string;
 };
 

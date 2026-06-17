@@ -12,6 +12,8 @@ export const categories = sqliteTable("categories", {
   name: text("name").notNull(),
   slug: text("slug").notNull().unique(),
   image_url: text("image_url"),
+  // Self-reference for parent/child hierarchy; null = top-level category.
+  parent_id: text("parent_id"),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 

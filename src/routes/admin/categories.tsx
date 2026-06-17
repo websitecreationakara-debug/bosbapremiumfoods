@@ -13,7 +13,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useRef, useState } from "react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Fragment, useRef, useState } from "react";
 import { Trash2, Upload, ImageIcon, Loader2, X, Pencil, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { Category, Media } from "@/lib/types";
@@ -34,9 +41,17 @@ function CategoriesAdmin() {
   });
   const qc = useQueryClient();
   const [name, setName] = useState("");
+  const [parentId, setParentId] = useState("");
 
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameValue, setRenameValue] = useState("");
+
+  // Top-level categories are valid parents (keeps the tree cycle-free).
+  const topLevel = categories.filter((c) => !c.parent_id);
+  const childrenOf = (id: string | null) =>
+    id === null
+      ? categories.filter((c) => !c.parent_id || !categories.some((p) => p.id === c.parent_id))
+      : categories.filter((c) => c.parent_id === id);
 
   const [editing, setEditing] = useState<Category | null>(null);
   const [imageUrl, setImageUrl] = useState("");
@@ -47,11 +62,24 @@ function CategoriesAdmin() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await createCategory({ data: { name, slug: slugify(name) } });
+      await createCategory({
+        data: { name, slug: slugify(name), parent_id: parentId || null },
+      });
     } catch (err) {
       return toast.error(err instanceof Error ? err.message : "Failed to add category");
     }
     setName("");
+    setParentId("");
+    qc.invalidateQueries({ queryKey: ["categories"] });
+  };
+
+  const reparent = async (c: Category, parent_id: string | null) => {
+    if (parent_id === (c.parent_id ?? null)) return;
+    try {
+      await updateCategory({ data: { id: c.id, parent_id } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to move category");
+    }
     qc.invalidateQueries({ queryKey: ["categories"] });
   };
 
@@ -117,77 +145,121 @@ function CategoriesAdmin() {
     setEditing(null);
   };
 
+  const renderRow = (c: Category, depth: number) => (
+    <div
+      className="flex items-center justify-between gap-3 px-5 py-3"
+      style={{ paddingLeft: 20 + depth * 28 }}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        {depth > 0 && <span className="text-muted-foreground shrink-0">↳</span>}
+        <button
+          type="button"
+          onClick={() => openImage(c)}
+          className="size-12 rounded-lg border bg-muted overflow-hidden shrink-0 grid place-items-center text-muted-foreground hover:ring-2 ring-brand"
+          aria-label="Set category image"
+        >
+          {c.image_url ? (
+            <img src={c.image_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <ImageIcon className="size-5" />
+          )}
+        </button>
+        {renaming === c.id ? (
+          <Input
+            autoFocus
+            value={renameValue}
+            onChange={(e) => setRenameValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") saveRename(c);
+              if (e.key === "Escape") setRenaming(null);
+            }}
+            className="h-9 w-48"
+          />
+        ) : (
+          <div className="min-w-0">
+            <p className="font-medium truncate">{c.name}</p>
+            <p className="text-xs text-muted-foreground truncate">{c.slug}</p>
+          </div>
+        )}
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <Select
+          value={c.parent_id ?? "none"}
+          onValueChange={(v) => reparent(c, v === "none" ? null : v)}
+        >
+          <SelectTrigger className="h-9 w-36 text-xs">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Top level</SelectItem>
+            {categories
+              .filter((p) => p.id !== c.id && !p.parent_id)
+              .map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.name}
+                </SelectItem>
+              ))}
+          </SelectContent>
+        </Select>
+        {renaming === c.id ? (
+          <Button variant="outline" size="sm" onClick={() => saveRename(c)}>
+            <Check className="size-4 mr-1.5" /> Save
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => startRename(c)}
+            aria-label="Rename category"
+          >
+            <Pencil className="size-4" />
+          </Button>
+        )}
+        <Button variant="ghost" size="icon" onClick={() => openImage(c)} aria-label="Image">
+          <ImageIcon className="size-4" />
+        </Button>
+        <Button variant="ghost" size="icon" onClick={() => del(c.id)}>
+          <Trash2 className="size-4 text-destructive" />
+        </Button>
+      </div>
+    </div>
+  );
+
+  const renderTree = (parentId: string | null, depth: number): React.ReactNode =>
+    childrenOf(parentId).map((c) => (
+      <Fragment key={c.id}>
+        {renderRow(c, depth)}
+        {renderTree(c.id, depth + 1)}
+      </Fragment>
+    ));
+
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-4xl space-y-6">
       <h1 className="font-display font-bold text-3xl">Categories</h1>
-      <form onSubmit={add} className="flex gap-2">
+      <form onSubmit={add} className="flex flex-wrap gap-2">
         <Input
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="New category name"
+          className="flex-1 min-w-[200px]"
         />
+        <Select value={parentId || "none"} onValueChange={(v) => setParentId(v === "none" ? "" : v)}>
+          <SelectTrigger className="w-48">
+            <SelectValue placeholder="Top level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="none">Top level (no parent)</SelectItem>
+            {topLevel.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button>Add</Button>
       </form>
-      <div className="bg-card border rounded-2xl divide-y">
-        {categories.map((c) => (
-          <div key={c.id} className="flex items-center justify-between px-5 py-3">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => openImage(c)}
-                className="size-12 rounded-lg border bg-muted overflow-hidden shrink-0 grid place-items-center text-muted-foreground hover:ring-2 ring-brand"
-                aria-label="Set category image"
-              >
-                {c.image_url ? (
-                  <img src={c.image_url} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <ImageIcon className="size-5" />
-                )}
-              </button>
-              {renaming === c.id ? (
-                <Input
-                  autoFocus
-                  value={renameValue}
-                  onChange={(e) => setRenameValue(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") saveRename(c);
-                    if (e.key === "Escape") setRenaming(null);
-                  }}
-                  className="h-9 w-48"
-                />
-              ) : (
-                <div>
-                  <p className="font-medium">{c.name}</p>
-                  <p className="text-xs text-muted-foreground">{c.slug}</p>
-                </div>
-              )}
-            </div>
-            <div className="flex items-center gap-1">
-              {renaming === c.id ? (
-                <Button variant="outline" size="sm" onClick={() => saveRename(c)}>
-                  <Check className="size-4 mr-1.5" /> Save
-                </Button>
-              ) : (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => startRename(c)}
-                  aria-label="Rename category"
-                >
-                  <Pencil className="size-4" />
-                </Button>
-              )}
-              <Button variant="outline" size="sm" onClick={() => openImage(c)}>
-                {c.image_url ? "Change image" : "Add image"}
-              </Button>
-              <Button variant="ghost" size="icon" onClick={() => del(c.id)}>
-                <Trash2 className="size-4 text-destructive" />
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="bg-card border rounded-2xl divide-y">{renderTree(null, 0)}</div>
 
       <Dialog open={!!editing} onOpenChange={(o) => !o && setEditing(null)}>
         <DialogContent className="max-w-md">
