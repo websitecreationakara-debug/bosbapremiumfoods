@@ -1,109 +1,92 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Sparkles } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ArrowRight } from "lucide-react";
 import { useHeroSlides } from "@/hooks/use-products";
+
+const FALLBACK_IMAGE =
+  "https://images.unsplash.com/photo-1553621042-f6e147245754?w=1400&q=80";
 
 export function HeroSlider() {
   const { data: slides = [] } = useHeroSlides();
   const [active, setActive] = useState(0);
 
   useEffect(() => {
-    if (slides.length === 0) return;
+    if (slides.length <= 1) return;
     setActive((a) => a % slides.length);
     const id = setInterval(() => setActive((a) => (a + 1) % slides.length), 6500);
     return () => clearInterval(id);
   }, [slides.length]);
 
-  // Countdown to next midnight
-  const [time, setTime] = useState({ h: 0, m: 0, s: 0 });
-  useEffect(() => {
-    const tick = () => {
-      const now = new Date();
-      const end = new Date(now);
-      end.setHours(24, 0, 0, 0);
-      const diff = Math.max(0, end.getTime() - now.getTime());
-      setTime({
-        h: Math.floor(diff / 3600000),
-        m: Math.floor((diff / 60000) % 60),
-        s: Math.floor((diff / 1000) % 60),
-      });
-    };
-    tick();
-    const id = setInterval(tick, 1000);
-    return () => clearInterval(id);
-  }, []);
-
   const s = slides[active];
   if (!s) return null;
 
+  const lineOne = s.title_top || "Premium";
+  const lineTwo = [s.title_accent || "Bluefin Tuna", s.title_bottom].filter(Boolean).join(" ");
+  const sub = s.body || "Hand-cut at the market at dawn.\nThe deepest cuts of the season.";
+  const ctaLabel = s.cta_label || "Browse Tuna";
+  const ctaLink = s.cta_link || "/shop";
+
   return (
-    <section className="px-6 mx-auto max-w-7xl">
-      <div className="relative rounded-[2.5rem] overflow-hidden bg-surface border border-border min-h-[480px] md:min-h-[560px] grid md:grid-cols-2">
-        <div className="relative z-10 p-10 md:p-16 flex flex-col justify-center">
-          {s.eyebrow && (
-            <span className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 bg-brand/10 text-brand rounded-full text-xs font-bold uppercase tracking-widest mb-6">
-              <Sparkles className="size-3" /> {s.eyebrow}
+    <section className="relative w-full bg-black">
+      <div className="grid md:grid-cols-2 min-h-[560px] md:min-h-[620px]">
+        {/* Left — dark editorial panel */}
+        <div className="relative z-10 flex flex-col bg-black px-8 py-10 md:px-16 md:py-14">
+          <Link to="/" className="inline-flex items-center gap-2.5 self-start">
+            <img
+              src="/logo.png"
+              alt="BOSBA Premium Foods"
+              className="size-10 rounded-lg object-contain"
+            />
+            <span className="font-display text-lg font-bold tracking-tight text-foreground">
+              BOSBA Premium Foods
             </span>
-          )}
-          <h1 className="font-display font-bold text-5xl md:text-7xl text-foreground leading-[1.05] mb-6">
-            {s.title_top}
-            {s.title_top && <br />}
-            {s.title_accent && <span className="italic text-brand">{s.title_accent}</span>}{" "}
-            {s.title_bottom}
-          </h1>
-          {s.body && <p className="text-muted-foreground text-lg max-w-md mb-8">{s.body}</p>}
+          </Link>
 
-          {s.cta_label && (
-            <div className="flex flex-wrap items-center gap-4 mb-8">
-              <Button size="lg" className="rounded-full font-bold" asChild>
-                <a href={s.cta_link}>
-                  {s.cta_label} <ArrowRight className="size-4 ml-2" />
-                </a>
-              </Button>
-            </div>
-          )}
+          <div className="my-auto max-w-lg py-10">
+            <h1 className="font-serif leading-[1.03] tracking-tight text-[clamp(3rem,6vw,4.5rem)]">
+              <span className="block font-bold text-white">{lineOne}</span>
+              <span className="block font-medium italic text-brand">{lineTwo}</span>
+            </h1>
 
-          <div className="flex items-center gap-3 text-muted-foreground">
-            <span className="text-xs uppercase tracking-widest font-bold">Deal ends in</span>
-            <div className="flex gap-1.5">
-              {[
-                { label: "h", v: time.h },
-                { label: "m", v: time.m },
-                { label: "s", v: time.s },
-              ].map((t) => (
-                <div
-                  key={t.label}
-                  className="bg-white/5 border border-border text-foreground px-2.5 py-1.5 rounded-md font-mono font-bold text-sm min-w-[44px] text-center"
-                >
-                  {String(t.v).padStart(2, "0")}
-                  <span className="opacity-50 text-[10px] ml-0.5">{t.label}</span>
-                </div>
+            <p className="mt-6 max-w-md whitespace-pre-line text-sm leading-relaxed text-muted-foreground md:text-base">
+              {sub}
+            </p>
+
+            <Link
+              to={ctaLink}
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-bold text-brand-foreground transition-colors hover:bg-secondary-accent"
+            >
+              {ctaLabel} <ArrowRight className="size-4" />
+            </Link>
+          </div>
+
+          {slides.length > 1 && (
+            <div className="flex gap-2 self-start">
+              {slides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActive(i)}
+                  aria-label={`Slide ${i + 1}`}
+                  className={`h-1.5 rounded-full transition-all ${
+                    i === active ? "w-10 bg-brand" : "w-4 bg-white/25 hover:bg-white/40"
+                  }`}
+                />
               ))}
             </div>
-          </div>
+          )}
         </div>
 
-        <div className="relative min-h-[300px] md:min-h-[560px]">
+        {/* Right — full-bleed photography, halves meet flush */}
+        <div className="relative min-h-[320px] bg-black md:min-h-full">
           {slides.map((slide, i) => (
             <img
               key={slide.id}
-              src={slide.image_url ?? ""}
+              src={slide.image_url || FALLBACK_IMAGE}
               alt=""
               loading={i === 0 ? "eager" : "lazy"}
-              className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === active ? "opacity-100" : "opacity-0"}`}
-            />
-          ))}
-          <div className="absolute inset-0 bg-gradient-to-r md:bg-gradient-to-l from-transparent to-surface" />
-        </div>
-
-        {/* Indicators */}
-        <div className="absolute bottom-6 left-10 md:left-16 flex gap-2 z-20">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setActive(i)}
-              aria-label={`Slide ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${i === active ? "w-10 bg-brand" : "w-4 bg-white/25"}`}
+              className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-1000 ${
+                i === active ? "opacity-100" : "opacity-0"
+              }`}
             />
           ))}
         </div>

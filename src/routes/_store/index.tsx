@@ -25,9 +25,7 @@ function Home() {
 
   return (
     <div className="space-y-20 pb-12">
-      <div className="pt-6">
-        <HeroSlider />
-      </div>
+      <HeroSlider />
 
       {/* Features strip */}
       <section className="mx-auto max-w-7xl px-6">
