@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { Plus } from "lucide-react";
+import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import type { Product } from "@/lib/types";
 
@@ -69,7 +69,7 @@ export function ProductCard({ product }: { product: Product }) {
             aria-label="Add to cart"
             className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
           >
-            <Plus className="size-4" />
+            <ShoppingBag className="size-4" />
           </button>
         </div>
       </div>
