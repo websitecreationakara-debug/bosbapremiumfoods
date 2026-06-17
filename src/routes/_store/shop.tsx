@@ -6,6 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -38,22 +39,25 @@ function Shop() {
   const [query, setQuery] = useState(search.q ?? "");
   const [activeCat, setActiveCat] = useState<string | undefined>(search.category);
   const [sort, setSort] = useState<Sort>("featured");
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
+  const [range, setRange] = useState<[number, number] | null>(null);
   const [onSale, setOnSale] = useState(false);
 
   const catId = activeCat ? categories.find((c) => c.slug === activeCat)?.id : undefined;
-  const min = priceMin.trim() === "" ? -Infinity : Number(priceMin);
-  const max = priceMax.trim() === "" ? Infinity : Number(priceMax);
 
-  const filtersActive =
-    !!activeCat || query.trim() !== "" || priceMin !== "" || priceMax !== "" || onSale;
+  // Price slider bounds derived from the catalog (effective/sale price).
+  const prices = products.map(effectivePrice);
+  const floor = prices.length ? Math.floor(Math.min(...prices)) : 0;
+  let ceil = prices.length ? Math.ceil(Math.max(...prices)) : 100;
+  if (ceil <= floor) ceil = floor + 1; // keep the slider range non-degenerate
+  const [lo, hi] = range ?? [floor, ceil];
+  const priceActive = lo > floor || hi < ceil;
+
+  const filtersActive = !!activeCat || query.trim() !== "" || priceActive || onSale;
 
   const resetFilters = () => {
     setActiveCat(undefined);
     setQuery("");
-    setPriceMin("");
-    setPriceMax("");
+    setRange(null);
     setOnSale(false);
     setSort("featured");
   };
@@ -63,7 +67,7 @@ function Shop() {
     if (query && !p.title.toLowerCase().includes(query.toLowerCase())) return false;
     if (onSale && !isOnSale(p)) return false;
     const price = effectivePrice(p);
-    if (price < min || price > max) return false;
+    if (price < lo || price > hi) return false;
     return true;
   });
 
@@ -144,28 +148,22 @@ function Shop() {
           </div>
 
           <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              Price ($)
-            </label>
-            <div className="flex items-center gap-2">
-              <Input
-                type="number"
-                min="0"
-                placeholder="Min"
-                value={priceMin}
-                onChange={(e) => setPriceMin(e.target.value)}
-                className="rounded-full"
-              />
-              <span className="text-muted-foreground">–</span>
-              <Input
-                type="number"
-                min="0"
-                placeholder="Max"
-                value={priceMax}
-                onChange={(e) => setPriceMax(e.target.value)}
-                className="rounded-full"
-              />
+            <div className="flex items-center justify-between mb-3">
+              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Price
+              </label>
+              <span className="text-xs font-medium text-brand">
+                ${lo} – ${hi}
+              </span>
             </div>
+            <Slider
+              min={floor}
+              max={ceil}
+              step={1}
+              value={[lo, hi]}
+              onValueChange={(v) => setRange([v[0], v[1]])}
+              className="mt-1"
+            />
           </div>
 
           <div>
