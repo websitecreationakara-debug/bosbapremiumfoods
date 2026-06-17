@@ -54,8 +54,8 @@
 :root {
   --radius: 0.875rem;
 
-  /* BOSBA Premium Foods — dark luxury / Japanese omakase: pure black + warm gold, always dark */
-  --background: #000000;
+  /* BOSBA Premium Foods — dark luxury / Japanese omakase: near-black + warm gold, always dark */
+  --background: #0a0a0a;
   --foreground: #f0ede6;
   --surface: #0d0d0d;
 

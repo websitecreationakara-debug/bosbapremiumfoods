@@ -5,7 +5,7 @@ import { useHeroSlides } from "@/hooks/use-products";
 import type { HeroSlide } from "@/lib/types";
 
 const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1553621042-f6e147245754?w=1400&q=80";
+  "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=1400&q=80";
 
 const FALLBACK_SLIDE: HeroSlide = {
   id: "fallback",
@@ -60,6 +60,9 @@ export function HeroSlider() {
           </Link>
 
           <div className="my-auto max-w-lg py-10">
+            <span className="mb-5 inline-block text-xs font-bold uppercase tracking-[0.25em] text-brand">
+              {s.eyebrow || "Premium Quality Seafood"}
+            </span>
             <h1 className="font-serif leading-[1.03] tracking-tight text-[clamp(3rem,6vw,4.5rem)]">
               <span className="block font-bold text-white">{lineOne}</span>
               <span className="block font-medium italic text-brand">{lineTwo}</span>

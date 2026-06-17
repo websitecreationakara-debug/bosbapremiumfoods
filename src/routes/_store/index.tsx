@@ -88,19 +88,13 @@ function Home() {
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-6">
         <div className="mb-10 flex flex-col items-center text-center">
-          <img
-            src="/logo.png"
-            alt="BOSBA Premium Foods"
-            className="size-14 rounded-xl object-contain"
-          />
-          <h2 className="mt-4 font-serif text-[32px] leading-tight text-foreground">
-            BOSBA Premium Foods
+          <span className="text-xs font-bold uppercase tracking-[0.25em] text-brand">
+            Our Premium Selection
+          </span>
+          <h2 className="mt-3 font-serif text-[32px] leading-tight text-foreground">
+            Shop Our Finest Products
           </h2>
-          <div className="mt-4 flex items-center gap-3" aria-hidden>
-            <span className="h-px w-10 bg-brand/40" />
-            <span className="inline-block size-2 rotate-45 bg-brand" />
-            <span className="h-px w-10 bg-brand/40" />
-          </div>
+          <span className="mt-4 block h-px w-16 bg-brand/50" aria-hidden />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {isLoading
