@@ -14,9 +14,15 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useRef, useState } from "react";
-import { Trash2, Upload, ImageIcon, Loader2, X } from "lucide-react";
+import { Trash2, Upload, ImageIcon, Loader2, X, Pencil, Check } from "lucide-react";
 import { toast } from "sonner";
 import type { Category, Media } from "@/lib/types";
+
+const slugify = (s: string) =>
+  s
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 export const Route = createFileRoute("/admin/categories")({ component: CategoriesAdmin });
 
@@ -29,6 +35,9 @@ function CategoriesAdmin() {
   const qc = useQueryClient();
   const [name, setName] = useState("");
 
+  const [renaming, setRenaming] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+
   const [editing, setEditing] = useState<Category | null>(null);
   const [imageUrl, setImageUrl] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
@@ -37,16 +46,29 @@ function CategoriesAdmin() {
 
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
-    const slug = name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-|-$/g, "");
     try {
-      await createCategory({ data: { name, slug } });
+      await createCategory({ data: { name, slug: slugify(name) } });
     } catch (err) {
       return toast.error(err instanceof Error ? err.message : "Failed to add category");
     }
     setName("");
+    qc.invalidateQueries({ queryKey: ["categories"] });
+  };
+
+  const startRename = (c: Category) => {
+    setRenaming(c.id);
+    setRenameValue(c.name);
+  };
+
+  const saveRename = async (c: Category) => {
+    const next = renameValue.trim();
+    if (!next || next === c.name) return setRenaming(null);
+    try {
+      await updateCategory({ data: { id: c.id, name: next, slug: slugify(next) } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to rename");
+    }
+    setRenaming(null);
     qc.invalidateQueries({ queryKey: ["categories"] });
   };
 
@@ -123,12 +145,39 @@ function CategoriesAdmin() {
                   <ImageIcon className="size-5" />
                 )}
               </button>
-              <div>
-                <p className="font-medium">{c.name}</p>
-                <p className="text-xs text-muted-foreground">{c.slug}</p>
-              </div>
+              {renaming === c.id ? (
+                <Input
+                  autoFocus
+                  value={renameValue}
+                  onChange={(e) => setRenameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") saveRename(c);
+                    if (e.key === "Escape") setRenaming(null);
+                  }}
+                  className="h-9 w-48"
+                />
+              ) : (
+                <div>
+                  <p className="font-medium">{c.name}</p>
+                  <p className="text-xs text-muted-foreground">{c.slug}</p>
+                </div>
+              )}
             </div>
             <div className="flex items-center gap-1">
+              {renaming === c.id ? (
+                <Button variant="outline" size="sm" onClick={() => saveRename(c)}>
+                  <Check className="size-4 mr-1.5" /> Save
+                </Button>
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => startRename(c)}
+                  aria-label="Rename category"
+                >
+                  <Pencil className="size-4" />
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={() => openImage(c)}>
                 {c.image_url ? "Change image" : "Add image"}
               </Button>

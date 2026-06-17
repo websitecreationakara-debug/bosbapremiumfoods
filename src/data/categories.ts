@@ -17,13 +17,15 @@ export const createCategory = createServerFn({ method: "POST" })
   });
 
 export const updateCategory = createServerFn({ method: "POST" })
-  .inputValidator((d: { id: string; image_url: string | null }) => d)
+  .inputValidator(
+    (d: { id: string; image_url?: string | null; name?: string; slug?: string }) => d,
+  )
   .handler(async ({ data }) => {
     await requireAdmin();
-    await getDb()
-      .update(categories)
-      .set({ image_url: data.image_url })
-      .where(eq(categories.id, data.id));
+    const { id, ...fields } = data;
+    const set = Object.fromEntries(Object.entries(fields).filter(([, v]) => v !== undefined));
+    if (Object.keys(set).length === 0) return { ok: true };
+    await getDb().update(categories).set(set).where(eq(categories.id, id));
     return { ok: true };
   });
 
