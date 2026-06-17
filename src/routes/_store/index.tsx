@@ -63,7 +63,7 @@ function Home() {
               {/* Gold halo pedestal */}
               <div className="relative mb-4 grid place-items-center">
                 <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.30),transparent_70%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100" />
-                <div className="relative size-24 overflow-hidden rounded-full border border-[rgba(201,168,76,0.4)] bg-black/40 grid place-items-center">
+                <div className="relative size-24 overflow-hidden rounded-full border border-[rgba(201,168,76,0.4)] bg-muted grid place-items-center">
                   {c.image_url ? (
                     <img
                       src={c.image_url}

@@ -71,14 +71,14 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div className="rounded-2xl bg-white/[0.03] border border-border p-6">
+        <div className="rounded-2xl bg-foreground/[0.04] border border-border p-6">
           <h4 className="font-display font-bold mb-2">Join the Catch</h4>
           <p className="text-xs text-muted-foreground mb-4">Weekly recipes and market updates.</p>
           <form className="flex gap-2">
             <input
               type="email"
               placeholder="Email address"
-              className="flex-1 bg-white/5 border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-brand/50 transition-colors placeholder:text-muted-foreground"
+              className="flex-1 bg-foreground/[0.06] border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-brand/50 transition-colors placeholder:text-muted-foreground"
             />
             <button className="px-4 py-2 bg-brand text-brand-foreground rounded-lg text-xs font-bold hover:bg-secondary-accent transition-colors">
               Join

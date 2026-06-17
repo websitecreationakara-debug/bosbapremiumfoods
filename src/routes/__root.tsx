@@ -12,6 +12,7 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/hooks/use-cart";
+import { ThemeProvider } from "@/hooks/use-theme";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -109,7 +110,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" style={{ colorScheme: "dark", backgroundColor: "#000000" }}>
+    <html lang="en" className="dark">
       <head>
         <HeadContent />
       </head>
@@ -132,13 +133,15 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <CartProvider>
-          <Outlet />
-          <CartDrawer />
-          <Toaster />
-        </CartProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <CartProvider>
+            <Outlet />
+            <CartDrawer />
+            <Toaster />
+          </CartProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

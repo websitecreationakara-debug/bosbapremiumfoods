@@ -44,10 +44,10 @@ export function HeroSlider() {
   const ctaLink = s.cta_link || "/shop";
 
   return (
-    <section className="relative w-full bg-black">
+    <section className="relative w-full bg-background">
       <div className="grid md:grid-cols-2 min-h-[560px] md:min-h-[620px]">
-        {/* Left — dark editorial panel */}
-        <div className="relative z-10 flex flex-col bg-black px-8 py-10 md:px-16 md:py-14">
+        {/* Left — editorial panel */}
+        <div className="relative z-10 flex flex-col bg-background px-8 py-10 md:px-16 md:py-14">
           <Link to="/" className="inline-flex items-center gap-2.5 self-start">
             <img
               src="/logo.png"
@@ -64,7 +64,7 @@ export function HeroSlider() {
               {s.eyebrow || "Premium Quality Seafood"}
             </span>
             <h1 className="font-serif leading-[1.03] tracking-tight text-[clamp(3rem,6vw,4.5rem)]">
-              <span className="block font-bold text-white">{lineOne}</span>
+              <span className="block font-bold text-foreground">{lineOne}</span>
               <span className="block font-medium italic text-brand">{lineTwo}</span>
             </h1>
 
@@ -88,7 +88,7 @@ export function HeroSlider() {
                   onClick={() => setActive(i)}
                   aria-label={`Slide ${i + 1}`}
                   className={`h-1.5 rounded-full transition-all ${
-                    i === active ? "w-10 bg-brand" : "w-4 bg-white/25 hover:bg-white/40"
+                    i === active ? "w-10 bg-brand" : "w-4 bg-foreground/20 hover:bg-foreground/40"
                   }`}
                 />
               ))}
@@ -97,7 +97,7 @@ export function HeroSlider() {
         </div>
 
         {/* Right — full-bleed photography, halves meet flush */}
-        <div className="relative min-h-[320px] bg-black md:min-h-full">
+        <div className="relative min-h-[320px] bg-background md:min-h-full">
           {list.map((slide, i) => (
             <img
               key={slide.id}

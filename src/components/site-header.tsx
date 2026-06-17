@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Search,
@@ -16,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/hooks/use-theme";
 import { useCategories, useStoreSettings } from "@/hooks/use-products";
 import {
   DropdownMenu,
@@ -33,25 +33,16 @@ export function SiteHeader() {
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
-  // Banner-only light/dark toggle — the rest of the site stays permanently dark.
-  const [bannerMode, setBannerMode] = useState<"dark" | "light">("dark");
-  useEffect(() => {
-    const saved = localStorage.getItem("banner-mode");
-    if (saved === "light" || saved === "dark") setBannerMode(saved);
-  }, []);
-  const toggleBanner = () =>
-    setBannerMode((m) => {
-      const next = m === "dark" ? "light" : "dark";
-      localStorage.setItem("banner-mode", next);
-      return next;
-    });
+  // Site-wide light/dark toggle. The announcement bar inverts the page theme:
+  // dark site → golden bar, light site → black bar.
+  const { theme, toggle } = useTheme();
 
   return (
     <>
       {/* Announcement banner — light/dark toggle restyles this bar only */}
       <div
         className={`hidden md:block text-xs transition-colors ${
-          bannerMode === "dark" ? "bg-[#F5ED7C] text-black" : "bg-black text-white"
+          theme === "dark" ? "bg-[#F5ED7C] text-black" : "bg-black text-white"
         }`}
       >
         <div className="mx-auto max-w-7xl px-6 h-9 grid grid-cols-3 items-center">
@@ -68,12 +59,12 @@ export function SiteHeader() {
           </div>
           <div className="flex items-center justify-end">
             <button
-              onClick={toggleBanner}
-              aria-label="Toggle banner colour mode"
+              onClick={toggle}
+              aria-label="Toggle light or dark mode"
               className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
             >
-              {bannerMode === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-              {bannerMode === "dark" ? "Light" : "Dark"}
+              {theme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+              {theme === "dark" ? "Light" : "Dark"}
             </button>
           </div>
         </div>

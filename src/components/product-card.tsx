@@ -14,10 +14,10 @@ export function ProductCard({ product }: { product: Product }) {
     <Link
       to="/product/$id"
       params={{ id: product.id }}
-      className="group flex flex-col rounded-[16px] border border-[rgba(201,168,76,0.25)] bg-[#111111] p-2 transition-colors hover:border-[rgba(201,168,76,0.55)]"
+      className="group flex flex-col rounded-[16px] border border-[rgba(201,168,76,0.25)] bg-card p-2 transition-colors hover:border-[rgba(201,168,76,0.55)]"
     >
       {/* Image — 8px inset, concentric radius, dramatic dark crop */}
-      <div className="relative aspect-square overflow-hidden rounded-[10px] bg-black">
+      <div className="relative aspect-square overflow-hidden rounded-[10px] bg-muted">
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -67,7 +67,7 @@ export function ProductCard({ product }: { product: Product }) {
               add(product);
             }}
             aria-label="Add to cart"
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-black text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
+            className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
           >
             <Plus className="size-4" />
           </button>

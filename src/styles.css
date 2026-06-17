@@ -54,7 +54,54 @@
 :root {
   --radius: 0.875rem;
 
-  /* BOSBA Premium Foods — dark luxury / Japanese omakase: near-black + warm gold, always dark */
+  /* LIGHT theme — warm white + gold */
+  --background: #fafafa;
+  --foreground: #141414;
+  --surface: #ffffff;
+
+  --card: #ffffff;
+  --card-foreground: #141414;
+  --popover: #ffffff;
+  --popover-foreground: #141414;
+
+  --brand: #c9a84c;
+  --brand-foreground: #0a0a0a;
+
+  --primary: #c9a84c;
+  --primary-foreground: #0a0a0a;
+
+  --secondary: #f1f0ec;
+  --secondary-foreground: #141414;
+
+  --muted: #f1f0ec;
+  --muted-foreground: #6e6e66;
+
+  --accent: #f4efda;
+  --accent-foreground: #6e551a;
+  --secondary-accent: #9c7d2b;
+
+  --destructive: #b4493c;
+  --destructive-foreground: #ffffff;
+
+  --success: #2f7d5b;
+  --warning: #c9a84c;
+
+  --border: rgba(0, 0, 0, 0.1);
+  --input: rgba(0, 0, 0, 0.12);
+  --ring: #c9a84c;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #141414;
+  --sidebar-primary: #c9a84c;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #f1f0ec;
+  --sidebar-accent-foreground: #141414;
+  --sidebar-border: rgba(0, 0, 0, 0.1);
+  --sidebar-ring: #c9a84c;
+}
+
+.dark {
+  /* DARK luxury / Japanese omakase — near-black + warm gold */
   --background: #0a0a0a;
   --foreground: #f0ede6;
   --surface: #0d0d0d;
