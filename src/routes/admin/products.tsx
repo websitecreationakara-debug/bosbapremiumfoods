@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Media } from "@/lib/types";
 
@@ -142,6 +142,31 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["products"] });
   };
 
+  const duplicate = async (p: Product) => {
+    try {
+      await createProduct({
+        data: {
+          title: `${p.title} (Copy)`,
+          description: p.description,
+          price: p.price,
+          sale_price: p.sale_price,
+          category_id: p.category_id,
+          stock: p.stock,
+          status: "draft",
+          image_url: p.image_url,
+          badge: p.badge,
+          rating: p.rating,
+          weight: p.weight,
+        },
+      });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to duplicate");
+      return;
+    }
+    toast.success("Product duplicated as draft");
+    qc.invalidateQueries({ queryKey: ["products"] });
+  };
+
   return (
     <div className="space-y-6 max-w-7xl">
       <div className="flex items-center justify-between">
@@ -189,10 +214,18 @@ function ProductsAdmin() {
                 </td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)}>
+                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit">
                       <Pencil className="size-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={() => del(p.id)}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => duplicate(p)}
+                      aria-label="Duplicate"
+                    >
+                      <Copy className="size-4" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={() => del(p.id)} aria-label="Delete">
                       <Trash2 className="size-4 text-destructive" />
                     </Button>
                   </div>
