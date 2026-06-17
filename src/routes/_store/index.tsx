@@ -58,24 +58,28 @@ function Home() {
               key={c.id}
               to="/shop"
               search={{ category: c.slug }}
-              className="group relative aspect-square rounded-3xl bg-gradient-to-br from-brand/15 to-accent/30 border overflow-hidden hover:shadow-xl hover:-translate-y-1 transition-all p-5 flex flex-col justify-between"
+              className="group relative aspect-square rounded-3xl bg-surface border border-[rgba(201,168,76,0.18)] overflow-hidden p-5 flex flex-col items-center justify-center text-center transition-all duration-500 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.5)]"
             >
-              {c.image_url ? (
-                <img
-                  src={c.image_url}
-                  alt=""
-                  className="size-16 object-contain drop-shadow-md transition-transform group-hover:scale-110 group-hover:-rotate-6"
-                />
-              ) : (
-                <span className="text-3xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
-              )}
-              <div>
-                <p className="font-display font-bold text-sm">{c.name}</p>
-                <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-                  Shop{" "}
-                  <ArrowRight className="size-3 group-hover:translate-x-0.5 transition-transform" />
-                </p>
+              {/* Gold halo pedestal */}
+              <div className="relative mb-4 grid place-items-center">
+                <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.30),transparent_70%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100" />
+                <div className="relative size-20 rounded-full border border-[rgba(201,168,76,0.35)] bg-black/40 grid place-items-center">
+                  {c.image_url ? (
+                    <img
+                      src={c.image_url}
+                      alt=""
+                      className="size-11 object-contain transition-transform duration-500 group-hover:scale-110"
+                    />
+                  ) : (
+                    <span className="text-3xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
+                  )}
+                </div>
               </div>
+              <p className="font-serif text-base text-foreground">{c.name}</p>
+              <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-brand">
+                Shop{" "}
+                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+              </p>
             </Link>
           ))}
         </div>
