@@ -13,7 +13,7 @@ function Home() {
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
-  const featured = products.slice(0, 8);
+  const featured = products.slice(0, 6);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
@@ -83,24 +83,35 @@ function Home() {
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-6">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="font-display font-bold text-3xl md:text-4xl">Today's Catch</h2>
-            <p className="text-muted-foreground mt-1">Landed this morning, on ice by noon.</p>
+        <div className="mb-10 flex flex-col items-center text-center">
+          <img
+            src="/logo.png"
+            alt="BOSBA Premium Foods"
+            className="size-14 rounded-xl object-contain"
+          />
+          <h2 className="mt-4 font-serif text-[32px] leading-tight text-foreground">
+            BOSBA Premium Foods
+          </h2>
+          <div className="mt-4 flex items-center gap-3" aria-hidden>
+            <span className="h-px w-10 bg-brand/40" />
+            <span className="inline-block size-2 rotate-45 bg-brand" />
+            <span className="h-px w-10 bg-brand/40" />
           </div>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {isLoading
+            ? Array.from({ length: 6 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
+              ))
+            : featured.map((p) => <ProductCard key={p.id} product={p} />)}
+        </div>
+        <div className="mt-10 text-center">
           <Link
             to="/shop"
-            className="hidden sm:inline-flex items-center gap-2 text-sm font-bold text-brand hover:gap-3 transition-all"
+            className="inline-flex items-center gap-2 text-sm font-bold text-brand transition-all hover:gap-3"
           >
             View all <ArrowRight className="size-4" />
           </Link>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {isLoading
-            ? Array.from({ length: 8 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />
-              ))
-            : featured.map((p) => <ProductCard key={p.id} product={p} />)}
         </div>
       </section>
 

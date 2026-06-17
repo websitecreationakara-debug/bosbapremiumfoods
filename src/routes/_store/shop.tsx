@@ -81,9 +81,9 @@ function Shop() {
 
         <div>
           {isLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[3/4] rounded-3xl" />
+                <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
               ))}
             </div>
           ) : filtered.length === 0 ? (
@@ -94,7 +94,7 @@ function Shop() {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {filtered.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
