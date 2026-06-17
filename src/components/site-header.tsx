@@ -95,7 +95,7 @@ export function SiteHeader() {
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 hidden md:inline-flex">
+              <Button variant="ghost" className="gap-2 hidden md:inline-flex text-foreground">
                 <Menu className="size-4" /> All Categories
               </Button>
             </DropdownMenuTrigger>
@@ -116,11 +116,11 @@ export function SiteHeader() {
           </DropdownMenu>
 
           <div className="flex-1 relative max-w-xl">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-brand" />
             <input
               type="search"
               placeholder="Search tuna, salmon, uni, scallops..."
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border-none text-sm outline-none focus:ring-2 focus:ring-ring/30 transition-all"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border border-[rgba(201,168,76,0.4)] text-sm text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   const v = (e.target as HTMLInputElement).value;
@@ -131,9 +131,9 @@ export function SiteHeader() {
           </div>
 
           <nav className="hidden lg:flex items-center gap-1">
-            <Button variant="ghost" size="icon" asChild>
+            <Button variant="ghost" size="icon" asChild className="text-foreground">
               <Link to="/wishlist" aria-label="Wishlist">
-                <Heart className="size-5" />
+                <Heart className="size-5 fill-none" />
               </Link>
             </Button>
 
@@ -162,7 +162,7 @@ export function SiteHeader() {
                 </DropdownMenuContent>
               </DropdownMenu>
             ) : (
-              <Button variant="ghost" asChild>
+              <Button variant="ghost" asChild className="text-foreground">
                 <Link to="/auth">
                   <User className="size-4 mr-2" /> Sign in
                 </Link>
