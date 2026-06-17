@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, desc } from "drizzle-orm";
+import { eq, asc, desc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products } from "@/db/schema";
 import { requireAdmin } from "./_auth";
@@ -28,7 +28,7 @@ export const listProducts = createServerFn({ method: "GET" })
           .select()
           .from(products)
           .where(eq(products.status, "published"))
-          .orderBy(desc(products.created_at));
+          .orderBy(asc(products.created_at));
     return rows;
   });
 
