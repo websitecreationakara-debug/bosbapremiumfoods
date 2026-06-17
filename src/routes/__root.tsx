@@ -12,7 +12,6 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/hooks/use-cart";
-import { ThemeProvider } from "@/hooks/use-theme";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -68,7 +67,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { title: "BOSBA Premium Foods" },
       { name: "description", content: "High Premium Quality Foods From Japan" },
-      { name: "theme-color", content: "#28457a" },
+      { name: "theme-color", content: "#000000" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -110,7 +109,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" style={{ colorScheme: "dark", backgroundColor: "#000000" }}>
       <head>
         <HeadContent />
       </head>
@@ -133,15 +132,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Outlet />
-            <CartDrawer />
-            <Toaster />
-          </CartProvider>
-        </AuthProvider>
-      </ThemeProvider>
+      <AuthProvider>
+        <CartProvider>
+          <Outlet />
+          <CartDrawer />
+          <Toaster />
+        </CartProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

@@ -38,24 +38,24 @@ export function HeroSlider() {
 
   return (
     <section className="px-6 mx-auto max-w-7xl">
-      <div className="relative rounded-[2.5rem] overflow-hidden bg-brand min-h-[480px] md:min-h-[560px] grid md:grid-cols-2">
+      <div className="relative rounded-[2.5rem] overflow-hidden bg-surface border border-border min-h-[480px] md:min-h-[560px] grid md:grid-cols-2">
         <div className="relative z-10 p-10 md:p-16 flex flex-col justify-center">
           {s.eyebrow && (
-            <span className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 bg-accent/20 text-accent rounded-full text-xs font-bold uppercase tracking-widest mb-6">
+            <span className="inline-flex items-center gap-1.5 self-start px-3 py-1.5 bg-brand/10 text-brand rounded-full text-xs font-bold uppercase tracking-widest mb-6">
               <Sparkles className="size-3" /> {s.eyebrow}
             </span>
           )}
-          <h1 className="font-display font-bold text-5xl md:text-7xl text-brand-foreground leading-[1.05] mb-6">
+          <h1 className="font-display font-bold text-5xl md:text-7xl text-foreground leading-[1.05] mb-6">
             {s.title_top}
             {s.title_top && <br />}
-            {s.title_accent && <span className="italic text-accent">{s.title_accent}</span>}{" "}
+            {s.title_accent && <span className="italic text-brand">{s.title_accent}</span>}{" "}
             {s.title_bottom}
           </h1>
-          {s.body && <p className="text-brand-foreground/75 text-lg max-w-md mb-8">{s.body}</p>}
+          {s.body && <p className="text-muted-foreground text-lg max-w-md mb-8">{s.body}</p>}
 
           {s.cta_label && (
             <div className="flex flex-wrap items-center gap-4 mb-8">
-              <Button size="lg" variant="secondary" className="rounded-full font-bold" asChild>
+              <Button size="lg" className="rounded-full font-bold" asChild>
                 <a href={s.cta_link}>
                   {s.cta_label} <ArrowRight className="size-4 ml-2" />
                 </a>
@@ -63,7 +63,7 @@ export function HeroSlider() {
             </div>
           )}
 
-          <div className="flex items-center gap-3 text-brand-foreground/80">
+          <div className="flex items-center gap-3 text-muted-foreground">
             <span className="text-xs uppercase tracking-widest font-bold">Deal ends in</span>
             <div className="flex gap-1.5">
               {[
@@ -73,7 +73,7 @@ export function HeroSlider() {
               ].map((t) => (
                 <div
                   key={t.label}
-                  className="bg-brand-foreground/10 px-2.5 py-1.5 rounded-md font-mono font-bold text-sm min-w-[44px] text-center"
+                  className="bg-white/5 border border-border text-foreground px-2.5 py-1.5 rounded-md font-mono font-bold text-sm min-w-[44px] text-center"
                 >
                   {String(t.v).padStart(2, "0")}
                   <span className="opacity-50 text-[10px] ml-0.5">{t.label}</span>
@@ -93,7 +93,7 @@ export function HeroSlider() {
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i === active ? "opacity-100" : "opacity-0"}`}
             />
           ))}
-          <div className="absolute inset-0 bg-gradient-to-r md:bg-gradient-to-l from-transparent to-brand/40" />
+          <div className="absolute inset-0 bg-gradient-to-r md:bg-gradient-to-l from-transparent to-surface" />
         </div>
 
         {/* Indicators */}
@@ -103,7 +103,7 @@ export function HeroSlider() {
               key={i}
               onClick={() => setActive(i)}
               aria-label={`Slide ${i + 1}`}
-              className={`h-1.5 rounded-full transition-all ${i === active ? "w-10 bg-accent" : "w-4 bg-brand-foreground/30"}`}
+              className={`h-1.5 rounded-full transition-all ${i === active ? "w-10 bg-brand" : "w-4 bg-white/25"}`}
             />
           ))}
         </div>

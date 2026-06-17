@@ -108,21 +108,21 @@ function Home() {
 
       {/* CTA Banner */}
       <section className="mx-auto max-w-7xl px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-accent p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
+        <div className="relative overflow-hidden rounded-3xl bg-surface border border-border p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-accent-foreground/70 mb-3">
+            <p className="text-xs font-bold uppercase tracking-widest text-brand mb-3">
               Become a member
             </p>
-            <h3 className="font-display font-bold text-3xl md:text-5xl text-accent-foreground leading-tight">
+            <h3 className="font-display font-bold text-3xl md:text-5xl text-foreground leading-tight">
               Save 10% on every order. Forever.
             </h3>
-            <p className="text-accent-foreground/80 mt-4 max-w-md">
+            <p className="text-muted-foreground mt-4 max-w-md">
               BOSBA Plus gives you free chilled delivery, member-only deals, and early access to the
               day's freshest catch.
             </p>
             <Link
               to="/auth"
-              className="inline-flex mt-6 items-center gap-2 rounded-full bg-foreground text-background px-6 py-3 text-sm font-bold hover:opacity-90"
+              className="inline-flex mt-6 items-center gap-2 rounded-full bg-brand text-brand-foreground px-6 py-3 text-sm font-bold hover:bg-secondary-accent transition-colors"
             >
               Join BOSBA Plus <ArrowRight className="size-4" />
             </Link>

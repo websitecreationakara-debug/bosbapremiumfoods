@@ -147,28 +147,28 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
-      <div className="hidden md:block relative overflow-hidden bg-brand">
+      <div className="hidden md:block relative overflow-hidden bg-surface">
         <img
           src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80"
           alt=""
-          className="absolute inset-0 w-full h-full object-cover opacity-70"
+          className="absolute inset-0 w-full h-full object-cover opacity-40"
         />
-        <div className="absolute inset-0 bg-gradient-to-tr from-brand to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-tr from-background via-background/60 to-transparent" />
         <div className="relative z-10 p-16 h-full flex flex-col">
           <Link
             to="/"
-            className="inline-flex items-center gap-2 text-brand-foreground font-display font-bold text-2xl"
+            className="inline-flex items-center gap-2 text-foreground font-display font-bold text-2xl"
           >
-            <div className="size-10 rounded-xl bg-accent text-accent-foreground grid place-items-center">
+            <div className="size-10 rounded-xl bg-brand text-brand-foreground grid place-items-center">
               B
             </div>
             BOSBA Premium Foods
           </Link>
           <div className="mt-auto">
-            <h2 className="font-display font-bold text-5xl text-brand-foreground leading-tight">
-              Fresh produce, <span className="italic text-accent">delivered.</span>
+            <h2 className="font-display font-bold text-5xl text-foreground leading-tight">
+              Fresh produce, <span className="italic text-brand">delivered.</span>
             </h2>
-            <p className="text-brand-foreground/70 mt-4 max-w-sm">
+            <p className="text-muted-foreground mt-4 max-w-sm">
               Join thousands of households getting weekly organic groceries from local farms.
             </p>
           </div>

@@ -4,8 +4,6 @@ import {
   ShoppingBag,
   User,
   Heart,
-  Sun,
-  Moon,
   MapPin,
   Phone,
   LogOut,
@@ -15,7 +13,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
-import { useTheme } from "@/hooks/use-theme";
 import { useCategories, useStoreSettings } from "@/hooks/use-products";
 import {
   DropdownMenu,
@@ -29,7 +26,6 @@ import {
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
   const { user, isAdmin, signOut } = useAuth();
-  const { theme, toggle } = useTheme();
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
@@ -37,25 +33,18 @@ export function SiteHeader() {
   return (
     <>
       {/* Utility bar */}
-      <div className="hidden md:block bg-brand text-brand-foreground text-xs">
+      <div className="hidden md:block bg-surface border-b border-border text-muted-foreground text-xs">
         <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between">
           <div className="flex items-center gap-5">
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="size-3.5" /> Store Locator
+            <span className="inline-flex items-center gap-1.5 hover:text-secondary-accent transition-colors">
+              <MapPin className="size-3.5 text-brand" /> Store Locator
             </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Phone className="size-3.5" /> +855 99 361 350
+            <span className="inline-flex items-center gap-1.5 hover:text-secondary-accent transition-colors">
+              <Phone className="size-3.5 text-brand" /> +855 99 361 350
             </span>
           </div>
           <div className="flex items-center gap-4">
-            <span className="opacity-80">{`Free chilled delivery on orders over $${shipThreshold}`}</span>
-            <button
-              onClick={toggle}
-              className="inline-flex items-center gap-1.5 hover:text-accent transition-colors"
-            >
-              {theme === "light" ? <Moon className="size-3.5" /> : <Sun className="size-3.5" />}
-              {theme === "light" ? "Dark" : "Light"}
-            </button>
+            <span>{`Free chilled delivery on orders over $${shipThreshold}`}</span>
           </div>
         </div>
       </div>

@@ -34,6 +34,7 @@
   --color-surface: var(--surface);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-secondary-accent: var(--secondary-accent);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-sidebar: var(--sidebar);
@@ -52,95 +53,51 @@
 :root {
   --radius: 0.875rem;
 
-  /* BOSBA Premium Foods — Japanese seafood palette: deep ocean indigo + sashimi coral, light */
-  --background: oklch(0.985 0.005 235);
-  --foreground: oklch(0.21 0.035 250);
-  --surface: oklch(0.965 0.01 235);
+  /* BOSBA Premium Foods — dark luxury / Japanese omakase: pure black + warm gold, always dark */
+  --background: #000000;
+  --foreground: #f0ede6;
+  --surface: #0d0d0d;
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.21 0.035 250);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.21 0.035 250);
+  --card: #0d0d0d;
+  --card-foreground: #f0ede6;
+  --popover: #111111;
+  --popover-foreground: #f0ede6;
 
-  --brand: oklch(0.42 0.105 250);
-  --brand-foreground: oklch(0.98 0.008 230);
+  --brand: #c9a84c;
+  --brand-foreground: #0a0a0a;
 
-  --primary: oklch(0.42 0.105 250);
-  --primary-foreground: oklch(0.98 0.008 230);
+  --primary: #c9a84c;
+  --primary-foreground: #0a0a0a;
 
-  --secondary: oklch(0.94 0.015 235);
-  --secondary-foreground: oklch(0.28 0.04 250);
+  --secondary: #111111;
+  --secondary-foreground: #f0ede6;
 
-  --muted: oklch(0.955 0.008 235);
-  --muted-foreground: oklch(0.47 0.025 250);
+  --muted: #111111;
+  --muted-foreground: #888880;
 
-  --accent: oklch(0.72 0.15 32);
-  --accent-foreground: oklch(0.99 0.01 40);
+  /* warm elevated surface for hover/active backgrounds; pale gold for the text/highlight on top */
+  --accent: #1a1813;
+  --accent-foreground: #f5e6b2;
+  --secondary-accent: #f5e6b2;
 
-  --destructive: oklch(0.58 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: #b4493c;
+  --destructive-foreground: #f0ede6;
 
-  --success: oklch(0.62 0.11 200);
-  --warning: oklch(0.78 0.15 70);
+  --success: #4c9a7c;
+  --warning: #c9a84c;
 
-  --border: oklch(0.905 0.012 235);
-  --input: oklch(0.905 0.012 235);
-  --ring: oklch(0.42 0.105 250);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: rgba(255, 255, 255, 0.1);
+  --ring: #c9a84c;
 
-  --sidebar: oklch(0.975 0.008 235);
-  --sidebar-foreground: oklch(0.25 0.035 250);
-  --sidebar-primary: oklch(0.42 0.105 250);
-  --sidebar-primary-foreground: oklch(0.98 0.008 230);
-  --sidebar-accent: oklch(0.94 0.015 235);
-  --sidebar-accent-foreground: oklch(0.25 0.04 250);
-  --sidebar-border: oklch(0.905 0.012 235);
-  --sidebar-ring: oklch(0.42 0.105 250);
-}
-
-.dark {
-  /* deep ocean / midnight indigo */
-  --background: oklch(0.16 0.03 255);
-  --foreground: oklch(0.95 0.012 230);
-  --surface: oklch(0.2 0.035 255);
-
-  --card: oklch(0.21 0.035 255);
-  --card-foreground: oklch(0.95 0.012 230);
-  --popover: oklch(0.21 0.035 255);
-  --popover-foreground: oklch(0.95 0.012 230);
-
-  --brand: oklch(0.7 0.12 245);
-  --brand-foreground: oklch(0.15 0.04 255);
-
-  --primary: oklch(0.7 0.12 245);
-  --primary-foreground: oklch(0.15 0.04 255);
-
-  --secondary: oklch(0.26 0.035 255);
-  --secondary-foreground: oklch(0.95 0.012 230);
-
-  --muted: oklch(0.24 0.03 255);
-  --muted-foreground: oklch(0.68 0.02 240);
-
-  --accent: oklch(0.74 0.15 33);
-  --accent-foreground: oklch(0.16 0.05 30);
-
-  --destructive: oklch(0.62 0.22 27);
-  --destructive-foreground: oklch(0.98 0 0);
-
-  --success: oklch(0.72 0.12 200);
-  --warning: oklch(0.78 0.16 70);
-
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 12%);
-  --ring: oklch(0.7 0.12 245);
-
-  --sidebar: oklch(0.18 0.03 255);
-  --sidebar-foreground: oklch(0.94 0.012 230);
-  --sidebar-primary: oklch(0.7 0.12 245);
-  --sidebar-primary-foreground: oklch(0.15 0.04 255);
-  --sidebar-accent: oklch(0.26 0.035 255);
-  --sidebar-accent-foreground: oklch(0.94 0.012 230);
-  --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.7 0.12 245);
+  --sidebar: #0d0d0d;
+  --sidebar-foreground: #f0ede6;
+  --sidebar-primary: #c9a84c;
+  --sidebar-primary-foreground: #0a0a0a;
+  --sidebar-accent: #1a1813;
+  --sidebar-accent-foreground: #f5e6b2;
+  --sidebar-border: rgba(255, 255, 255, 0.08);
+  --sidebar-ring: #c9a84c;
 }
 
 @layer base {
@@ -156,7 +113,7 @@
 
 @layer utilities {
   .bg-grid {
-    background-image: radial-gradient(oklch(0.42 0.105 250 / 0.07) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(201, 168, 76, 0.06) 1px, transparent 1px);
     background-size: 24px 24px;
   }
   .text-balance { text-wrap: balance; }
