@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   Search,
   ShoppingBag,
   User,
   Heart,
+  Sun,
+  Moon,
   MapPin,
   Phone,
   LogOut,
@@ -30,21 +33,48 @@ export function SiteHeader() {
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
+  // Banner-only light/dark toggle — the rest of the site stays permanently dark.
+  const [bannerMode, setBannerMode] = useState<"dark" | "light">("dark");
+  useEffect(() => {
+    const saved = localStorage.getItem("banner-mode");
+    if (saved === "light" || saved === "dark") setBannerMode(saved);
+  }, []);
+  const toggleBanner = () =>
+    setBannerMode((m) => {
+      const next = m === "dark" ? "light" : "dark";
+      localStorage.setItem("banner-mode", next);
+      return next;
+    });
+
   return (
     <>
-      {/* Utility bar */}
-      <div className="hidden md:block bg-surface border-b border-border text-muted-foreground text-xs">
-        <div className="mx-auto max-w-7xl px-6 h-9 flex items-center justify-between">
+      {/* Announcement banner — light/dark toggle restyles this bar only */}
+      <div
+        className={`hidden md:block text-xs transition-colors ${
+          bannerMode === "dark" ? "bg-[#F5ED7C] text-black" : "bg-black text-white"
+        }`}
+      >
+        <div className="mx-auto max-w-7xl px-6 h-9 grid grid-cols-3 items-center">
           <div className="flex items-center gap-5">
-            <span className="inline-flex items-center gap-1.5 hover:text-secondary-accent transition-colors">
-              <MapPin className="size-3.5 text-brand" /> Store Locator
+            <span className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+              <MapPin className="size-3.5" /> Store Locator
             </span>
-            <span className="inline-flex items-center gap-1.5 hover:text-secondary-accent transition-colors">
-              <Phone className="size-3.5 text-brand" /> +855 99 361 350
+            <span className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity">
+              <Phone className="size-3.5" /> +855 99 361 350
             </span>
           </div>
-          <div className="flex items-center gap-4">
-            <span>{`Free chilled delivery on orders over $${shipThreshold}`}</span>
+          <div className="text-center font-medium">
+            {`Free chilled delivery on orders over $${shipThreshold}`}
+          </div>
+          <div className="flex items-center justify-end">
+            <button
+              onClick={toggleBanner}
+              aria-label="Toggle banner colour mode"
+              className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+            >
+              {bannerMode === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
+              {bannerMode === "dark" ? "Light" : "Dark"}
+            </button>
           </div>
         </div>
       </div>
