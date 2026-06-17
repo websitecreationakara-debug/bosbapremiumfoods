@@ -1,10 +1,12 @@
 import { Link } from "@tanstack/react-router";
 import { ShoppingBag } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
 
 export function ProductCard({ product }: { product: Product }) {
   const { add } = useCart();
+  const { t } = useI18n();
   const hasSale = product.sale_price != null && product.sale_price < product.price;
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
@@ -27,7 +29,7 @@ export function ProductCard({ product }: { product: Product }) {
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-xs text-muted-foreground">
-            No image
+            {t("product.noImage")}
           </div>
         )}
         {/* Subtle dark vignette so light-studio photos sit better on the dark card */}
@@ -66,7 +68,7 @@ export function ProductCard({ product }: { product: Product }) {
               e.stopPropagation();
               add(product);
             }}
-            aria-label="Add to cart"
+            aria-label={t("product.addToCart")}
             className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
           >
             <ShoppingBag className="size-4" />

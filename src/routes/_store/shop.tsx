@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
+import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
 
 type Search = { category?: string; q?: string };
@@ -36,6 +37,7 @@ function Shop() {
   const search = Route.useSearch();
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { t } = useI18n();
   const [query, setQuery] = useState(search.q ?? "");
   const [activeCat, setActiveCat] = useState<string | undefined>(search.category);
   const [sort, setSort] = useState<Sort>("featured");
@@ -87,15 +89,15 @@ function Shop() {
   return (
     <div className="mx-auto max-w-7xl px-6 py-10">
       <div className="mb-10">
-        <h1 className="font-display font-bold text-4xl md:text-5xl">Shop the Marketplace</h1>
-        <p className="text-muted-foreground mt-2">{sorted.length} fresh products</p>
+        <h1 className="font-display font-bold text-4xl md:text-5xl">{t("shop.title")}</h1>
+        <p className="text-muted-foreground mt-2">{t("shop.count", { n: sorted.length })}</p>
       </div>
 
       <div className="grid lg:grid-cols-[240px_1fr] gap-8">
         <aside className="space-y-6">
           <div className="flex items-center justify-between">
             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Filters
+              {t("shop.filters")}
             </span>
             {filtersActive && (
               <Button
@@ -104,21 +106,21 @@ function Shop() {
                 onClick={resetFilters}
                 className="h-auto px-2 py-1 text-xs text-brand hover:text-secondary-accent"
               >
-                Clear all
+                {t("shop.clearAll")}
               </Button>
             )}
           </div>
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              Search
+              {t("shop.search")}
             </label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Tuna, salmon, uni..."
+                placeholder={t("shop.searchPlaceholder")}
                 className="pl-9 rounded-full"
               />
             </div>
@@ -126,14 +128,14 @@ function Shop() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              Categories
+              {t("shop.categories")}
             </label>
             <div className="space-y-1">
               <button
                 onClick={() => setActiveCat(undefined)}
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeCat ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
               >
-                All Products
+                {t("shop.allProducts")}
               </button>
               {categories.map((c) => (
                 <button
@@ -150,7 +152,7 @@ function Shop() {
           <div>
             <div className="flex items-center justify-between mb-3">
               <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Price
+                {t("shop.price")}
               </label>
               <span className="text-xs font-medium text-brand">
                 ${lo} – ${hi}
@@ -168,11 +170,11 @@ function Shop() {
 
           <div>
             <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              Offers
+              {t("shop.offers")}
             </label>
             <label className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted cursor-pointer text-sm">
               <Checkbox checked={onSale} onCheckedChange={(v) => setOnSale(v === true)} />
-              On sale only
+              {t("shop.onSaleOnly")}
             </label>
           </div>
         </aside>
@@ -181,17 +183,17 @@ function Shop() {
           <div className="flex items-center justify-end mb-6">
             <div className="flex items-center gap-2">
               <span className="text-xs uppercase tracking-widest text-muted-foreground hidden sm:inline">
-                Sort
+                {t("shop.sort")}
               </span>
               <Select value={sort} onValueChange={(v) => setSort(v as Sort)}>
                 <SelectTrigger className="w-48 rounded-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="featured">Featured</SelectItem>
-                  <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                  <SelectItem value="price-desc">Price: High to Low</SelectItem>
-                  <SelectItem value="rating">Top Rated</SelectItem>
+                  <SelectItem value="featured">{t("shop.sort.featured")}</SelectItem>
+                  <SelectItem value="price-asc">{t("shop.sort.priceAsc")}</SelectItem>
+                  <SelectItem value="price-desc">{t("shop.sort.priceDesc")}</SelectItem>
+                  <SelectItem value="rating">{t("shop.sort.rating")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -205,13 +207,11 @@ function Shop() {
             </div>
           ) : sorted.length === 0 ? (
             <div className="text-center py-20 border rounded-3xl bg-card">
-              <p className="font-display font-bold text-xl">No products found</p>
-              <p className="text-muted-foreground text-sm mt-1">
-                Try adjusting your filters or search term.
-              </p>
+              <p className="font-display font-bold text-xl">{t("shop.noProducts")}</p>
+              <p className="text-muted-foreground text-sm mt-1">{t("shop.noProductsSub")}</p>
               {filtersActive && (
                 <Button variant="outline" size="sm" onClick={resetFilters} className="mt-4">
-                  Clear filters
+                  {t("shop.clearFilters")}
                 </Button>
               )}
             </div>

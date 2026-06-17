@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/hooks/use-cart";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { LanguageProvider } from "@/lib/i18n";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
@@ -134,13 +135,15 @@ function RootComponent() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <AuthProvider>
-          <CartProvider>
-            <Outlet />
-            <CartDrawer />
-            <Toaster />
-          </CartProvider>
-        </AuthProvider>
+        <LanguageProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Outlet />
+              <CartDrawer />
+              <Toaster />
+            </CartProvider>
+          </AuthProvider>
+        </LanguageProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );
