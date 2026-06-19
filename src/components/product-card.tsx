@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
@@ -7,10 +7,10 @@ import type { Product } from "@/lib/types";
 export function ProductCard({ product, fromPrice }: { product: Product; fromPrice?: number }) {
   const { add } = useCart();
   const { t } = useI18n();
+  // Variable products can't be added from the grid — the customer must pick a
+  // weight, so the card leads with "from $X" and links through to the page.
+  const variable = product.type === "variable";
   const hasSale = product.sale_price != null && product.sale_price < product.price;
-  // When the product has cheaper weight variants, lead with "from $X" and drop
-  // the per-weight label since weight varies across the family.
-  const showFrom = fromPrice != null && fromPrice < (product.sale_price ?? product.price);
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
     : 0;
@@ -52,9 +52,9 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
 
         <div className="mt-auto flex items-end justify-between gap-2">
           <div className="flex items-baseline gap-1.5">
-            {showFrom ? (
+            {variable ? (
               <span className="text-[15px] font-medium text-brand">
-                {t("product.from")} ${fromPrice.toFixed(2)}
+                {t("product.from")} ${(fromPrice ?? product.price).toFixed(2)}
               </span>
             ) : (
               <>
@@ -73,17 +73,26 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
             )}
           </div>
 
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              add(product);
-            }}
-            aria-label={t("product.addToCart")}
-            className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
-          >
-            <ShoppingBag className="size-4" />
-          </button>
+          {variable ? (
+            <span
+              aria-label={t("product.selectOptions")}
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors group-hover:bg-brand group-hover:text-brand-foreground"
+            >
+              <SlidersHorizontal className="size-4" />
+            </span>
+          ) : (
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                add(product);
+              }}
+              aria-label={t("product.addToCart")}
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
+            >
+              <ShoppingBag className="size-4" />
+            </button>
+          )}
         </div>
       </div>
     </Link>

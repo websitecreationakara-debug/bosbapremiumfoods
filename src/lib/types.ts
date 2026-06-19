@@ -11,9 +11,20 @@ export type Product = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
-  parent_id: string | null;
+  type: string;
   created_at: string;
   updated_at: string;
+};
+
+export type ProductVariation = {
+  id: string;
+  product_id: string;
+  weight: string;
+  price: number;
+  sale_price: number | null;
+  stock: number;
+  sort_order: number;
+  created_at: string;
 };
 
 export type Category = {
@@ -52,6 +63,7 @@ export type Media = {
 
 export type CartItem = {
   product: Product;
+  variation: ProductVariation | null;
   qty: number;
 };
 

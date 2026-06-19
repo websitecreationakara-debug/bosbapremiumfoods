@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useProduct, useStoreSettings, useVariants } from "@/hooks/use-products";
+import { useProduct, useStoreSettings, useProductVariations } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,19 +13,17 @@ export const Route = createFileRoute("/_store/product/$id")({
 
 function ProductDetail() {
   const { id } = Route.useParams();
-  const { data: base, isLoading } = useProduct(id);
-  const { data: variants = [] } = useVariants(id);
+  const { data: product, isLoading } = useProduct(id);
+  const { data: variations = [] } = useProductVariations(id);
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const [qty, setQty] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
-  // The visited product drives the default selection; the family is resolved
-  // from it so visiting any variant lands on the same group.
-  const product =
-    variants.find((v) => v.id === selectedId) ?? variants.find((v) => v.id === id) ?? base;
-  const hasVariants = variants.length > 1;
+  const variable = product?.type === "variable";
+  // Default to the first (cheapest) variation until the customer picks one.
+  const selected = variations.find((v) => v.id === selectedId) ?? variations[0] ?? null;
 
   if (isLoading) {
     return (
@@ -56,11 +54,16 @@ function ProductDetail() {
     );
   }
 
-  const hasSale = product.sale_price != null && product.sale_price < product.price;
-  const price = product.sale_price ?? product.price;
-  const discount = hasSale
-    ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
-    : 0;
+  // Price/stock/weight come from the chosen variation for variable products,
+  // otherwise from the product itself.
+  const basePrice = variable ? (selected?.price ?? 0) : product.price;
+  const salePrice = variable ? (selected?.sale_price ?? null) : product.sale_price;
+  const activeStock = variable ? (selected?.stock ?? 0) : product.stock;
+  const weightLabel = variable ? selected?.weight : product.weight;
+  const hasSale = salePrice != null && salePrice < basePrice;
+  const price = salePrice ?? basePrice;
+  const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
+  const addDisabled = variable && !selected;
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
@@ -118,12 +121,12 @@ function ProductDetail() {
             </span>
             <span className="opacity-50">·</span>
             <span className="text-success font-medium">
-              {product.stock > 0 ? `In stock (${product.stock})` : "In stock"}
+              {activeStock > 0 ? `In stock (${activeStock})` : "In stock"}
             </span>
-            {product.weight && (
+            {weightLabel && (
               <>
                 <span className="opacity-50">·</span>
-                <span>{product.weight}</span>
+                <span>{weightLabel}</span>
               </>
             )}
           </div>
@@ -132,38 +135,35 @@ function ProductDetail() {
             <span className="font-display font-bold text-3xl text-brand">${price.toFixed(2)}</span>
             {hasSale && (
               <span className="text-lg text-muted-foreground line-through">
-                ${product.price.toFixed(2)}
+                ${basePrice.toFixed(2)}
               </span>
             )}
           </div>
 
-          {hasVariants && (
+          {variable && variations.length > 0 && (
             <div className="mt-6">
               <span className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
                 Weight
               </span>
               <div className="flex flex-wrap gap-2">
-                {variants.map((v) => {
-                  const active = v.id === product.id;
-                  return (
-                    <button
-                      key={v.id}
-                      type="button"
-                      onClick={() => {
-                        setSelectedId(v.id);
-                        setQty(1);
-                      }}
-                      className={cn(
-                        "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                        active
-                          ? "border-brand bg-brand text-brand-foreground"
-                          : "hover:border-brand",
-                      )}
-                    >
-                      {v.weight || `$${(v.sale_price ?? v.price).toFixed(2)}`}
-                    </button>
-                  );
-                })}
+                {variations.map((v) => (
+                  <button
+                    key={v.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedId(v.id);
+                      setQty(1);
+                    }}
+                    className={cn(
+                      "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                      v.id === selected?.id
+                        ? "border-brand bg-brand text-brand-foreground"
+                        : "hover:border-brand",
+                    )}
+                  >
+                    {v.weight}
+                  </button>
+                ))}
               </div>
             </div>
           )}
@@ -186,7 +186,7 @@ function ProductDetail() {
               <span className="w-10 text-center font-bold">{qty}</span>
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.min(product.stock || 99, q + 1))}
+                onClick={() => setQty((q) => Math.min(activeStock || 99, q + 1))}
                 className="size-10 grid place-items-center text-muted-foreground hover:text-foreground"
                 aria-label="Increase quantity"
               >
@@ -195,7 +195,8 @@ function ProductDetail() {
             </div>
             <Button
               size="lg"
-              onClick={() => add(product, qty)}
+              disabled={addDisabled}
+              onClick={() => add(product, variable ? selected : null, qty)}
               className="flex-1 rounded-full font-bold"
             >
               <ShoppingBag className="size-4 mr-2" />

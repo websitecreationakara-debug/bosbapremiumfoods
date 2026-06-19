@@ -1,11 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
-import { useCategories, useProducts, useStoreSettings } from "@/hooks/use-products";
+import {
+  useCategories,
+  useProducts,
+  useStoreSettings,
+  useAllVariations,
+} from "@/hooks/use-products";
 import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
-import { familyFromPrice, topLevel } from "@/lib/variants";
+import { groupVariations, productFromPrice } from "@/lib/variants";
 
 export const Route = createFileRoute("/_store/")({
   component: Home,
@@ -15,8 +20,10 @@ function Home() {
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
+  const { data: variations = [] } = useAllVariations();
   const { t } = useI18n();
-  const featured = topLevel(products).slice(0, 6);
+  const variationsByProduct = groupVariations(variations);
+  const featured = products.slice(0, 6);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
@@ -111,7 +118,11 @@ function Home() {
                 <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
               ))
             : featured.map((p) => (
-                <ProductCard key={p.id} product={p} fromPrice={familyFromPrice(products, p)} />
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  fromPrice={productFromPrice(p, variationsByProduct.get(p.id) ?? [])}
+                />
               ))}
         </div>
         <div className="mt-10 text-center">

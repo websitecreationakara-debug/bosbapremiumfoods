@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { listProducts, getProduct, getVariants } from "@/data/products";
+import { listProducts, getProduct, listVariations, getVariations } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
 import { getSettings } from "@/data/settings";
 import { countPendingOrders } from "@/data/orders";
-import type { Product, Category, HeroSlide, StoreSettings } from "@/lib/types";
+import type { Product, ProductVariation, Category, HeroSlide, StoreSettings } from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
   return useQuery({
@@ -21,11 +21,18 @@ export function useProduct(id: string) {
   });
 }
 
-export function useVariants(id: string) {
+export function useAllVariations() {
   return useQuery({
-    queryKey: ["variants", id],
-    queryFn: () => getVariants({ data: { id } }) as Promise<Product[]>,
-    enabled: !!id,
+    queryKey: ["variations"],
+    queryFn: () => listVariations() as Promise<ProductVariation[]>,
+  });
+}
+
+export function useProductVariations(productId: string) {
+  return useQuery({
+    queryKey: ["variations", productId],
+    queryFn: () => getVariations({ data: { productId } }) as Promise<ProductVariation[]>,
+    enabled: !!productId,
   });
 }
 

@@ -1,16 +1,24 @@
-import type { Product } from "./types";
+import type { Product, ProductVariation } from "./types";
 
-export const effectivePrice = (p: Product) => p.sale_price ?? p.price;
+export const variationPrice = (v: ProductVariation) => v.sale_price ?? v.price;
 
-// Top-level products only — variant children are folded into their parent.
-export const topLevel = (products: Product[]) => products.filter((p) => !p.parent_id);
+export const simplePrice = (p: Product) => p.sale_price ?? p.price;
 
-export const childrenOf = (products: Product[], parentId: string) =>
-  products.filter((p) => p.parent_id === parentId);
+// Lowest effective price a product sells at: cheapest variation for a variable
+// product, otherwise its own price.
+export const productFromPrice = (p: Product, variations: ProductVariation[]) => {
+  if (p.type === "variable" && variations.length)
+    return Math.min(...variations.map(variationPrice));
+  return simplePrice(p);
+};
 
-// Lowest effective price across a product's family (itself + its children).
-// Used to show "from $X" on a parent card.
-export const familyFromPrice = (products: Product[], parent: Product) => {
-  const prices = [parent, ...childrenOf(products, parent.id)].map(effectivePrice);
-  return Math.min(...prices);
+// Group all variations by product_id for O(1) lookup in lists.
+export const groupVariations = (variations: ProductVariation[]) => {
+  const map = new Map<string, ProductVariation[]>();
+  for (const v of variations) {
+    const list = map.get(v.product_id);
+    if (list) list.push(v);
+    else map.set(v.product_id, [v]);
+  }
+  return map;
 };

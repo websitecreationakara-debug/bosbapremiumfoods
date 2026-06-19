@@ -16,7 +16,8 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
-import { familyFromPrice } from "@/lib/variants";
+import { useAllVariations } from "@/hooks/use-products";
+import { groupVariations, productFromPrice } from "@/lib/variants";
 import type { Product } from "@/lib/types";
 
 type Search = { category?: string; q?: string };
@@ -35,12 +36,13 @@ export const Route = createFileRoute("/_store/shop")({
 
 function Shop() {
   const search = Route.useSearch();
-  const { data: allProducts = [], isLoading } = useProducts();
+  const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
-  // Grid shows one card per top-level product; weight variants live behind it.
-  const products = allProducts.filter((p) => !p.parent_id);
-  // For a parent, the displayed/filtered price is its cheapest variant.
-  const displayPrice = (p: Product) => familyFromPrice(allProducts, p);
+  const { data: variations = [] } = useAllVariations();
+  // Variable products price from their cheapest variation; simple products from
+  // their own price.
+  const variationsByProduct = groupVariations(variations);
+  const displayPrice = (p: Product) => productFromPrice(p, variationsByProduct.get(p.id) ?? []);
   const { t } = useI18n();
   const [query, setQuery] = useState(search.q ?? "");
   const [activeCat, setActiveCat] = useState<string | undefined>(search.category);

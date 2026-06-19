@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useCart } from "@/hooks/use-cart";
+import { useCart, itemKey, itemUnitPrice } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
 import { useStoreSettings } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
@@ -42,10 +42,10 @@ function Checkout() {
         data: {
           total,
           items: items.map((i) => ({
-            id: i.product.id,
-            title: i.product.title,
+            id: i.variation?.id ?? i.product.id,
+            title: i.variation ? `${i.product.title} (${i.variation.weight})` : i.product.title,
             qty: i.qty,
-            price: i.product.sale_price ?? i.product.price,
+            price: itemUnitPrice(i),
           })),
           customer_name: nameRef.current?.value ?? "",
           customer_email: emailRef.current?.value ?? "",
@@ -122,14 +122,13 @@ function Checkout() {
       <aside className="bg-card border rounded-2xl p-6 h-fit sticky top-28 space-y-4">
         <h2 className="font-display font-bold text-lg">Order Summary</h2>
         <div className="space-y-2 max-h-72 overflow-y-auto">
-          {items.map(({ product, qty }) => (
-            <div key={product.id} className="flex justify-between text-sm">
+          {items.map((item) => (
+            <div key={itemKey(item)} className="flex justify-between text-sm">
               <span className="truncate pr-2">
-                {product.title} × {qty}
+                {item.product.title}
+                {item.variation ? ` (${item.variation.weight})` : ""} × {item.qty}
               </span>
-              <span className="font-bold">
-                ${((product.sale_price ?? product.price) * qty).toFixed(2)}
-              </span>
+              <span className="font-bold">${(itemUnitPrice(item) * item.qty).toFixed(2)}</span>
             </div>
           ))}
         </div>

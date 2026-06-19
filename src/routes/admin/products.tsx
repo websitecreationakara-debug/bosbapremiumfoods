@@ -1,21 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Fragment, useRef, useState } from "react";
-import { useProducts, useCategories } from "@/hooks/use-products";
-import { createProduct, updateProduct, deleteProduct } from "@/data/products";
+import { useRef, useState } from "react";
+import { useProducts, useCategories, useAllVariations } from "@/hooks/use-products";
+import {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  getVariations,
+  saveVariations,
+} from "@/data/products";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
+import { groupVariations } from "@/lib/variants";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -23,20 +24,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Plus,
-  Pencil,
-  Trash2,
-  Upload,
-  ImageIcon,
-  Loader2,
-  X,
-  Copy,
-  Layers,
-  CornerDownRight,
-} from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy } from "lucide-react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
 import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
@@ -56,12 +45,16 @@ const empty = {
   badge: "",
   rating: "4.5",
   weight: "",
-  parent_id: "",
+  type: "simple",
 };
+
+type VarRow = { id?: string; weight: string; price: string; sale_price: string; stock: string };
+const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock: "" });
 
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
   const { data: categories = [] } = useCategories();
+  const { data: allVariations = [] } = useAllVariations();
   const { data: mediaItems = [] } = useQuery({
     queryKey: ["media"],
     queryFn: () => listMedia() as Promise<Media[]>,
@@ -69,10 +62,14 @@ function ProductsAdmin() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(empty);
+  const [vars, setVars] = useState<VarRow[]>([]);
   const editing = !!form.id;
+  const isVariable = form.type === "variable";
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [picker, setPicker] = useState(false);
+
+  const variationsByProduct = groupVariations(allVariations);
 
   const onUpload = async (file: File | undefined) => {
     if (!file) return;
@@ -94,10 +91,11 @@ function ProductsAdmin() {
 
   const openNew = () => {
     setForm(empty);
+    setVars([]);
     setPicker(false);
     setOpen(true);
   };
-  const openEdit = (p: Product) => {
+  const openEdit = async (p: Product) => {
     setPicker(false);
     setForm({
       id: p.id,
@@ -112,78 +110,86 @@ function ProductsAdmin() {
       badge: p.badge ?? "",
       rating: p.rating != null ? String(p.rating) : "",
       weight: p.weight ?? "",
-      parent_id: p.parent_id ?? "",
+      type: p.type,
     });
     setOpen(true);
+    if (p.type === "variable") {
+      const rows = await getVariations({ data: { productId: p.id } });
+      setVars(
+        rows.map((v) => ({
+          id: v.id,
+          weight: v.weight,
+          price: String(v.price),
+          sale_price: v.sale_price != null ? String(v.sale_price) : "",
+          stock: v.stock > 0 ? String(v.stock) : "",
+        })),
+      );
+    } else {
+      setVars([]);
+    }
   };
 
-  // Open the dialog pre-filled to add a weight variant under `parent`: shared
-  // fields are copied, only weight/price/stock are left for the user to set.
-  const openVariant = (parent: Product) => {
-    setPicker(false);
-    setForm({
-      ...empty,
-      title: parent.title,
-      description: parent.description ?? "",
-      category_id: parent.category_id ?? "",
-      status: parent.status,
-      image_url: parent.image_url ?? "",
-      badge: parent.badge ?? "",
-      rating: parent.rating != null ? String(parent.rating) : "",
-      parent_id: parent.id,
-    });
-    setOpen(true);
-  };
+  const variationPayload = () =>
+    vars
+      .filter((v) => v.weight.trim() !== "")
+      .map((v, i) => ({
+        id: v.id,
+        weight: v.weight.trim(),
+        price: Number(v.price) || 0,
+        sale_price: v.sale_price.trim() === "" ? null : Number(v.sale_price),
+        stock: v.stock.trim() === "" ? 0 : Number(v.stock),
+        sort_order: i,
+      }));
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    const variable = form.type === "variable";
     const payload = {
       title: form.title,
       description: form.description || null,
-      price: Number(form.price),
-      sale_price: form.sale_price ? Number(form.sale_price) : null,
+      // Variable products carry price/stock/weight on their variations, not here.
+      price: variable ? 0 : Number(form.price),
+      sale_price: variable || !form.sale_price ? null : Number(form.sale_price),
       category_id: form.category_id || null,
-      stock: form.stock.trim() === "" ? 0 : Number(form.stock),
+      stock: variable || form.stock.trim() === "" ? 0 : Number(form.stock),
       status: form.status,
       image_url: form.image_url || null,
       badge: form.badge || null,
       rating: form.rating.trim() === "" ? null : Number(form.rating),
-      weight: form.weight.trim() === "" ? null : form.weight.trim(),
-      parent_id: form.parent_id || null,
+      weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
+      type: form.type,
     };
     try {
+      let productId = form.id;
       if (editing) await updateProduct({ data: { id: form.id, ...payload } });
-      else await createProduct({ data: payload });
+      else productId = (await createProduct({ data: payload })).id;
+      if (variable) await saveVariations({ data: { productId, variations: variationPayload() } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save product");
       return;
     }
     toast.success(editing ? "Product updated" : "Product created");
     qc.invalidateQueries({ queryKey: ["products"] });
+    qc.invalidateQueries({ queryKey: ["variations"] });
     setOpen(false);
   };
 
   const del = async (id: string) => {
-    const kids = products.filter((p) => p.parent_id === id);
-    const msg = kids.length
-      ? `Delete this product and its ${kids.length} variant${kids.length > 1 ? "s" : ""}?`
-      : "Delete this product?";
-    if (!confirm(msg)) return;
+    if (!confirm("Delete this product?")) return;
     try {
-      await Promise.all(
-        [id, ...kids.map((k) => k.id)].map((pid) => deleteProduct({ data: { id: pid } })),
-      );
+      await deleteProduct({ data: { id } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete");
       return;
     }
     toast.success("Deleted");
     qc.invalidateQueries({ queryKey: ["products"] });
+    qc.invalidateQueries({ queryKey: ["variations"] });
   };
 
   const duplicate = async (p: Product) => {
     try {
-      await createProduct({
+      const { id } = await createProduct({
         data: {
           title: `${p.title} (Copy)`,
           description: p.description,
@@ -196,71 +202,54 @@ function ProductsAdmin() {
           badge: p.badge,
           rating: p.rating,
           weight: p.weight,
-          parent_id: p.parent_id,
+          type: p.type,
         },
       });
+      if (p.type === "variable") {
+        const rows = await getVariations({ data: { productId: p.id } });
+        await saveVariations({
+          data: {
+            productId: id,
+            variations: rows.map((v, i) => ({
+              weight: v.weight,
+              price: v.price,
+              sale_price: v.sale_price,
+              stock: v.stock,
+              sort_order: i,
+            })),
+          },
+        });
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to duplicate");
       return;
     }
     toast.success("Product duplicated as draft");
     qc.invalidateQueries({ queryKey: ["products"] });
+    qc.invalidateQueries({ queryKey: ["variations"] });
   };
 
-  // Top-level rows, plus any orphaned variants (parent removed) so nothing
-  // silently disappears from the table.
-  const ids = new Set(products.map((p) => p.id));
-  const parents = products.filter((p) => !p.parent_id || !ids.has(p.parent_id));
-  const childrenByParent = (parentId: string) => products.filter((p) => p.parent_id === parentId);
-  const parentOptions = products.filter((p) => !p.parent_id && p.id !== form.id);
-
-  const row = (p: Product, isChild: boolean, childCount: number) => (
-    <tr key={p.id} className={cn("border-t", isChild && "bg-muted/30")}>
-      <td className="px-6 py-3">
-        <div className={cn("flex items-center gap-3", isChild && "pl-8")}>
-          {isChild && <CornerDownRight className="size-4 text-muted-foreground shrink-0" />}
-          <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
-            {p.image_url && <img src={p.image_url} alt="" className="w-full h-full object-cover" />}
-          </div>
-          <span className="font-medium">{p.title}</span>
-          {childCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {childCount} variant{childCount > 1 ? "s" : ""}
-            </span>
-          )}
-        </div>
-      </td>
-      <td className="px-6 py-3 font-bold">${(p.sale_price ?? p.price).toFixed(2)}</td>
-      <td className="px-6 py-3 text-muted-foreground">{p.weight || "—"}</td>
-      <td className="px-6 py-3">{p.stock > 0 ? p.stock : "∞"}</td>
-      <td className="px-6 py-3">
-        <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">{p.status}</span>
-      </td>
-      <td className="px-6 py-3 text-right">
-        <div className="flex justify-end gap-1">
-          {!isChild && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => openVariant(p)}
-              aria-label="Add weight variant"
-            >
-              <Layers className="size-4" />
-            </Button>
-          )}
-          <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit">
-            <Pencil className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => duplicate(p)} aria-label="Duplicate">
-            <Copy className="size-4" />
-          </Button>
-          <Button variant="ghost" size="icon" onClick={() => del(p.id)} aria-label="Delete">
-            <Trash2 className="size-4 text-destructive" />
-          </Button>
-        </div>
-      </td>
-    </tr>
-  );
+  // Price/stock/weight columns reflect variations for variable products.
+  const priceLabel = (p: Product) => {
+    if (p.type !== "variable") return `$${(p.sale_price ?? p.price).toFixed(2)}`;
+    const vs = variationsByProduct.get(p.id) ?? [];
+    if (!vs.length) return "—";
+    const prices = vs.map((v) => v.sale_price ?? v.price);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    return min === max ? `$${min.toFixed(2)}` : `$${min.toFixed(2)}–$${max.toFixed(2)}`;
+  };
+  const weightLabel = (p: Product) => {
+    if (p.type !== "variable") return p.weight || "—";
+    const n = (variationsByProduct.get(p.id) ?? []).length;
+    return `${n} variation${n === 1 ? "" : "s"}`;
+  };
+  const stockLabel = (p: Product) => {
+    if (p.type !== "variable") return p.stock > 0 ? p.stock : "∞";
+    const vs = variationsByProduct.get(p.id) ?? [];
+    if (!vs.length) return "—";
+    return vs.reduce((a, v) => a + v.stock, 0) || "∞";
+  };
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -287,21 +276,67 @@ function ProductsAdmin() {
             </tr>
           </thead>
           <tbody>
-            {parents.map((parent) => {
-              const kids = childrenByParent(parent.id);
-              return (
-                <Fragment key={parent.id}>
-                  {row(parent, false, kids.length)}
-                  {kids.map((kid) => row(kid, true, 0))}
-                </Fragment>
-              );
-            })}
+            {products.map((p) => (
+              <tr key={p.id} className="border-t">
+                <td className="px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
+                      {p.image_url && (
+                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                    <span className="font-medium">{p.title}</span>
+                    {p.type === "variable" && (
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-brand border border-brand/40 rounded px-1.5 py-0.5">
+                        Variable
+                      </span>
+                    )}
+                  </div>
+                </td>
+                <td className="px-6 py-3 font-bold">{priceLabel(p)}</td>
+                <td className="px-6 py-3 text-muted-foreground">{weightLabel(p)}</td>
+                <td className="px-6 py-3">{stockLabel(p)}</td>
+                <td className="px-6 py-3">
+                  <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">
+                    {p.status}
+                  </span>
+                </td>
+                <td className="px-6 py-3 text-right">
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEdit(p)}
+                      aria-label="Edit"
+                    >
+                      <Pencil className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => duplicate(p)}
+                      aria-label="Duplicate"
+                    >
+                      <Copy className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => del(p.id)}
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="size-4 text-destructive" />
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{editing ? "Edit Product" : "New Product"}</DialogTitle>
           </DialogHeader>
@@ -321,36 +356,62 @@ function ProductsAdmin() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
               />
             </div>
+
+            <div>
+              <Label>Product type</Label>
+              <Select value={form.type} onValueChange={(v) => setForm({ ...form, type: v })}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simple">Simple product</SelectItem>
+                  <SelectItem value="variable">Variable product (weights)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Price</Label>
-                <Input
-                  required
-                  type="number"
-                  step="0.01"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Sale Price</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  value={form.sale_price}
-                  onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Stock (blank = in stock, no limit)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Unlimited"
-                  value={form.stock}
-                  onChange={(e) => setForm({ ...form, stock: e.target.value })}
-                />
-              </div>
+              {!isVariable && (
+                <>
+                  <div>
+                    <Label>Price</Label>
+                    <Input
+                      required
+                      type="number"
+                      step="0.01"
+                      value={form.price}
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Sale Price</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={form.sale_price}
+                      onChange={(e) => setForm({ ...form, sale_price: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Stock (blank = in stock, no limit)</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="Unlimited"
+                      value={form.stock}
+                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                    />
+                  </div>
+                  <div>
+                    <Label>Weight</Label>
+                    <Input
+                      placeholder="e.g. 250g, 1kg"
+                      value={form.weight}
+                      onChange={(e) => setForm({ ...form, weight: e.target.value })}
+                    />
+                  </div>
+                </>
+              )}
               <div>
                 <Label>Category</Label>
                 <Select
@@ -364,25 +425,6 @@ function ProductsAdmin() {
                     {categories.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Parent product (for weight variants)</Label>
-                <Select
-                  value={form.parent_id || "none"}
-                  onValueChange={(v) => setForm({ ...form, parent_id: v === "none" ? "" : v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="None (top-level)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None (top-level)</SelectItem>
-                    {parentOptions.map((p) => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -430,15 +472,95 @@ function ProductsAdmin() {
                   onChange={(e) => setForm({ ...form, rating: e.target.value })}
                 />
               </div>
-              <div>
-                <Label>Weight</Label>
-                <Input
-                  placeholder="e.g. 250g, 1kg"
-                  value={form.weight}
-                  onChange={(e) => setForm({ ...form, weight: e.target.value })}
-                />
-              </div>
             </div>
+
+            {isVariable && (
+              <div className="space-y-3 border rounded-xl p-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-bold">Variations (weights)</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setVars((v) => [...v, blankVar()])}
+                  >
+                    <Plus className="size-4 mr-1.5" /> Add variation
+                  </Button>
+                </div>
+                {vars.length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Add at least one weight, each with its own price and stock.
+                  </p>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span>Weight</span>
+                      <span>Price</span>
+                      <span>Sale</span>
+                      <span>Stock</span>
+                      <span></span>
+                    </div>
+                    {vars.map((v, i) => (
+                      <div key={i} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2">
+                        <Input
+                          placeholder="250g"
+                          value={v.weight}
+                          onChange={(e) =>
+                            setVars((rows) =>
+                              rows.map((r, j) => (j === i ? { ...r, weight: e.target.value } : r)),
+                            )
+                          }
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          value={v.price}
+                          onChange={(e) =>
+                            setVars((rows) =>
+                              rows.map((r, j) => (j === i ? { ...r, price: e.target.value } : r)),
+                            )
+                          }
+                        />
+                        <Input
+                          type="number"
+                          step="0.01"
+                          placeholder="—"
+                          value={v.sale_price}
+                          onChange={(e) =>
+                            setVars((rows) =>
+                              rows.map((r, j) =>
+                                j === i ? { ...r, sale_price: e.target.value } : r,
+                              ),
+                            )
+                          }
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="∞"
+                          value={v.stock}
+                          onChange={(e) =>
+                            setVars((rows) =>
+                              rows.map((r, j) => (j === i ? { ...r, stock: e.target.value } : r)),
+                            )
+                          }
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setVars((rows) => rows.filter((_, j) => j !== i))}
+                          aria-label="Remove variation"
+                        >
+                          <Trash2 className="size-4 text-destructive" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label>Product image</Label>
               <div className="flex items-start gap-3">

@@ -45,11 +45,25 @@ export const products = sqliteTable("products", {
   badge: text("badge"),
   rating: real("rating").default(4.5),
   weight: text("weight"),
-  // Self-reference for variant grouping; null = top-level product. Children are
-  // alternate weights of the same product, the parent is the default variant.
-  parent_id: text("parent_id"),
+  // "simple" | "variable". A variable product is a container: its own price and
+  // stock are ignored and the purchasable options live in product_variations.
+  type: text("type").notNull().default("simple"),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
+});
+
+export const product_variations = sqliteTable("product_variations", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  // Variation label — the weight, e.g. "250g", "1kg".
+  weight: text("weight").notNull(),
+  price: real("price").notNull().default(0),
+  sale_price: real("sale_price"),
+  stock: integer("stock").notNull().default(0),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
 export const media = sqliteTable("media", {

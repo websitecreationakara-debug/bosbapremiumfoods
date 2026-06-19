@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, or, asc, desc } from "drizzle-orm";
+import { eq, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products } from "@/db/schema";
+import { products, product_variations } from "@/db/schema";
 import { requireAdmin } from "./_auth";
 
 type ProductInput = {
@@ -16,7 +16,16 @@ type ProductInput = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
-  parent_id: string | null;
+  type: string;
+};
+
+type VariationInput = {
+  id?: string;
+  weight: string;
+  price: number;
+  sale_price: number | null;
+  stock: number;
+  sort_order: number;
 };
 
 export const listProducts = createServerFn({ method: "GET" })
@@ -40,31 +49,64 @@ export const getProduct = createServerFn({ method: "GET" })
     return row ?? null;
   });
 
-// All published members of a product's variant family (parent + children),
-// resolved from any member id. Ordered cheapest-first so the lightest weight
-// leads. Returns [] if the product is unknown.
-export const getVariants = createServerFn({ method: "GET" })
-  .inputValidator((d: { id: string }) => d)
+// Every variation row across the catalog — small table, fetched once so the
+// shop grid can show "from $X" per variable product without N queries.
+export const listVariations = createServerFn({ method: "GET" }).handler(async () => {
+  return getDb()
+    .select()
+    .from(product_variations)
+    .orderBy(asc(product_variations.sort_order), asc(product_variations.price));
+});
+
+// Variations for a single product, cheapest-first within sort order.
+export const getVariations = createServerFn({ method: "GET" })
+  .inputValidator((d: { productId: string }) => d)
   .handler(async ({ data }) => {
-    const db = getDb();
-    const [self] = await db.select().from(products).where(eq(products.id, data.id));
-    if (!self) return [];
-    const groupId = self.parent_id ?? self.id;
-    const rows = await db
+    return getDb()
       .select()
-      .from(products)
-      .where(or(eq(products.id, groupId), eq(products.parent_id, groupId)));
-    return rows
-      .filter((r) => r.status === "published")
-      .sort((a, b) => (a.sale_price ?? a.price) - (b.sale_price ?? b.price));
+      .from(product_variations)
+      .where(eq(product_variations.product_id, data.productId))
+      .orderBy(asc(product_variations.sort_order), asc(product_variations.price));
+  });
+
+// Replace a product's variations with the supplied set: update existing rows,
+// insert new ones, delete any that were removed in the editor.
+export const saveVariations = createServerFn({ method: "POST" })
+  .inputValidator((d: { productId: string; variations: VariationInput[] }) => d)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    const db = getDb();
+    const existing = await db
+      .select({ id: product_variations.id })
+      .from(product_variations)
+      .where(eq(product_variations.product_id, data.productId));
+
+    const keepIds = data.variations.map((v) => v.id).filter((id): id is string => !!id);
+    const toDelete = existing.filter((e) => !keepIds.includes(e.id)).map((e) => e.id);
+    if (toDelete.length)
+      await db.delete(product_variations).where(inArray(product_variations.id, toDelete));
+
+    for (const v of data.variations) {
+      const fields = {
+        weight: v.weight,
+        price: v.price,
+        sale_price: v.sale_price,
+        stock: v.stock,
+        sort_order: v.sort_order,
+      };
+      if (v.id)
+        await db.update(product_variations).set(fields).where(eq(product_variations.id, v.id));
+      else await db.insert(product_variations).values({ product_id: data.productId, ...fields });
+    }
+    return { ok: true };
   });
 
 export const createProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
-    await getDb().insert(products).values(data);
-    return { ok: true };
+    const [row] = await getDb().insert(products).values(data).returning({ id: products.id });
+    return { id: row.id };
   });
 
 export const updateProduct = createServerFn({ method: "POST" })
@@ -83,6 +125,8 @@ export const deleteProduct = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
     await requireAdmin();
-    await getDb().delete(products).where(eq(products.id, data.id));
+    const db = getDb();
+    await db.delete(product_variations).where(eq(product_variations.product_id, data.id));
+    await db.delete(products).where(eq(products.id, data.id));
     return { ok: true };
   });

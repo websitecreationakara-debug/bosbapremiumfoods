@@ -1,5 +1,17 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
-import type { CartItem, Product } from "@/lib/types";
+import type { CartItem, Product, ProductVariation } from "@/lib/types";
+
+// A cart line is identified by product + chosen variation, so the same product
+// in two weights is two distinct lines.
+export const lineKey = (productId: string, variationId?: string | null) =>
+  variationId ? `${productId}::${variationId}` : productId;
+
+export const itemKey = (i: CartItem) => lineKey(i.product.id, i.variation?.id);
+
+export const itemUnitPrice = (i: CartItem) =>
+  i.variation
+    ? (i.variation.sale_price ?? i.variation.price)
+    : (i.product.sale_price ?? i.product.price);
 
 type CartCtx = {
   items: CartItem[];
@@ -7,9 +19,9 @@ type CartCtx = {
   subtotal: number;
   drawerOpen: boolean;
   setDrawerOpen: (b: boolean) => void;
-  add: (p: Product, qty?: number) => void;
-  remove: (id: string) => void;
-  setQty: (id: string, qty: number) => void;
+  add: (p: Product, variation?: ProductVariation | null, qty?: number) => void;
+  remove: (key: string) => void;
+  setQty: (key: string, qty: number) => void;
   clear: () => void;
 };
 
@@ -26,7 +38,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
     try {
       const raw = localStorage.getItem(STORAGE);
       if (raw) setItems(JSON.parse(raw));
-    } catch {}
+    } catch {
+      // ignore malformed/absent cart in storage
+    }
     setHydrated(true);
   }, []);
 
@@ -34,28 +48,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE, JSON.stringify(items));
   }, [items, hydrated]);
 
-  const add: CartCtx["add"] = (p, qty = 1) => {
+  const add: CartCtx["add"] = (p, variation = null, qty = 1) => {
+    const key = lineKey(p.id, variation?.id);
     setItems((prev) => {
-      const existing = prev.find((i) => i.product.id === p.id);
-      if (existing)
-        return prev.map((i) => (i.product.id === p.id ? { ...i, qty: i.qty + qty } : i));
-      return [...prev, { product: p, qty }];
+      const existing = prev.find((i) => itemKey(i) === key);
+      if (existing) return prev.map((i) => (itemKey(i) === key ? { ...i, qty: i.qty + qty } : i));
+      return [...prev, { product: p, variation, qty }];
     });
     setDrawerOpen(true);
   };
 
-  const remove: CartCtx["remove"] = (id) =>
-    setItems((prev) => prev.filter((i) => i.product.id !== id));
-  const setQty: CartCtx["setQty"] = (id, qty) =>
+  const remove: CartCtx["remove"] = (key) =>
+    setItems((prev) => prev.filter((i) => itemKey(i) !== key));
+  const setQty: CartCtx["setQty"] = (key, qty) =>
     setItems((prev) =>
       qty <= 0
-        ? prev.filter((i) => i.product.id !== id)
-        : prev.map((i) => (i.product.id === id ? { ...i, qty } : i)),
+        ? prev.filter((i) => itemKey(i) !== key)
+        : prev.map((i) => (itemKey(i) === key ? { ...i, qty } : i)),
     );
   const clear = () => setItems([]);
 
   const count = items.reduce((a, i) => a + i.qty, 0);
-  const subtotal = items.reduce((a, i) => a + (i.product.sale_price ?? i.product.price) * i.qty, 0);
+  const subtotal = items.reduce((a, i) => a + itemUnitPrice(i) * i.qty, 0);
 
   return (
     <Ctx.Provider

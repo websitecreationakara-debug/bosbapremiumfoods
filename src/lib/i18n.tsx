@@ -49,6 +49,7 @@ const en = {
   "product.addToCart": "Add to cart",
   "product.noImage": "No image",
   "product.from": "from",
+  "product.selectOptions": "Select options",
   // shop
   "shop.title": "Shop the Marketplace",
   "shop.count": "{n} fresh products",
@@ -130,6 +131,7 @@ const km: Dict = {
   "product.addToCart": "បន្ថែមទៅកន្ត្រក",
   "product.noImage": "គ្មានរូបភាព",
   "product.from": "ចាប់ពី",
+  "product.selectOptions": "ជ្រើសរើសជម្រើស",
   "shop.title": "ទិញនៅផ្សារ",
   "shop.count": "{n} ផលិតផលស្រស់",
   "shop.filters": "តម្រង",
@@ -206,6 +208,7 @@ const ja: Dict = {
   "product.addToCart": "カートに追加",
   "product.noImage": "画像なし",
   "product.from": "〜",
+  "product.selectOptions": "オプションを選択",
   "shop.title": "マーケットで買う",
   "shop.count": "{n} 点の新鮮な商品",
   "shop.filters": "フィルター",

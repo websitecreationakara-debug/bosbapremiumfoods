@@ -64,6 +64,20 @@
       "when": 1781848334787,
       "tag": "0008_silky_leech",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1781853944600,
+      "tag": "0009_wet_stephen_strange",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1781853962916,
+      "tag": "0010_massive_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

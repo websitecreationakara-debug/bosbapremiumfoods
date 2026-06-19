@@ -1,5 +1,5 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useCart } from "@/hooks/use-cart";
+import { useCart, itemKey, itemUnitPrice } from "@/hooks/use-cart";
 import { useStoreSettings } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
@@ -52,10 +52,12 @@ export function CartDrawer() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-              {items.map(({ product, qty }) => {
-                const unit = product.sale_price ?? product.price;
+              {items.map((item) => {
+                const { product, variation, qty } = item;
+                const key = itemKey(item);
+                const unit = itemUnitPrice(item);
                 return (
-                  <div key={product.id} className="flex gap-3">
+                  <div key={key} className="flex gap-3">
                     <div className="size-20 rounded-xl bg-muted overflow-hidden shrink-0">
                       {product.image_url && (
                         <img
@@ -68,9 +70,14 @@ export function CartDrawer() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-medium text-sm leading-tight">{product.title}</p>
+                        <p className="font-medium text-sm leading-tight">
+                          {product.title}
+                          {variation && (
+                            <span className="text-muted-foreground"> · {variation.weight}</span>
+                          )}
+                        </p>
                         <button
-                          onClick={() => remove(product.id)}
+                          onClick={() => remove(key)}
                           className="text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="size-4" />
@@ -82,14 +89,14 @@ export function CartDrawer() {
                       <div className="flex items-center justify-between mt-2">
                         <div className="flex items-center gap-1 border rounded-full">
                           <button
-                            onClick={() => setQty(product.id, qty - 1)}
+                            onClick={() => setQty(key, qty - 1)}
                             className="size-7 grid place-items-center hover:bg-muted rounded-full"
                           >
                             <Minus className="size-3" />
                           </button>
                           <span className="text-xs font-semibold w-6 text-center">{qty}</span>
                           <button
-                            onClick={() => setQty(product.id, qty + 1)}
+                            onClick={() => setQty(key, qty + 1)}
                             className="size-7 grid place-items-center hover:bg-muted rounded-full"
                           >
                             <Plus className="size-3" />
