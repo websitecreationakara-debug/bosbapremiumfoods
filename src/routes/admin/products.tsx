@@ -24,7 +24,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy, Search } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  ImageIcon,
+  Loader2,
+  X,
+  Copy,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Media } from "@/lib/types";
 
@@ -72,6 +84,8 @@ function ProductsAdmin() {
   const [catFilter, setCatFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [pageSize, setPageSize] = useState(10);
+  const [page, setPage] = useState(1);
 
   const variationsByProduct = groupVariations(allVariations);
 
@@ -84,11 +98,26 @@ function ProductsAdmin() {
     if (typeFilter !== "all" && p.type !== typeFilter) return false;
     return true;
   });
+
+  // Clamp the page so it stays valid after filters shrink the list.
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rangeStart = filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(safePage * pageSize, filtered.length);
+  // Any filter change should send the admin back to the first page.
+  const onFilterChange =
+    <T,>(setter: (v: T) => void) =>
+    (v: T) => {
+      setter(v);
+      setPage(1);
+    };
   const resetFilters = () => {
     setQuery("");
     setCatFilter("all");
     setStatusFilter("all");
     setTypeFilter("all");
+    setPage(1);
   };
 
   const onUpload = async (file: File | undefined) => {
@@ -292,12 +321,12 @@ function ProductsAdmin() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
           <Input
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => onFilterChange(setQuery)(e.target.value)}
             placeholder="Search by title..."
             className="pl-9"
           />
         </div>
-        <Select value={catFilter} onValueChange={setCatFilter}>
+        <Select value={catFilter} onValueChange={onFilterChange(setCatFilter)}>
           <SelectTrigger className="w-44">
             <SelectValue placeholder="Category" />
           </SelectTrigger>
@@ -310,7 +339,7 @@ function ProductsAdmin() {
             ))}
           </SelectContent>
         </Select>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
+        <Select value={statusFilter} onValueChange={onFilterChange(setStatusFilter)}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
@@ -320,7 +349,7 @@ function ProductsAdmin() {
             <SelectItem value="draft">Draft</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={typeFilter} onValueChange={setTypeFilter}>
+        <Select value={typeFilter} onValueChange={onFilterChange(setTypeFilter)}>
           <SelectTrigger className="w-36">
             <SelectValue placeholder="Type" />
           </SelectTrigger>
@@ -357,7 +386,7 @@ function ProductsAdmin() {
                 </td>
               </tr>
             )}
-            {filtered.map((p) => (
+            {paged.map((p) => (
               <tr key={p.id} className="border-t">
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
@@ -414,6 +443,56 @@ function ProductsAdmin() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <span>Show</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => {
+              setPageSize(Number(v));
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-20">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 25, 50, 100].map((n) => (
+                <SelectItem key={n} value={String(n)}>
+                  {n}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <span>per page</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="text-muted-foreground">
+            {rangeStart}–{rangeEnd} of {filtered.length}
+          </span>
+          <div className="flex gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={safePage <= 1}
+              onClick={() => setPage(safePage - 1)}
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="size-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              disabled={safePage >= totalPages}
+              onClick={() => setPage(safePage + 1)}
+              aria-label="Next page"
+            >
+              <ChevronRight className="size-4" />
+            </Button>
+          </div>
+        </div>
       </div>
 
       <Dialog open={open} onOpenChange={setOpen}>
