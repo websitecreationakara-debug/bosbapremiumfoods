@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { listProducts, getProduct } from "@/data/products";
+import { listProducts, getProduct, getVariants } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
 import { getSettings } from "@/data/settings";
@@ -17,6 +17,14 @@ export function useProduct(id: string) {
   return useQuery({
     queryKey: ["product", id],
     queryFn: () => getProduct({ data: { id } }) as Promise<Product | null>,
+    enabled: !!id,
+  });
+}
+
+export function useVariants(id: string) {
+  return useQuery({
+    queryKey: ["variants", id],
+    queryFn: () => getVariants({ data: { id } }) as Promise<Product[]>,
     enabled: !!id,
   });
 }

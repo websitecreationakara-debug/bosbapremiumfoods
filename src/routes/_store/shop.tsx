@@ -16,13 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { familyFromPrice } from "@/lib/variants";
 import type { Product } from "@/lib/types";
 
 type Search = { category?: string; q?: string };
 
 type Sort = "featured" | "price-asc" | "price-desc" | "rating";
 
-const effectivePrice = (p: Product) => p.sale_price ?? p.price;
 const isOnSale = (p: Product) => p.sale_price != null && p.sale_price < p.price;
 
 export const Route = createFileRoute("/_store/shop")({
@@ -35,8 +35,12 @@ export const Route = createFileRoute("/_store/shop")({
 
 function Shop() {
   const search = Route.useSearch();
-  const { data: products = [], isLoading } = useProducts();
+  const { data: allProducts = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
+  // Grid shows one card per top-level product; weight variants live behind it.
+  const products = allProducts.filter((p) => !p.parent_id);
+  // For a parent, the displayed/filtered price is its cheapest variant.
+  const displayPrice = (p: Product) => familyFromPrice(allProducts, p);
   const { t } = useI18n();
   const [query, setQuery] = useState(search.q ?? "");
   const [activeCat, setActiveCat] = useState<string | undefined>(search.category);
@@ -46,8 +50,8 @@ function Shop() {
 
   const catId = activeCat ? categories.find((c) => c.slug === activeCat)?.id : undefined;
 
-  // Price slider bounds derived from the catalog (effective/sale price).
-  const prices = products.map(effectivePrice);
+  // Price slider bounds derived from the catalog (cheapest variant per product).
+  const prices = products.map(displayPrice);
   const floor = prices.length ? Math.floor(Math.min(...prices)) : 0;
   let ceil = prices.length ? Math.ceil(Math.max(...prices)) : 100;
   if (ceil <= floor) ceil = floor + 1; // keep the slider range non-degenerate
@@ -68,7 +72,7 @@ function Shop() {
     if (catId && p.category_id !== catId) return false;
     if (query && !p.title.toLowerCase().includes(query.toLowerCase())) return false;
     if (onSale && !isOnSale(p)) return false;
-    const price = effectivePrice(p);
+    const price = displayPrice(p);
     if (price < lo || price > hi) return false;
     return true;
   });
@@ -76,9 +80,9 @@ function Shop() {
   const sorted = [...filtered].sort((a, b) => {
     switch (sort) {
       case "price-asc":
-        return effectivePrice(a) - effectivePrice(b);
+        return displayPrice(a) - displayPrice(b);
       case "price-desc":
-        return effectivePrice(b) - effectivePrice(a);
+        return displayPrice(b) - displayPrice(a);
       case "rating":
         return (b.rating ?? 0) - (a.rating ?? 0);
       default:
@@ -218,7 +222,7 @@ function Shop() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {sorted.map((p) => (
-                <ProductCard key={p.id} product={p} />
+                <ProductCard key={p.id} product={p} fromPrice={displayPrice(p)} />
               ))}
             </div>
           )}

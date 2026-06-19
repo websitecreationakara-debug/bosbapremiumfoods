@@ -45,6 +45,9 @@ export const products = sqliteTable("products", {
   badge: text("badge"),
   rating: real("rating").default(4.5),
   weight: text("weight"),
+  // Self-reference for variant grouping; null = top-level product. Children are
+  // alternate weights of the same product, the parent is the default variant.
+  parent_id: text("parent_id"),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });

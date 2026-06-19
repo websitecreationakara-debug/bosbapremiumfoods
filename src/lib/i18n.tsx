@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type Locale = "en" | "km" | "ja";
 
@@ -55,6 +48,7 @@ const en = {
   // product
   "product.addToCart": "Add to cart",
   "product.noImage": "No image",
+  "product.from": "from",
   // shop
   "shop.title": "Shop the Marketplace",
   "shop.count": "{n} fresh products",
@@ -135,6 +129,7 @@ const km: Dict = {
   "cta.join": "ចូលរួម BOSBA Plus",
   "product.addToCart": "បន្ថែមទៅកន្ត្រក",
   "product.noImage": "គ្មានរូបភាព",
+  "product.from": "ចាប់ពី",
   "shop.title": "ទិញនៅផ្សារ",
   "shop.count": "{n} ផលិតផលស្រស់",
   "shop.filters": "តម្រង",
@@ -210,6 +205,7 @@ const ja: Dict = {
   "cta.join": "BOSBA Plus に参加",
   "product.addToCart": "カートに追加",
   "product.noImage": "画像なし",
+  "product.from": "〜",
   "shop.title": "マーケットで買う",
   "shop.count": "{n} 点の新鮮な商品",
   "shop.filters": "フィルター",

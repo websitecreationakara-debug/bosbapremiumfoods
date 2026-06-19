@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useProduct, useStoreSettings } from "@/hooks/use-products";
+import { useProduct, useStoreSettings, useVariants } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -13,11 +13,19 @@ export const Route = createFileRoute("/_store/product/$id")({
 
 function ProductDetail() {
   const { id } = Route.useParams();
-  const { data: product, isLoading } = useProduct(id);
+  const { data: base, isLoading } = useProduct(id);
+  const { data: variants = [] } = useVariants(id);
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const [qty, setQty] = useState(1);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
+
+  // The visited product drives the default selection; the family is resolved
+  // from it so visiting any variant lands on the same group.
+  const product =
+    variants.find((v) => v.id === selectedId) ?? variants.find((v) => v.id === id) ?? base;
+  const hasVariants = variants.length > 1;
 
   if (isLoading) {
     return (
@@ -128,6 +136,37 @@ function ProductDetail() {
               </span>
             )}
           </div>
+
+          {hasVariants && (
+            <div className="mt-6">
+              <span className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+                Weight
+              </span>
+              <div className="flex flex-wrap gap-2">
+                {variants.map((v) => {
+                  const active = v.id === product.id;
+                  return (
+                    <button
+                      key={v.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedId(v.id);
+                        setQty(1);
+                      }}
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                        active
+                          ? "border-brand bg-brand text-brand-foreground"
+                          : "hover:border-brand",
+                      )}
+                    >
+                      {v.weight || `$${(v.sale_price ?? v.price).toFixed(2)}`}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {product.description && (
             <p className="text-muted-foreground mt-5 leading-relaxed">{product.description}</p>

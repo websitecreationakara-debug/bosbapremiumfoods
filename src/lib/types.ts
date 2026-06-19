@@ -11,6 +11,7 @@ export type Product = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
+  parent_id: string | null;
   created_at: string;
   updated_at: string;
 };

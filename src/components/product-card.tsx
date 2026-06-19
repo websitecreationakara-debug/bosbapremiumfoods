@@ -4,10 +4,13 @@ import { useCart } from "@/hooks/use-cart";
 import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({ product, fromPrice }: { product: Product; fromPrice?: number }) {
   const { add } = useCart();
   const { t } = useI18n();
   const hasSale = product.sale_price != null && product.sale_price < product.price;
+  // When the product has cheaper weight variants, lead with "from $X" and drop
+  // the per-weight label since weight varies across the family.
+  const showFrom = fromPrice != null && fromPrice < (product.sale_price ?? product.price);
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
     : 0;
@@ -49,16 +52,24 @@ export function ProductCard({ product }: { product: Product }) {
 
         <div className="mt-auto flex items-end justify-between gap-2">
           <div className="flex items-baseline gap-1.5">
-            <span className="text-[15px] font-medium text-brand">
-              ${(product.sale_price ?? product.price).toFixed(2)}
-            </span>
-            {product.weight && (
-              <span className="text-xs text-muted-foreground">/ {product.weight}</span>
-            )}
-            {hasSale && (
-              <span className="text-xs text-muted-foreground line-through">
-                ${product.price.toFixed(2)}
+            {showFrom ? (
+              <span className="text-[15px] font-medium text-brand">
+                {t("product.from")} ${fromPrice.toFixed(2)}
               </span>
+            ) : (
+              <>
+                <span className="text-[15px] font-medium text-brand">
+                  ${(product.sale_price ?? product.price).toFixed(2)}
+                </span>
+                {product.weight && (
+                  <span className="text-xs text-muted-foreground">/ {product.weight}</span>
+                )}
+                {hasSale && (
+                  <span className="text-xs text-muted-foreground line-through">
+                    ${product.price.toFixed(2)}
+                  </span>
+                )}
+              </>
             )}
           </div>
 

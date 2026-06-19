@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, asc, desc } from "drizzle-orm";
+import { eq, or, asc, desc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products } from "@/db/schema";
 import { requireAdmin } from "./_auth";
@@ -16,6 +16,7 @@ type ProductInput = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
+  parent_id: string | null;
 };
 
 export const listProducts = createServerFn({ method: "GET" })
@@ -37,6 +38,25 @@ export const getProduct = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const [row] = await getDb().select().from(products).where(eq(products.id, data.id));
     return row ?? null;
+  });
+
+// All published members of a product's variant family (parent + children),
+// resolved from any member id. Ordered cheapest-first so the lightest weight
+// leads. Returns [] if the product is unknown.
+export const getVariants = createServerFn({ method: "GET" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    const db = getDb();
+    const [self] = await db.select().from(products).where(eq(products.id, data.id));
+    if (!self) return [];
+    const groupId = self.parent_id ?? self.id;
+    const rows = await db
+      .select()
+      .from(products)
+      .where(or(eq(products.id, groupId), eq(products.parent_id, groupId)));
+    return rows
+      .filter((r) => r.status === "published")
+      .sort((a, b) => (a.sale_price ?? a.price) - (b.sale_price ?? b.price));
   });
 
 export const createProduct = createServerFn({ method: "POST" })

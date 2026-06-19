@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { Fragment, useRef, useState } from "react";
 import { useProducts, useCategories } from "@/hooks/use-products";
 import { createProduct, updateProduct, deleteProduct } from "@/data/products";
 import { listMedia, uploadMedia } from "@/data/media";
@@ -23,8 +23,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  Upload,
+  ImageIcon,
+  Loader2,
+  X,
+  Copy,
+  Layers,
+  CornerDownRight,
+} from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
@@ -44,6 +56,7 @@ const empty = {
   badge: "",
   rating: "4.5",
   weight: "",
+  parent_id: "",
 };
 
 function ProductsAdmin() {
@@ -99,6 +112,25 @@ function ProductsAdmin() {
       badge: p.badge ?? "",
       rating: p.rating != null ? String(p.rating) : "",
       weight: p.weight ?? "",
+      parent_id: p.parent_id ?? "",
+    });
+    setOpen(true);
+  };
+
+  // Open the dialog pre-filled to add a weight variant under `parent`: shared
+  // fields are copied, only weight/price/stock are left for the user to set.
+  const openVariant = (parent: Product) => {
+    setPicker(false);
+    setForm({
+      ...empty,
+      title: parent.title,
+      description: parent.description ?? "",
+      category_id: parent.category_id ?? "",
+      status: parent.status,
+      image_url: parent.image_url ?? "",
+      badge: parent.badge ?? "",
+      rating: parent.rating != null ? String(parent.rating) : "",
+      parent_id: parent.id,
     });
     setOpen(true);
   };
@@ -117,6 +149,7 @@ function ProductsAdmin() {
       badge: form.badge || null,
       rating: form.rating.trim() === "" ? null : Number(form.rating),
       weight: form.weight.trim() === "" ? null : form.weight.trim(),
+      parent_id: form.parent_id || null,
     };
     try {
       if (editing) await updateProduct({ data: { id: form.id, ...payload } });
@@ -131,9 +164,15 @@ function ProductsAdmin() {
   };
 
   const del = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
+    const kids = products.filter((p) => p.parent_id === id);
+    const msg = kids.length
+      ? `Delete this product and its ${kids.length} variant${kids.length > 1 ? "s" : ""}?`
+      : "Delete this product?";
+    if (!confirm(msg)) return;
     try {
-      await deleteProduct({ data: { id } });
+      await Promise.all(
+        [id, ...kids.map((k) => k.id)].map((pid) => deleteProduct({ data: { id: pid } })),
+      );
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to delete");
       return;
@@ -157,6 +196,7 @@ function ProductsAdmin() {
           badge: p.badge,
           rating: p.rating,
           weight: p.weight,
+          parent_id: p.parent_id,
         },
       });
     } catch (err) {
@@ -166,6 +206,61 @@ function ProductsAdmin() {
     toast.success("Product duplicated as draft");
     qc.invalidateQueries({ queryKey: ["products"] });
   };
+
+  // Top-level rows, plus any orphaned variants (parent removed) so nothing
+  // silently disappears from the table.
+  const ids = new Set(products.map((p) => p.id));
+  const parents = products.filter((p) => !p.parent_id || !ids.has(p.parent_id));
+  const childrenByParent = (parentId: string) => products.filter((p) => p.parent_id === parentId);
+  const parentOptions = products.filter((p) => !p.parent_id && p.id !== form.id);
+
+  const row = (p: Product, isChild: boolean, childCount: number) => (
+    <tr key={p.id} className={cn("border-t", isChild && "bg-muted/30")}>
+      <td className="px-6 py-3">
+        <div className={cn("flex items-center gap-3", isChild && "pl-8")}>
+          {isChild && <CornerDownRight className="size-4 text-muted-foreground shrink-0" />}
+          <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
+            {p.image_url && <img src={p.image_url} alt="" className="w-full h-full object-cover" />}
+          </div>
+          <span className="font-medium">{p.title}</span>
+          {childCount > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {childCount} variant{childCount > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
+      </td>
+      <td className="px-6 py-3 font-bold">${(p.sale_price ?? p.price).toFixed(2)}</td>
+      <td className="px-6 py-3 text-muted-foreground">{p.weight || "—"}</td>
+      <td className="px-6 py-3">{p.stock > 0 ? p.stock : "∞"}</td>
+      <td className="px-6 py-3">
+        <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">{p.status}</span>
+      </td>
+      <td className="px-6 py-3 text-right">
+        <div className="flex justify-end gap-1">
+          {!isChild && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => openVariant(p)}
+              aria-label="Add weight variant"
+            >
+              <Layers className="size-4" />
+            </Button>
+          )}
+          <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit">
+            <Pencil className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => duplicate(p)} aria-label="Duplicate">
+            <Copy className="size-4" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => del(p.id)} aria-label="Delete">
+            <Trash2 className="size-4 text-destructive" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
 
   return (
     <div className="space-y-6 max-w-7xl">
@@ -192,46 +287,15 @@ function ProductsAdmin() {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
-                      {p.image_url && (
-                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
-                      )}
-                    </div>
-                    <span className="font-medium">{p.title}</span>
-                  </div>
-                </td>
-                <td className="px-6 py-3 font-bold">${(p.sale_price ?? p.price).toFixed(2)}</td>
-                <td className="px-6 py-3 text-muted-foreground">{p.weight || "—"}</td>
-                <td className="px-6 py-3">{p.stock > 0 ? p.stock : "∞"}</td>
-                <td className="px-6 py-3">
-                  <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">
-                    {p.status}
-                  </span>
-                </td>
-                <td className="px-6 py-3 text-right">
-                  <div className="flex justify-end gap-1">
-                    <Button variant="ghost" size="icon" onClick={() => openEdit(p)} aria-label="Edit">
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => duplicate(p)}
-                      aria-label="Duplicate"
-                    >
-                      <Copy className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => del(p.id)} aria-label="Delete">
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            ))}
+            {parents.map((parent) => {
+              const kids = childrenByParent(parent.id);
+              return (
+                <Fragment key={parent.id}>
+                  {row(parent, false, kids.length)}
+                  {kids.map((kid) => row(kid, true, 0))}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
@@ -306,6 +370,25 @@ function ProductsAdmin() {
                 </Select>
               </div>
               <div>
+                <Label>Parent product (for weight variants)</Label>
+                <Select
+                  value={form.parent_id || "none"}
+                  onValueChange={(v) => setForm({ ...form, parent_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="None (top-level)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (top-level)</SelectItem>
+                    {parentOptions.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
                 <Label>Status</Label>
                 <Select value={form.status} onValueChange={(v) => setForm({ ...form, status: v })}>
                   <SelectTrigger>
@@ -362,11 +445,7 @@ function ProductsAdmin() {
                 <div className="size-20 rounded-lg border bg-muted overflow-hidden shrink-0 relative">
                   {form.image_url ? (
                     <>
-                      <img
-                        src={form.image_url}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
+                      <img src={form.image_url} alt="" className="w-full h-full object-cover" />
                       <button
                         type="button"
                         onClick={() => setForm({ ...form, image_url: "" })}
@@ -439,7 +518,11 @@ function ProductsAdmin() {
                           }}
                           className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
                         >
-                          <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
+                          <img
+                            src={m.url}
+                            alt={m.filename}
+                            className="w-full h-full object-cover"
+                          />
                         </button>
                       ))}
                     </div>

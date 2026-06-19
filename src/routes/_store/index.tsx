@@ -5,6 +5,7 @@ import { useCategories, useProducts, useStoreSettings } from "@/hooks/use-produc
 import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { familyFromPrice, topLevel } from "@/lib/variants";
 
 export const Route = createFileRoute("/_store/")({
   component: Home,
@@ -15,11 +16,15 @@ function Home() {
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
   const { t } = useI18n();
-  const featured = products.slice(0, 6);
+  const featured = topLevel(products).slice(0, 6);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
-    { icon: Truck, title: t("feature.delivery.title"), body: t("feature.delivery.body", { threshold: shipThreshold }) },
+    {
+      icon: Truck,
+      title: t("feature.delivery.title"),
+      body: t("feature.delivery.body", { threshold: shipThreshold }),
+    },
     { icon: Fish, title: t("feature.sashimi.title"), body: t("feature.sashimi.body") },
     { icon: ShieldCheck, title: t("feature.quality.title"), body: t("feature.quality.body") },
     { icon: Snowflake, title: t("feature.cold.title"), body: t("feature.cold.body") },
@@ -105,7 +110,9 @@ function Home() {
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
               ))
-            : featured.map((p) => <ProductCard key={p.id} product={p} />)}
+            : featured.map((p) => (
+                <ProductCard key={p.id} product={p} fromPrice={familyFromPrice(products, p)} />
+              ))}
         </div>
         <div className="mt-10 text-center">
           <Link

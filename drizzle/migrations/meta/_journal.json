@@ -57,6 +57,13 @@
       "when": 1781694890486,
       "tag": "0007_quiet_squadron_sinister",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1781848334787,
+      "tag": "0008_silky_leech",
+      "breakpoints": true
     }
   ]
 }
