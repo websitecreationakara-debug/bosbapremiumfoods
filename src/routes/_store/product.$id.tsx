@@ -60,6 +60,7 @@ function ProductDetail() {
   const salePrice = variable ? (selected?.sale_price ?? null) : product.sale_price;
   const activeStock = variable ? (selected?.stock ?? 0) : product.stock;
   const weightLabel = variable ? selected?.weight : product.weight;
+  const pcs = variable ? (selected?.pcs ?? null) : product.pcs;
   const hasSale = salePrice != null && salePrice < basePrice;
   const price = salePrice ?? basePrice;
   const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
@@ -127,6 +128,12 @@ function ProductDetail() {
               <>
                 <span className="opacity-50">·</span>
                 <span>{weightLabel}</span>
+              </>
+            )}
+            {pcs != null && (
+              <>
+                <span className="opacity-50">·</span>
+                <span>{pcs} pcs/box</span>
               </>
             )}
           </div>

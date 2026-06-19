@@ -78,6 +78,13 @@
       "when": 1781853962916,
       "tag": "0010_massive_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1781863840681,
+      "tag": "0011_pale_warbird",
+      "breakpoints": true
     }
   ]
 }

@@ -45,6 +45,8 @@ export const products = sqliteTable("products", {
   badge: text("badge"),
   rating: real("rating").default(4.5),
   weight: text("weight"),
+  // Pieces per box/package, when the product is sold by count. Null = N/A.
+  pcs: integer("pcs"),
   // "simple" | "variable". A variable product is a container: its own price and
   // stock are ignored and the purchasable options live in product_variations.
   type: text("type").notNull().default("simple"),
@@ -62,6 +64,8 @@ export const product_variations = sqliteTable("product_variations", {
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),
   stock: integer("stock").notNull().default(0),
+  // Pieces per box for this weight, when sold by count. Null = N/A.
+  pcs: integer("pcs"),
   sort_order: integer("sort_order").notNull().default(0),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });

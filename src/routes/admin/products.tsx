@@ -57,11 +57,19 @@ const empty = {
   badge: "",
   rating: "4.5",
   weight: "",
+  pcs: "",
   type: "simple",
 };
 
-type VarRow = { id?: string; weight: string; price: string; sale_price: string; stock: string };
-const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock: "" });
+type VarRow = {
+  id?: string;
+  weight: string;
+  price: string;
+  sale_price: string;
+  stock: string;
+  pcs: string;
+};
+const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock: "", pcs: "" });
 
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
@@ -159,6 +167,7 @@ function ProductsAdmin() {
       badge: p.badge ?? "",
       rating: p.rating != null ? String(p.rating) : "",
       weight: p.weight ?? "",
+      pcs: p.pcs != null ? String(p.pcs) : "",
       type: p.type,
     });
     setOpen(true);
@@ -171,6 +180,7 @@ function ProductsAdmin() {
           price: String(v.price),
           sale_price: v.sale_price != null ? String(v.sale_price) : "",
           stock: v.stock > 0 ? String(v.stock) : "",
+          pcs: v.pcs != null ? String(v.pcs) : "",
         })),
       );
     } else {
@@ -187,6 +197,7 @@ function ProductsAdmin() {
         price: Number(v.price) || 0,
         sale_price: v.sale_price.trim() === "" ? null : Number(v.sale_price),
         stock: v.stock.trim() === "" ? 0 : Number(v.stock),
+        pcs: v.pcs.trim() === "" ? null : Number(v.pcs),
         sort_order: i,
       }));
 
@@ -206,6 +217,7 @@ function ProductsAdmin() {
       badge: form.badge || null,
       rating: form.rating.trim() === "" ? null : Number(form.rating),
       weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
+      pcs: variable || form.pcs.trim() === "" ? null : Number(form.pcs),
       type: form.type,
     };
     try {
@@ -251,6 +263,7 @@ function ProductsAdmin() {
           badge: p.badge,
           rating: p.rating,
           weight: p.weight,
+          pcs: p.pcs,
           type: p.type,
         },
       });
@@ -264,6 +277,7 @@ function ProductsAdmin() {
               price: v.price,
               sale_price: v.sale_price,
               stock: v.stock,
+              pcs: v.pcs,
               sort_order: i,
             })),
           },
@@ -289,7 +303,12 @@ function ProductsAdmin() {
     return min === max ? `$${min.toFixed(2)}` : `$${min.toFixed(2)}–$${max.toFixed(2)}`;
   };
   const weightLabel = (p: Product) => {
-    if (p.type !== "variable") return p.weight || "—";
+    if (p.type !== "variable") {
+      const parts = [];
+      if (p.weight) parts.push(p.weight);
+      if (p.pcs != null) parts.push(`${p.pcs} pcs`);
+      return parts.length ? parts.join(" · ") : "—";
+    }
     const n = (variationsByProduct.get(p.id) ?? []).length;
     return `${n} variation${n === 1 ? "" : "s"}`;
   };
@@ -570,6 +589,16 @@ function ProductsAdmin() {
                       onChange={(e) => setForm({ ...form, weight: e.target.value })}
                     />
                   </div>
+                  <div>
+                    <Label>Pcs per box</Label>
+                    <Input
+                      type="number"
+                      min="0"
+                      placeholder="e.g. 24"
+                      value={form.pcs}
+                      onChange={(e) => setForm({ ...form, pcs: e.target.value })}
+                    />
+                  </div>
                 </>
               )}
               <div>
@@ -653,15 +682,16 @@ function ProductsAdmin() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                       <span>Weight</span>
                       <span>Price</span>
                       <span>Sale</span>
                       <span>Stock</span>
+                      <span>Pcs/box</span>
                       <span></span>
                     </div>
                     {vars.map((v, i) => (
-                      <div key={i} className="grid grid-cols-[1fr_1fr_1fr_1fr_auto] gap-2">
+                      <div key={i} className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2">
                         <Input
                           placeholder="250g"
                           value={v.weight}
@@ -702,6 +732,17 @@ function ProductsAdmin() {
                           onChange={(e) =>
                             setVars((rows) =>
                               rows.map((r, j) => (j === i ? { ...r, stock: e.target.value } : r)),
+                            )
+                          }
+                        />
+                        <Input
+                          type="number"
+                          min="0"
+                          placeholder="—"
+                          value={v.pcs}
+                          onChange={(e) =>
+                            setVars((rows) =>
+                              rows.map((r, j) => (j === i ? { ...r, pcs: e.target.value } : r)),
                             )
                           }
                         />

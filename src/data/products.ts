@@ -16,6 +16,7 @@ type ProductInput = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
+  pcs: number | null;
   type: string;
 };
 
@@ -25,6 +26,7 @@ type VariationInput = {
   price: number;
   sale_price: number | null;
   stock: number;
+  pcs: number | null;
   sort_order: number;
 };
 
@@ -92,6 +94,7 @@ export const saveVariations = createServerFn({ method: "POST" })
         price: v.price,
         sale_price: v.sale_price,
         stock: v.stock,
+        pcs: v.pcs,
         sort_order: v.sort_order,
       };
       if (v.id)

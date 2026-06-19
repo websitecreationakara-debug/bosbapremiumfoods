@@ -11,6 +11,7 @@ export type Product = {
   badge: string | null;
   rating: number | null;
   weight: string | null;
+  pcs: number | null;
   type: string;
   created_at: string;
   updated_at: string;
@@ -23,6 +24,7 @@ export type ProductVariation = {
   price: number;
   sale_price: number | null;
   stock: number;
+  pcs: number | null;
   sort_order: number;
   created_at: string;
 };
