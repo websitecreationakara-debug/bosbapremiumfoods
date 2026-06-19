@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy } from "lucide-react";
+import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Copy, Search } from "lucide-react";
 import { toast } from "sonner";
 import type { Product, Media } from "@/lib/types";
 
@@ -68,8 +68,28 @@ function ProductsAdmin() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [picker, setPicker] = useState(false);
+  const [query, setQuery] = useState("");
+  const [catFilter, setCatFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
 
   const variationsByProduct = groupVariations(allVariations);
+
+  const filtersActive =
+    query.trim() !== "" || catFilter !== "all" || statusFilter !== "all" || typeFilter !== "all";
+  const filtered = products.filter((p) => {
+    if (query && !p.title.toLowerCase().includes(query.toLowerCase())) return false;
+    if (catFilter !== "all" && p.category_id !== catFilter) return false;
+    if (statusFilter !== "all" && p.status !== statusFilter) return false;
+    if (typeFilter !== "all" && p.type !== typeFilter) return false;
+    return true;
+  });
+  const resetFilters = () => {
+    setQuery("");
+    setCatFilter("all");
+    setStatusFilter("all");
+    setTypeFilter("all");
+  };
 
   const onUpload = async (file: File | undefined) => {
     if (!file) return;
@@ -256,11 +276,65 @@ function ProductsAdmin() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-3xl">Products</h1>
-          <p className="text-muted-foreground mt-1">{products.length} total</p>
+          <p className="text-muted-foreground mt-1">
+            {filtersActive
+              ? `${filtered.length} of ${products.length}`
+              : `${products.length} total`}
+          </p>
         </div>
         <Button onClick={openNew} className="rounded-full">
           <Plus className="size-4 mr-1.5" /> New Product
         </Button>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative flex-1 min-w-[200px]">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search by title..."
+            className="pl-9"
+          />
+        </div>
+        <Select value={catFilter} onValueChange={setCatFilter}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All categories</SelectItem>
+            {categories.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All status</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-36">
+            <SelectValue placeholder="Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All types</SelectItem>
+            <SelectItem value="simple">Simple</SelectItem>
+            <SelectItem value="variable">Variable</SelectItem>
+          </SelectContent>
+        </Select>
+        {filtersActive && (
+          <Button variant="ghost" size="sm" onClick={resetFilters} className="text-brand">
+            <X className="size-4 mr-1" /> Clear
+          </Button>
+        )}
       </div>
 
       <div className="bg-card border rounded-2xl overflow-hidden">
@@ -276,7 +350,14 @@ function ProductsAdmin() {
             </tr>
           </thead>
           <tbody>
-            {products.map((p) => (
+            {filtered.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                  No products match your filters.
+                </td>
+              </tr>
+            )}
+            {filtered.map((p) => (
               <tr key={p.id} className="border-t">
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
