@@ -139,7 +139,34 @@ function Checkout() {
             </div>
             <div className="sm:col-span-2">
               <Label>Address</Label>
-              <Input ref={addressRef} required placeholder="123 Garden Lane" />
+              <div className="flex gap-2">
+                <Input
+                  ref={addressRef}
+                  required
+                  placeholder="123 Garden Lane"
+                  className="flex-1 min-w-0"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={captureLocation}
+                  disabled={locating}
+                  className="shrink-0 gap-2"
+                >
+                  <MapPin className="size-4" />
+                  {locating ? "Locating…" : coords ? "Pinned" : "Pin location"}
+                </Button>
+              </div>
+              {coords && (
+                <a
+                  href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                >
+                  <Check className="size-4" /> Location pinned — view on map
+                </a>
+              )}
             </div>
             <div>
               <Label>City</Label>
@@ -148,38 +175,6 @@ function Checkout() {
             <div>
               <Label>Postal code</Label>
               <Input ref={postalRef} required />
-            </div>
-            <div className="sm:col-span-2 space-y-2">
-              <Label>Delivery location pin (recommended)</Label>
-              <div className="flex flex-wrap items-center gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={captureLocation}
-                  disabled={locating}
-                  className="gap-2 rounded-full"
-                >
-                  <MapPin className="size-4" />
-                  {locating
-                    ? "Getting location…"
-                    : coords
-                      ? "Update my location"
-                      : "Use my current location"}
-                </Button>
-                {coords && (
-                  <a
-                    href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-                  >
-                    <Check className="size-4" /> Location pinned — view on map
-                  </a>
-                )}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Helps our team find you for delivery. Your device will ask for location permission.
-              </p>
             </div>
           </div>
         </section>
