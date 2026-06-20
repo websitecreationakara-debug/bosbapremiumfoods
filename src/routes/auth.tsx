@@ -149,7 +149,7 @@ function AuthPage() {
     <div className="min-h-screen grid md:grid-cols-2 bg-background">
       <div className="hidden md:block relative overflow-hidden bg-surface">
         <img
-          src="https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=1200&q=80"
+          src="https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=1200&q=80"
           alt=""
           className="absolute inset-0 w-full h-full object-cover opacity-40"
         />
@@ -168,10 +168,10 @@ function AuthPage() {
           </Link>
           <div className="mt-auto">
             <h2 className="font-display font-bold text-5xl text-foreground leading-tight">
-              Fresh produce, <span className="italic text-brand">delivered.</span>
+              Sashimi-grade seafood, <span className="italic text-brand">delivered.</span>
             </h2>
             <p className="text-muted-foreground mt-4 max-w-sm">
-              Join thousands of households getting weekly organic groceries from local farms.
+              Japanese seafood sourced at the market and shipped fresh on ice to your doorstep.
             </p>
           </div>
         </div>
