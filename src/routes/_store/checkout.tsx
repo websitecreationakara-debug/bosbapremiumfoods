@@ -40,10 +40,27 @@ function Checkout() {
     }
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setCoords({ lat, lng });
+        // Reverse-geocode the pin to auto-fill the address (free, no API key).
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
+          );
+          const data = await res.json();
+          if (data?.display_name && addressRef.current) addressRef.current.value = data.display_name;
+          const a = data?.address ?? {};
+          const city = a.city || a.town || a.village || a.suburb || a.county;
+          if (city && cityRef.current && !cityRef.current.value) cityRef.current.value = city;
+          if (a.postcode && postalRef.current && !postalRef.current.value)
+            postalRef.current.value = a.postcode;
+        } catch {
+          // Geocoding failed — coordinates are still saved; customer can type the address.
+        }
         setLocating(false);
-        toast.success("Location pinned!");
+        toast.success("Location pinned — address filled in!");
       },
       (err) => {
         setLocating(false);
