@@ -22,6 +22,7 @@ import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
+import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
@@ -90,6 +91,11 @@ const StoreWishlistRoute = StoreWishlistRouteImport.update({
   path: '/wishlist',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreThankYouRoute = StoreThankYouRouteImport.update({
+  id: '/thank-you',
+  path: '/thank-you',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreShopRoute = StoreShopRouteImport.update({
   id: '/shop',
   path: '/shop',
@@ -112,6 +118,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
+  '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -127,6 +134,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/checkout': typeof StoreCheckoutRoute
   '/shop': typeof StoreShopRoute
+  '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -146,6 +154,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/shop': typeof StoreShopRoute
+  '/_store/thank-you': typeof StoreThankYouRoute
   '/_store/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -166,6 +175,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/shop'
+    | '/thank-you'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/checkout'
     | '/shop'
+    | '/thank-you'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/_store/checkout'
     | '/_store/shop'
+    | '/_store/thank-you'
     | '/_store/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -311,6 +323,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreWishlistRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/thank-you': {
+      id: '/_store/thank-you'
+      path: '/thank-you'
+      fullPath: '/thank-you'
+      preLoaderRoute: typeof StoreThankYouRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/shop': {
       id: '/_store/shop'
       path: '/shop'
@@ -338,6 +357,7 @@ declare module '@tanstack/react-router' {
 interface StoreRouteChildren {
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreShopRoute: typeof StoreShopRoute
+  StoreThankYouRoute: typeof StoreThankYouRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StoreProductIdRoute: typeof StoreProductIdRoute
@@ -346,6 +366,7 @@ interface StoreRouteChildren {
 const StoreRouteChildren: StoreRouteChildren = {
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreShopRoute: StoreShopRoute,
+  StoreThankYouRoute: StoreThankYouRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
   StoreProductIdRoute: StoreProductIdRoute,

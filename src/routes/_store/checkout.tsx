@@ -37,17 +37,20 @@ function Checkout() {
     }
     if (items.length === 0) return;
     setSubmitting(true);
+    const orderItems = items.map((i) => ({
+      id: i.variation?.id ?? i.product.id,
+      title: i.variation ? `${i.product.title} (${i.variation.weight})` : i.product.title,
+      qty: i.qty,
+      price: itemUnitPrice(i),
+    }));
+    const customerName = nameRef.current?.value?.trim() || (user.name ?? "");
+    let res;
     try {
-      await createOrder({
+      res = await createOrder({
         data: {
           total,
-          items: items.map((i) => ({
-            id: i.variation?.id ?? i.product.id,
-            title: i.variation ? `${i.product.title} (${i.variation.weight})` : i.product.title,
-            qty: i.qty,
-            price: itemUnitPrice(i),
-          })),
-          customer_name: nameRef.current?.value ?? "",
+          items: orderItems,
+          customer_name: customerName,
           customer_email: emailRef.current?.value ?? "",
           address: addressRef.current?.value ?? "",
           city: cityRef.current?.value ?? "",
@@ -60,9 +63,16 @@ function Checkout() {
       return;
     }
     setSubmitting(false);
-    toast.success("Order placed! Thanks for shopping.");
+    try {
+      sessionStorage.setItem(
+        "bosba:last-order",
+        JSON.stringify({ id: res.id, total, items: orderItems, customer_name: customerName }),
+      );
+    } catch {
+      // sessionStorage unavailable — the page falls back to a generic thank-you.
+    }
     clear();
-    navigate({ to: "/" });
+    navigate({ to: "/thank-you" });
   };
 
   if (items.length === 0) {

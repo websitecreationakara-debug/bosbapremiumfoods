@@ -58,7 +58,7 @@ export const createOrder = createServerFn({ method: "POST" })
       postal_code: row.postal_code,
     });
 
-    return { ok: true };
+    return { ok: true, id: row.id };
   });
 
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
