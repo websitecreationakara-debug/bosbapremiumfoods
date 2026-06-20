@@ -81,9 +81,9 @@ export function SiteFooter() {
             <input
               type="email"
               placeholder={t("footer.emailPlaceholder")}
-              className="flex-1 bg-foreground/[0.06] border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-brand/50 transition-colors placeholder:text-muted-foreground"
+              className="flex-1 min-w-0 bg-foreground/[0.06] border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-brand/50 transition-colors placeholder:text-muted-foreground"
             />
-            <button className="px-4 py-2 bg-brand text-brand-foreground rounded-lg text-xs font-bold hover:bg-secondary-accent transition-colors">
+            <button className="shrink-0 px-4 py-2 bg-brand text-brand-foreground rounded-lg text-xs font-bold hover:bg-secondary-accent transition-colors">
               {t("footer.join")}
             </button>
           </form>
