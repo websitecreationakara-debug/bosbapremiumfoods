@@ -85,6 +85,13 @@
       "when": 1781863840681,
       "tag": "0011_pale_warbird",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1781943620175,
+      "tag": "0012_flashy_whizzer",
+      "breakpoints": true
     }
   ]
 }

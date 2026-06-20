@@ -12,6 +12,7 @@ type CreateOrderInput = {
   items: OrderItem[];
   customer_name: string;
   customer_email: string;
+  customer_phone: string;
   address: string;
   city: string;
   postal_code: string;
@@ -41,6 +42,7 @@ export const createOrder = createServerFn({ method: "POST" })
         items: JSON.stringify(data.items ?? []),
         customer_name: data.customer_name?.trim() || user.name,
         customer_email: data.customer_email?.trim() || user.email,
+        customer_phone: data.customer_phone?.trim() || null,
         address: data.address?.trim() || null,
         city: data.city?.trim() || null,
         postal_code: data.postal_code?.trim() || null,
@@ -53,6 +55,7 @@ export const createOrder = createServerFn({ method: "POST" })
       items: data.items ?? [],
       customer_name: row.customer_name,
       customer_email: row.customer_email,
+      customer_phone: row.customer_phone,
       address: row.address,
       city: row.city,
       postal_code: row.postal_code,

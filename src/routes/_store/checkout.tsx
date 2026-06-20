@@ -21,6 +21,7 @@ function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
   const postalRef = useRef<HTMLInputElement>(null);
@@ -52,6 +53,7 @@ function Checkout() {
           items: orderItems,
           customer_name: customerName,
           customer_email: emailRef.current?.value ?? "",
+          customer_phone: phoneRef.current?.value ?? "",
           address: addressRef.current?.value ?? "",
           city: cityRef.current?.value ?? "",
           postal_code: postalRef.current?.value ?? "",
@@ -101,6 +103,10 @@ function Checkout() {
             <div>
               <Label>Email</Label>
               <Input ref={emailRef} required type="email" defaultValue={user?.email ?? ""} />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Phone</Label>
+              <Input ref={phoneRef} required type="tel" placeholder="+855 12 345 678" />
             </div>
             <div className="sm:col-span-2">
               <Label>Address</Label>

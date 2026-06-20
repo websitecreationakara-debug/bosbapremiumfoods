@@ -89,6 +89,7 @@ export const orders = sqliteTable("orders", {
   // add cleanly via ALTER to pre-existing rows.
   customer_name: text("customer_name"),
   customer_email: text("customer_email"),
+  customer_phone: text("customer_phone"),
   address: text("address"),
   city: text("city"),
   postal_code: text("postal_code"),

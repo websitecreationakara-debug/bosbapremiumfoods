@@ -54,6 +54,9 @@ function OrdersAdmin() {
                   {o.customer_email && (
                     <div className="text-xs text-muted-foreground">{o.customer_email}</div>
                   )}
+                  {o.customer_phone && (
+                    <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
+                  )}
                   {(o.address || o.city || o.postal_code) && (
                     <div className="text-xs text-muted-foreground">
                       {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}

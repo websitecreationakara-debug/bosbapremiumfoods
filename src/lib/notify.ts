@@ -11,6 +11,7 @@ export type OrderNotification = {
   items: OrderItem[];
   customer_name?: string | null;
   customer_email?: string | null;
+  customer_phone?: string | null;
   address?: string | null;
   city?: string | null;
   postal_code?: string | null;
@@ -47,6 +48,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const textSummary = [
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
+    `Phone: ${order.customer_phone ?? "—"}`,
     `Deliver to: ${shipTo || "—"}`,
     "Items:",
     ...order.items.map((i) => `  ${i.qty}× ${i.title} — $${(i.price * i.qty).toFixed(2)}`),
@@ -113,6 +115,7 @@ async function sendEmail(
         <p style="margin:0 0 16px;color:#555">A new order was just placed.</p>
         <p style="margin:0 0 2px"><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Email:</strong> ${escapeHtml(order.customer_email ?? "—")}</p>
+        <p style="margin:0 0 2px"><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? "—")}</p>
         <p style="margin:0 0 16px"><strong>Deliver to:</strong> ${escapeHtml(shipTo || "—")}</p>
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${rows}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
