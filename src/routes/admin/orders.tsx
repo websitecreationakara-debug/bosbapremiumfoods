@@ -61,7 +61,20 @@ function OrdersAdmin() {
                   )}
                 </td>
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
-                <td className="px-6 py-3">{Array.isArray(o.items) ? o.items.length : 0}</td>
+                <td className="px-6 py-3">
+                  {Array.isArray(o.items) && o.items.length > 0 ? (
+                    <ul className="space-y-0.5">
+                      {o.items.map((it, i) => (
+                        <li key={it.id ?? i}>
+                          <span className="font-medium">{it.title}</span>
+                          <span className="text-muted-foreground"> × {it.qty}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </td>
                 <td className="px-6 py-3 font-bold">${Number(o.total).toFixed(2)}</td>
                 <td className="px-6 py-3">
                   <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
