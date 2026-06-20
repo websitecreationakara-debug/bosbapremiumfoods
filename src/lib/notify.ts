@@ -53,13 +53,48 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
     `Total: $${order.total.toFixed(2)}`,
   ].join("\n");
 
-  const to = env.ADMIN_NOTIFY_EMAIL;
-  if (!env.RESEND_API_KEY || !to) {
-    // No mail configured (e.g. local dev) — log so the order is still visible.
+  // Fan out to every configured channel; one failing must not block the others or the order.
+  const results = await Promise.allSettled([
+    sendTelegram(textSummary),
+    sendEmail(order, short, shipTo),
+  ]);
+  if (results.every((r) => r.status === "fulfilled" && r.value === "skipped")) {
+    // Nothing configured (e.g. local dev) — log so the order is still visible.
     console.log(`[order-notify]\n${textSummary}`);
-    return;
   }
+}
 
+async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
+  const token = env.TELEGRAM_BOT_TOKEN;
+  const chatId = env.TELEGRAM_CHAT_ID;
+  if (!token || !chatId) return "skipped";
+  try {
+    const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: `🛎️ New order\n\n${text}`,
+        disable_web_page_preview: true,
+      }),
+    });
+    if (!res.ok) console.error("[order-notify] telegram failed", res.status, await res.text());
+  } catch (e) {
+    console.error("[order-notify] telegram error", e);
+  }
+  return "sent";
+}
+
+async function sendEmail(
+  order: OrderNotification,
+  short: string,
+  shipTo: string,
+): Promise<"sent" | "skipped"> {
+  const to = (env.ADMIN_NOTIFY_EMAIL ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!env.RESEND_API_KEY || to.length === 0) return "skipped";
   try {
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
@@ -86,7 +121,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
       html,
     });
   } catch (e) {
-    console.error("[order-notify] send failed", e);
-    console.log(`[order-notify]\n${textSummary}`);
+    console.error("[order-notify] email failed", e);
   }
+  return "sent";
 }

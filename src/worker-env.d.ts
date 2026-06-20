@@ -8,5 +8,8 @@ declare module "cloudflare:workers" {
     BETTER_AUTH_URL?: string;
     RESEND_API_KEY: string;
     RESEND_FROM?: string;
+    ADMIN_NOTIFY_EMAIL?: string;
+    TELEGRAM_BOT_TOKEN?: string;
+    TELEGRAM_CHAT_ID?: string;
   }
 }
