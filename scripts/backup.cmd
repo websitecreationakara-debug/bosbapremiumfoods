@@ -6,4 +6,4 @@ set "PATH=C:\Program Files\nodejs;%PATH%"
 cd /d "D:\All website\.Local website\bosbapremiumfoods"
 echo. >> "backups\backup.log"
 echo ===== %DATE% %TIME% ===== >> "backups\backup.log"
-call npm run backup >> "backups\backup.log" 2>&1
+call npm run backup:auto >> "backups\backup.log" 2>&1

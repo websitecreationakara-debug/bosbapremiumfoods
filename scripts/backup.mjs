@@ -15,11 +15,30 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const DB = "bosbapremiumfoods";
-const KEEP = 14; // how many dumps to retain
+const KEEP = 8; // how many dumps to retain (weekly cadence -> ~2 months of history)
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = path.join(root, "backups");
 fs.mkdirSync(dir, { recursive: true });
+
+const existing = () =>
+  fs
+    .readdirSync(dir)
+    .filter((f) => /^d1-backup-.*\.sql$/.test(f))
+    .map((f) => ({ f, t: fs.statSync(path.join(dir, f)).mtimeMs }))
+    .sort((a, b) => b.t - a.t);
+
+// --auto (the scheduled run) only backs up weekly: skip if the newest dump is < 6.5
+// days old. The task fires daily, so a missed week self-heals the next day rather than
+// waiting another full week. A manual `npm run backup` ignores this and always runs.
+if (process.argv.includes("--auto")) {
+  const newest = existing()[0];
+  if (newest && Date.now() - newest.t < 6.5 * 24 * 60 * 60 * 1000) {
+    const days = ((Date.now() - newest.t) / 86_400_000).toFixed(1);
+    console.log(`\nSkipping: newest backup is ${days} day(s) old (weekly cadence). \`npm run backup\` forces one.\n`);
+    process.exit(0);
+  }
+}
 
 const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const out = path.join(dir, `d1-backup-${stamp}.sql`);
@@ -31,12 +50,7 @@ const bytes = fs.statSync(out).size;
 console.log(`\n✓ Backup written (${(bytes / 1024 / 1024).toFixed(2)} MB)`);
 
 // prune: keep the newest KEEP dumps
-const dumps = fs
-  .readdirSync(dir)
-  .filter((f) => /^d1-backup-.*\.sql$/.test(f))
-  .map((f) => ({ f, t: fs.statSync(path.join(dir, f)).mtimeMs }))
-  .sort((a, b) => b.t - a.t);
-
+const dumps = existing();
 for (const { f } of dumps.slice(KEEP)) {
   fs.unlinkSync(path.join(dir, f));
   console.log(`  pruned old backup: ${f}`);

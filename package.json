@@ -18,6 +18,7 @@
     "db:pull": "node scripts/db-sync.mjs pull",
     "db:push": "node scripts/db-sync.mjs push",
     "backup": "node scripts/backup.mjs",
+    "backup:auto": "node scripts/backup.mjs --auto",
     "deploy": "npm run build && wrangler deploy -c dist/server/wrangler.json",
     "pwa:icons": "node scripts/gen-pwa-icons.mjs"
   },
