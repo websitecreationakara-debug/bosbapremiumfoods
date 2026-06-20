@@ -12,7 +12,7 @@ const en = {
   "lang.name": "English",
   // top bar
   "bar.storeLocator": "Store Locator",
-  "bar.delivery": "Free chilled delivery on orders over ${threshold}",
+  "bar.delivery": "Free chilled delivery on orders over {threshold}$",
   "theme.light": "Light",
   "theme.dark": "Dark",
   // nav
@@ -97,7 +97,7 @@ type Dict = Record<I18nKey, string>;
 const km: Dict = {
   "lang.name": "ខ្មែរ",
   "bar.storeLocator": "ទីតាំងហាង",
-  "bar.delivery": "ដឹកជញ្ជូនត្រជាក់ឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស ${threshold}",
+  "bar.delivery": "ដឹកជញ្ជូនត្រជាក់ឥតគិតថ្លៃសម្រាប់ការបញ្ជាទិញលើស {threshold}$",
   "theme.light": "ភ្លឺ",
   "theme.dark": "ងងឹត",
   "nav.allCategories": "ប្រភេទទាំងអស់",
@@ -174,7 +174,7 @@ const km: Dict = {
 const ja: Dict = {
   "lang.name": "日本語",
   "bar.storeLocator": "店舗検索",
-  "bar.delivery": "${threshold}以上のご注文で冷蔵配送無料",
+  "bar.delivery": "{threshold}$以上のご注文で冷蔵配送無料",
   "theme.light": "ライト",
   "theme.dark": "ダーク",
   "nav.allCategories": "すべてのカテゴリー",
