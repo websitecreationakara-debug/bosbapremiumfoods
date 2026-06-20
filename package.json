@@ -17,6 +17,7 @@
     "db:seed:remote": "wrangler d1 execute bosbapremiumfoods --remote --file migration/seed.sql",
     "db:pull": "node scripts/db-sync.mjs pull",
     "db:push": "node scripts/db-sync.mjs push",
+    "backup": "node scripts/backup.mjs",
     "deploy": "npm run build && wrangler deploy -c dist/server/wrangler.json",
     "pwa:icons": "node scripts/gen-pwa-icons.mjs"
   },

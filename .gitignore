@@ -21,6 +21,7 @@ dist-ssr
 .dev.vars
 
 # D1 database dumps / backups (contain auth tokens + password hashes — never commit)
+backups/
 d1-backup-*.sql
 d1-restore-*.sql
 
