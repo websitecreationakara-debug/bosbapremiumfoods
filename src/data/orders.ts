@@ -3,7 +3,7 @@ import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders } from "@/db/schema";
 import { notifyNewOrder } from "@/lib/notify";
-import { requireStaff, requireUser } from "./_auth";
+import { requireAdmin, requireStaff, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -81,5 +81,13 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     await requireStaff();
     await getDb().update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
+    return { ok: true };
+  });
+
+export const deleteOrder = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    await getDb().delete(orders).where(eq(orders.id, data.id));
     return { ok: true };
   });

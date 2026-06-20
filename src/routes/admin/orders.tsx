@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listOrders, updateOrderStatus } from "@/data/orders";
+import { listOrders, updateOrderStatus, deleteOrder } from "@/data/orders";
 import {
   Select,
   SelectContent,
@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { MapPin } from "lucide-react";
+import { MapPin, Trash2 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -29,6 +29,18 @@ function OrdersAdmin() {
     }
     qc.invalidateQueries({ queryKey: ["orders-admin"] });
     qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
+  };
+
+  const removeOrder = async (id: string) => {
+    if (!confirm("Delete this order? This cannot be undone.")) return;
+    try {
+      await deleteOrder({ data: { id } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to delete order");
+    }
+    qc.invalidateQueries({ queryKey: ["orders-admin"] });
+    qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
+    toast.success("Order deleted");
   };
 
   return (
@@ -91,18 +103,27 @@ function OrdersAdmin() {
                 </td>
                 <td className="px-6 py-3 font-bold">${Number(o.total).toFixed(2)}</td>
                 <td className="px-6 py-3">
-                  <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
-                    <SelectTrigger className="w-36 h-8">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="processing">Processing</SelectItem>
-                      <SelectItem value="shipped">Shipped</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="cancelled">Cancelled</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2">
+                    <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
+                      <SelectTrigger className="w-36 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="processing">Processing</SelectItem>
+                        <SelectItem value="shipped">Shipped</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <button
+                      onClick={() => removeOrder(o.id)}
+                      title="Delete order"
+                      className="text-muted-foreground hover:text-destructive transition-colors"
+                    >
+                      <Trash2 className="size-4" />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
