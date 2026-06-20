@@ -3,7 +3,7 @@ import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders } from "@/db/schema";
 import { notifyNewOrder } from "@/lib/notify";
-import { requireAdmin, requireUser } from "./_auth";
+import { requireStaff, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -23,7 +23,7 @@ const parseItems = (row: typeof orders.$inferSelect) => ({
 });
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
-  await requireAdmin();
+  await requireStaff();
   const rows = await getDb().select().from(orders).orderBy(desc(orders.created_at));
   return rows.map(parseItems);
 });
@@ -62,7 +62,7 @@ export const createOrder = createServerFn({ method: "POST" })
   });
 
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
-  await requireAdmin();
+  await requireStaff();
   const [r] = await getDb().select({ n: count() }).from(orders).where(eq(orders.status, "pending"));
   return r?.n ?? 0;
 });
@@ -70,7 +70,7 @@ export const countPendingOrders = createServerFn({ method: "GET" }).handler(asyn
 export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; status: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireStaff();
     await getDb().update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
     return { ok: true };
   });

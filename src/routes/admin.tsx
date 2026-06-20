@@ -33,16 +33,24 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, loading } = useAuth();
+  const { user, isAdmin, isSales, isStaff, loading } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
-  const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isAdmin);
+  const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isStaff);
   const prevCount = useRef<number | null>(null);
 
+  // Sales can only ever be on the Orders page.
+  const salesBlocked = isSales && !isAdmin && !path.startsWith("/admin/orders");
+  const visibleNav = isAdmin ? nav : nav.filter((n) => n.to === "/admin/orders");
+
   useEffect(() => {
-    if (!loading && (!user || !isAdmin)) navigate({ to: "/" });
-  }, [loading, user, isAdmin, navigate]);
+    if (!loading && (!user || !isStaff)) navigate({ to: "/" });
+  }, [loading, user, isStaff, navigate]);
+
+  useEffect(() => {
+    if (salesBlocked) navigate({ to: "/admin/orders" });
+  }, [salesBlocked, navigate]);
 
   useEffect(() => {
     // Alert only on an actual increase, never on first load.
@@ -53,7 +61,7 @@ function AdminLayout() {
     prevCount.current = pendingCount;
   }, [pendingCount]);
 
-  if (loading || !user || !isAdmin) {
+  if (loading || !user || !isStaff) {
     return (
       <div className="min-h-screen grid place-items-center text-muted-foreground">
         Checking access...
@@ -73,7 +81,7 @@ function AdminLayout() {
           </span>
         </Link>
         <nav className="flex-1 space-y-1">
-          {nav.map((n) => {
+          {visibleNav.map((n) => {
             const active = "exact" in n && n.exact ? path === n.to : path.startsWith(n.to);
             const badge = n.to === "/admin/orders" ? pendingCount : 0;
             return (
@@ -106,7 +114,11 @@ function AdminLayout() {
         </Link>
       </aside>
       <main className="flex-1 bg-background p-8 overflow-x-auto">
-        <Outlet />
+        {salesBlocked ? (
+          <div className="text-muted-foreground">Redirecting…</div>
+        ) : (
+          <Outlet />
+        )}
       </main>
     </div>
   );

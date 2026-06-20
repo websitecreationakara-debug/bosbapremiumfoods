@@ -20,3 +20,10 @@ export async function requireAdmin(): Promise<SessionUser> {
   if (user.role !== "admin") throw new Error("Forbidden: admin only");
   return user;
 }
+
+// Admin or sales — sales staff are scoped to order handling only.
+export async function requireStaff(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin" && user.role !== "sales") throw new Error("Forbidden: staff only");
+  return user;
+}

@@ -12,6 +12,8 @@ type AuthCtx = {
   user: AuthUser;
   loading: boolean;
   isAdmin: boolean;
+  isSales: boolean;
+  isStaff: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
@@ -86,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         loading: isPending,
         isAdmin: user?.role === "admin",
+        isSales: user?.role === "sales",
+        isStaff: user?.role === "admin" || user?.role === "sales",
         signIn,
         signUp,
         signInWithGoogle,
