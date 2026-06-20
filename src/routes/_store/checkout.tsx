@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useRef, useState } from "react";
 import { createOrder } from "@/data/orders";
 import { toast } from "sonner";
+import { MapPin, Check } from "lucide-react";
 
 export const Route = createFileRoute("/_store/checkout")({
   component: Checkout,
@@ -19,6 +20,8 @@ function Checkout() {
   const { data: settings } = useStoreSettings();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [locating, setLocating] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
@@ -29,6 +32,30 @@ function Checkout() {
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
   const shipping = subtotal >= threshold || subtotal === 0 ? 0 : 4.99;
   const total = subtotal + shipping;
+
+  const captureLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Location isn't supported on this device.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setLocating(false);
+        toast.success("Location pinned!");
+      },
+      (err) => {
+        setLocating(false);
+        toast.error(
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied — you can still order with your address."
+            : "Couldn't get your location. Please try again.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
+  };
 
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,6 +84,8 @@ function Checkout() {
           address: addressRef.current?.value ?? "",
           city: cityRef.current?.value ?? "",
           postal_code: postalRef.current?.value ?? "",
+          location_lat: coords?.lat ?? null,
+          location_lng: coords?.lng ?? null,
         },
       });
     } catch (err) {
@@ -119,6 +148,38 @@ function Checkout() {
             <div>
               <Label>Postal code</Label>
               <Input ref={postalRef} required />
+            </div>
+            <div className="sm:col-span-2 space-y-2">
+              <Label>Delivery location pin (recommended)</Label>
+              <div className="flex flex-wrap items-center gap-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={captureLocation}
+                  disabled={locating}
+                  className="gap-2 rounded-full"
+                >
+                  <MapPin className="size-4" />
+                  {locating
+                    ? "Getting location…"
+                    : coords
+                      ? "Update my location"
+                      : "Use my current location"}
+                </Button>
+                {coords && (
+                  <a
+                    href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                  >
+                    <Check className="size-4" /> Location pinned — view on map
+                  </a>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Helps our team find you for delivery. Your device will ask for location permission.
+              </p>
             </div>
           </div>
         </section>

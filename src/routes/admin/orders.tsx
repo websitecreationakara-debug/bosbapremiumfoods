@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { MapPin } from "lucide-react";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -61,6 +62,16 @@ function OrdersAdmin() {
                     <div className="text-xs text-muted-foreground">
                       {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
                     </div>
+                  )}
+                  {o.location_lat != null && o.location_lng != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${o.location_lat},${o.location_lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                    >
+                      <MapPin className="size-3" /> View on map
+                    </a>
                   )}
                 </td>
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>

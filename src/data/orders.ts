@@ -16,6 +16,8 @@ type CreateOrderInput = {
   address: string;
   city: string;
   postal_code: string;
+  location_lat?: number | null;
+  location_lng?: number | null;
 };
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
@@ -46,6 +48,8 @@ export const createOrder = createServerFn({ method: "POST" })
         address: data.address?.trim() || null,
         city: data.city?.trim() || null,
         postal_code: data.postal_code?.trim() || null,
+        location_lat: data.location_lat ?? null,
+        location_lng: data.location_lng ?? null,
       })
       .returning();
 
@@ -59,6 +63,8 @@ export const createOrder = createServerFn({ method: "POST" })
       address: row.address,
       city: row.city,
       postal_code: row.postal_code,
+      location_lat: row.location_lat,
+      location_lng: row.location_lng,
     });
 
     return { ok: true, id: row.id };

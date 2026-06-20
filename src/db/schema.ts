@@ -90,6 +90,8 @@ export const orders = sqliteTable("orders", {
   customer_name: text("customer_name"),
   customer_email: text("customer_email"),
   customer_phone: text("customer_phone"),
+  location_lat: real("location_lat"),
+  location_lng: real("location_lng"),
   address: text("address"),
   city: text("city"),
   postal_code: text("postal_code"),
