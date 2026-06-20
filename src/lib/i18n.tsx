@@ -41,9 +41,9 @@ const en = {
   "feature.cold.title": "Cold-Chain Fresh",
   "feature.cold.body": "Packed on ice, shipped overnight",
   "cta.member": "Become a member",
-  "cta.title": "Save 10% on every order. Forever.",
+  "cta.title": "Earn points every time you shop.",
   "cta.body":
-    "BOSBA Plus gives you free chilled delivery, member-only deals, and early access to the day's freshest catch.",
+    "Collect 1 point for every $1 you spend at BOSBA Premium Foods. Save up your points and redeem them for free products.",
   "cta.join": "Join BOSBA Plus",
   // product
   "product.addToCart": "Add to cart",
@@ -124,9 +124,9 @@ const km: Dict = {
   "feature.cold.title": "ស្រស់ត្រជាក់",
   "feature.cold.body": "ខ្ចប់ជាមួយទឹកកក ដឹកជញ្ជូនពេលយប់",
   "cta.member": "ក្លាយជាសមាជិក",
-  "cta.title": "សន្សំ ១០% លើការបញ្ជាទិញគ្រប់ពេល ជារៀងរហូត។",
+  "cta.title": "ទទួលបានពិន្ទុរាល់ពេលដែលអ្នកទិញ។",
   "cta.body":
-    "BOSBA Plus ផ្តល់ឱ្យអ្នកនូវការដឹកជញ្ជូនត្រជាក់ឥតគិតថ្លៃ ការផ្តល់ជូនពិសេសសម្រាប់សមាជិក និងសិទ្ធិទទួលបានមុនគេនូវត្រីស្រស់ៗប្រចាំថ្ងៃ។",
+    "ទទួលបាន ១ ពិន្ទុ សម្រាប់រាល់ការចំណាយ ១ ដុល្លារ នៅ BOSBA Premium Foods។ សន្សំពិន្ទុរបស់អ្នក រួចប្តូរយកផលិតផលដោយឥតគិតថ្លៃ។",
   "cta.join": "ចូលរួម BOSBA Plus",
   "product.addToCart": "បន្ថែមទៅកន្ត្រក",
   "product.noImage": "គ្មានរូបភាព",
@@ -201,9 +201,9 @@ const ja: Dict = {
   "feature.cold.title": "コールドチェーン鮮度",
   "feature.cold.body": "氷詰めで翌日配送",
   "cta.member": "会員になる",
-  "cta.title": "すべての注文がいつでも10%オフ。",
+  "cta.title": "お買い物のたびにポイントが貯まる。",
   "cta.body":
-    "BOSBA Plus なら、冷蔵配送無料、会員限定セール、その日の新鮮な魚介への早期アクセスが楽しめます。",
+    "BOSBA Premium Foods でのお買い物1ドルにつき1ポイント獲得。貯まったポイントは商品と交換できます。",
   "cta.join": "BOSBA Plus に参加",
   "product.addToCart": "カートに追加",
   "product.noImage": "画像なし",
