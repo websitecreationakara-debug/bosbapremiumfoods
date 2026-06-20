@@ -43,7 +43,7 @@ const en = {
   "cta.member": "Become a member",
   "cta.title": "Earn points every time you shop.",
   "cta.body":
-    "Collect 1 point for every $1 you spend at BOSBA Premium Foods. Save up your points and redeem them for free products.",
+    "Collect 1 point for every $5 you spend at BOSBA Premium Foods. Save up your points and redeem them for free products.",
   "cta.join": "Join BOSBA Plus",
   // product
   "product.addToCart": "Add to cart",
@@ -126,7 +126,7 @@ const km: Dict = {
   "cta.member": "ក្លាយជាសមាជិក",
   "cta.title": "ទទួលបានពិន្ទុរាល់ពេលដែលអ្នកទិញ។",
   "cta.body":
-    "ទទួលបាន ១ ពិន្ទុ សម្រាប់រាល់ការចំណាយ ១ ដុល្លារ នៅ BOSBA Premium Foods។ សន្សំពិន្ទុរបស់អ្នក រួចប្តូរយកផលិតផលដោយឥតគិតថ្លៃ។",
+    "ទទួលបាន ១ ពិន្ទុ សម្រាប់រាល់ការចំណាយ ៥ ដុល្លារ នៅ BOSBA Premium Foods។ សន្សំពិន្ទុរបស់អ្នក រួចប្តូរយកផលិតផលដោយឥតគិតថ្លៃ។",
   "cta.join": "ចូលរួម BOSBA Plus",
   "product.addToCart": "បន្ថែមទៅកន្ត្រក",
   "product.noImage": "គ្មានរូបភាព",
@@ -203,7 +203,7 @@ const ja: Dict = {
   "cta.member": "会員になる",
   "cta.title": "お買い物のたびにポイントが貯まる。",
   "cta.body":
-    "BOSBA Premium Foods でのお買い物1ドルにつき1ポイント獲得。貯まったポイントは商品と交換できます。",
+    "BOSBA Premium Foods でのお買い物5ドルにつき1ポイント獲得。貯まったポイントは商品と交換できます。",
   "cta.join": "BOSBA Plus に参加",
   "product.addToCart": "カートに追加",
   "product.noImage": "画像なし",
