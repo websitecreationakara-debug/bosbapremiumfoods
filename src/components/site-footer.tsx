@@ -8,9 +8,11 @@ export function SiteFooter() {
       <div className="mx-auto max-w-7xl px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="space-y-4">
           <div className="flex items-center gap-2">
-            <div className="size-9 rounded-lg bg-brand grid place-items-center text-brand-foreground font-display font-bold">
-              B
-            </div>
+            <img
+              src="/logo.png"
+              alt="BOSBA Premium Foods"
+              className="size-12 rounded-lg object-contain"
+            />
             <span className="font-display text-xl font-bold tracking-tight">BOSBA Premium Foods</span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">{t("footer.tagline")}</p>

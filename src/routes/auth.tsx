@@ -159,9 +159,11 @@ function AuthPage() {
             to="/"
             className="inline-flex items-center gap-2 text-foreground font-display font-bold text-2xl"
           >
-            <div className="size-10 rounded-xl bg-brand text-brand-foreground grid place-items-center">
-              B
-            </div>
+            <img
+              src="/logo.png"
+              alt="BOSBA Premium Foods"
+              className="size-12 rounded-xl object-contain"
+            />
             BOSBA Premium Foods
           </Link>
           <div className="mt-auto">
