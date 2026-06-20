@@ -69,14 +69,17 @@ async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
   const chatId = env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return "skipped";
   try {
+    const payload: Record<string, unknown> = {
+      chat_id: chatId,
+      text: `🛎️ New order\n\n${text}`,
+      disable_web_page_preview: true,
+    };
+    // Forum supergroups route messages into a specific topic by thread id.
+    if (env.TELEGRAM_TOPIC_ID) payload.message_thread_id = Number(env.TELEGRAM_TOPIC_ID);
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: `🛎️ New order\n\n${text}`,
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) console.error("[order-notify] telegram failed", res.status, await res.text());
   } catch (e) {
