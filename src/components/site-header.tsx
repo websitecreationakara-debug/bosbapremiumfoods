@@ -52,7 +52,7 @@ export function SiteHeader() {
     <>
       {/* Apple-style single nav bar */}
       <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 h-12 md:h-14 flex items-center gap-3">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 h-14 md:h-16 flex items-center gap-3">
           <button
             onClick={() => setMenuOpen(true)}
             className="lg:hidden grid size-9 shrink-0 place-items-center rounded-full hover:bg-muted transition-colors -ml-1"
@@ -65,7 +65,7 @@ export function SiteHeader() {
             <img
               src="/logo.png"
               alt="BOSBA Premium Foods"
-              className="size-8 rounded-md object-contain"
+              className="size-10 md:size-12 rounded-md object-contain"
             />
           </Link>
 
