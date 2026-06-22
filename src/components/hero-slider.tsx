@@ -39,7 +39,7 @@ export function HeroSlider() {
 
   return (
     <section className="relative w-full overflow-hidden bg-muted">
-      <div className="relative h-[420px] md:h-[560px]">
+      <div className="relative aspect-[2726/1135]">
         {list.map((slide, i) => (
           <img
             key={slide.id}
