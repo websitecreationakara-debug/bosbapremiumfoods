@@ -4,8 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { useHeroSlides } from "@/hooks/use-products";
 import type { HeroSlide } from "@/lib/types";
 
-const FALLBACK_IMAGE =
-  "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=1400&q=80";
+const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=1400&q=80";
 
 const FALLBACK_SLIDE: HeroSlide = {
   id: "fallback",
@@ -60,21 +59,21 @@ export function HeroSlider() {
           </Link>
 
           <div className="my-auto max-w-lg py-10">
-            <span className="mb-5 inline-block text-xs font-bold uppercase tracking-[0.25em] text-brand">
+            <span className="mb-5 inline-block text-sm font-medium tracking-wide text-brand">
               {s.eyebrow || "Premium Quality Seafood"}
             </span>
-            <h1 className="font-serif leading-[1.03] tracking-tight text-[clamp(3rem,6vw,4.5rem)]">
-              <span className="block font-bold text-foreground">{lineOne}</span>
-              <span className="block font-medium italic text-brand">{lineTwo}</span>
+            <h1 className="font-display font-semibold leading-[1.05] tracking-tight text-[clamp(3rem,6vw,4.5rem)]">
+              <span className="block text-foreground">{lineOne}</span>
+              <span className="block text-brand">{lineTwo}</span>
             </h1>
 
-            <p className="mt-6 max-w-md whitespace-pre-line text-sm leading-relaxed text-muted-foreground md:text-base">
+            <p className="mt-6 max-w-md whitespace-pre-line text-base leading-relaxed text-muted-foreground">
               {sub}
             </p>
 
             <a
               href={ctaLink}
-              className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-bold text-brand-foreground transition-colors hover:bg-secondary-accent"
+              className="mt-8 inline-flex items-center gap-2 rounded-full bg-brand px-7 py-3.5 text-sm font-semibold text-brand-foreground transition-colors hover:bg-secondary-accent"
             >
               {ctaLabel} <ArrowRight className="size-4" />
             </a>

@@ -76,7 +76,7 @@ function ProductDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-10">
-        <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted border">
+        <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted">
           {product.image_url ? (
             <img
               src={product.image_url}
@@ -111,7 +111,7 @@ function ProductDetail() {
         </div>
 
         <div className="flex flex-col">
-          <h1 className="font-display font-bold text-3xl md:text-4xl leading-tight">
+          <h1 className="font-display font-semibold tracking-tight text-3xl md:text-4xl leading-tight">
             {product.title}
           </h1>
 

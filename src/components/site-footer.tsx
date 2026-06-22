@@ -13,15 +13,15 @@ export function SiteFooter() {
               alt="BOSBA Premium Foods"
               className="size-12 rounded-lg object-contain"
             />
-            <span className="font-display text-xl font-bold tracking-tight">BOSBA Premium Foods</span>
+            <span className="font-display text-xl font-bold tracking-tight">
+              BOSBA Premium Foods
+            </span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">{t("footer.tagline")}</p>
         </div>
 
         <div>
-          <h4 className="font-display font-bold mb-5 text-sm uppercase tracking-wider">
-            {t("footer.marketplace")}
-          </h4>
+          <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.marketplace")}</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li>
               <Link to="/shop" className="hover:text-secondary-accent transition-colors">
@@ -47,9 +47,7 @@ export function SiteFooter() {
         </div>
 
         <div>
-          <h4 className="font-display font-bold mb-5 text-sm uppercase tracking-wider">
-            {t("footer.company")}
-          </h4>
+          <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.company")}</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li>
               <a className="hover:text-secondary-accent transition-colors" href="#">
@@ -74,16 +72,16 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div className="rounded-2xl bg-foreground/[0.04] border border-border p-6">
-          <h4 className="font-display font-bold mb-2">{t("footer.joinTitle")}</h4>
+        <div className="rounded-2xl bg-muted p-6">
+          <h4 className="font-display font-semibold mb-2">{t("footer.joinTitle")}</h4>
           <p className="text-xs text-muted-foreground mb-4">{t("footer.joinSub")}</p>
           <form className="flex gap-2">
             <input
               type="email"
               placeholder={t("footer.emailPlaceholder")}
-              className="flex-1 min-w-0 bg-foreground/[0.06] border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-brand/50 transition-colors placeholder:text-muted-foreground"
+              className="flex-1 min-w-0 bg-background border border-transparent rounded-lg px-3 py-2 text-xs outline-none focus:border-border transition-colors placeholder:text-muted-foreground"
             />
-            <button className="shrink-0 px-4 py-2 bg-brand text-brand-foreground rounded-lg text-xs font-bold hover:bg-secondary-accent transition-colors">
+            <button className="shrink-0 px-4 py-2 bg-brand text-brand-foreground rounded-lg text-xs font-semibold hover:bg-secondary-accent transition-colors">
               {t("footer.join")}
             </button>
           </form>

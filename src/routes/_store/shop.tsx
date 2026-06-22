@@ -184,7 +184,9 @@ function Shop() {
   return (
     <div className="mx-auto max-w-7xl px-4 md:px-6 py-8 md:py-10">
       <div className="mb-6 md:mb-10">
-        <h1 className="font-display font-bold text-3xl md:text-5xl">{t("shop.title")}</h1>
+        <h1 className="font-display font-semibold tracking-tight text-3xl md:text-5xl">
+          {t("shop.title")}
+        </h1>
         <p className="text-muted-foreground mt-2">{t("shop.count", { n: sorted.length })}</p>
       </div>
 
@@ -223,12 +225,12 @@ function Shop() {
           {isLoading ? (
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
+                <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />
               ))}
             </div>
           ) : sorted.length === 0 ? (
-            <div className="text-center py-20 border rounded-3xl bg-card">
-              <p className="font-display font-bold text-xl">{t("shop.noProducts")}</p>
+            <div className="text-center py-20 rounded-3xl bg-muted">
+              <p className="font-display font-semibold text-xl">{t("shop.noProducts")}</p>
               <p className="text-muted-foreground text-sm mt-1">{t("shop.noProductsSub")}</p>
               {filtersActive && (
                 <Button variant="outline" size="sm" onClick={resetFilters} className="mt-4">

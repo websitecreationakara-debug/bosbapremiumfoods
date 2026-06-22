@@ -140,11 +140,11 @@ export function SiteHeader() {
           </DropdownMenu>
 
           <div className="flex-1 relative max-w-xl">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-brand" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
             <input
               type="search"
               placeholder={t("nav.searchPlaceholder")}
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border border-[rgba(201,168,76,0.4)] text-sm text-foreground outline-none focus:border-brand focus:ring-2 focus:ring-brand/20 transition-all"
+              className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border border-transparent text-sm text-foreground outline-none focus:bg-background focus:border-border transition-all"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   const v = (e.target as HTMLInputElement).value;
@@ -222,7 +222,10 @@ export function SiteHeader() {
                 {t("nav.browse")}
               </p>
               <SheetClose asChild>
-                <Link to="/shop" className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted">
+                <Link
+                  to="/shop"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                >
                   {t("nav.allProducts")}
                 </Link>
               </SheetClose>
