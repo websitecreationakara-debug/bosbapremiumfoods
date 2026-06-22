@@ -70,8 +70,8 @@ export function SiteHeader() {
           </Link>
 
           {/* Centered category links */}
-          <nav className="hidden lg:flex flex-1 items-center justify-center gap-7 text-[13px] text-foreground/80">
-            <Link to="/shop" className="hover:text-foreground transition-colors">
+          <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-x-5 xl:gap-x-7 px-2 text-[13px] text-foreground/80">
+            <Link to="/shop" className="hover:text-foreground transition-colors whitespace-nowrap">
               {t("nav.allProducts")}
             </Link>
             {categories.map((c) => (
