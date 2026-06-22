@@ -87,7 +87,6 @@ function Checkout() {
     try {
       res = await createOrder({
         data: {
-          total,
           items: orderItems,
           customer_name: customerName,
           customer_email: customerEmail,
@@ -109,7 +108,7 @@ function Checkout() {
         "bosba:last-order",
         JSON.stringify({
           id: res.id,
-          total,
+          total: res.total,
           items: orderItems,
           customer_name: customerName,
           customer_email: customerEmail,

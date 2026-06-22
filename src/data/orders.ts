@@ -1,15 +1,15 @@
 import { createServerFn } from "@tanstack/react-start";
-import { count, desc, eq } from "drizzle-orm";
+import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { orders } from "@/db/schema";
+import { orders, products, product_variations, store_settings } from "@/db/schema";
 import { notifyNewOrder } from "@/lib/notify";
 import { getSessionUser, requireAdmin, requireStaff } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
+// Order line ids are either a simple product id or a product_variation id.
 type CreateOrderInput = {
-  total: number;
-  items: OrderItem[];
+  items: { id: string; title: string; qty: number }[];
   customer_name: string;
   customer_email: string;
   customer_phone: string;
@@ -18,6 +18,10 @@ type CreateOrderInput = {
   location_lat?: number | null;
   location_lng?: number | null;
 };
+
+// Flat-rate shipping below the free-delivery threshold (kept in sync with the
+// store-front summary in checkout.tsx).
+const SHIPPING_FEE = 4.99;
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,
@@ -36,13 +40,55 @@ export const createOrder = createServerFn({ method: "POST" })
     // Guest checkout: a session is optional. Logged-in orders are stamped with
     // the user id; guest orders carry null and rely on the typed contact fields.
     const user = await getSessionUser();
-    const [row] = await getDb()
+    const db = getDb();
+
+    const rawItems = Array.isArray(data.items) ? data.items : [];
+    if (rawItems.length === 0) throw new Error("Your cart is empty");
+
+    // SECURITY: never trust client-sent prices or totals. Re-price every line
+    // from the DB (matching either a simple product or a variation id) and
+    // recompute the total + shipping server-side.
+    const ids = rawItems.map((i) => i.id).filter(Boolean);
+    const [prodRows, varRows, settingsRow] = await Promise.all([
+      db
+        .select({ id: products.id, price: products.price, sale_price: products.sale_price })
+        .from(products)
+        .where(inArray(products.id, ids)),
+      db
+        .select({
+          id: product_variations.id,
+          price: product_variations.price,
+          sale_price: product_variations.sale_price,
+        })
+        .from(product_variations)
+        .where(inArray(product_variations.id, ids)),
+      db.select().from(store_settings).limit(1),
+    ]);
+
+    const priceById = new Map<string, number>();
+    for (const p of prodRows) priceById.set(p.id, p.sale_price ?? p.price);
+    for (const v of varRows) priceById.set(v.id, v.sale_price ?? v.price);
+
+    const items: OrderItem[] = rawItems.map((i) => {
+      const price = priceById.get(i.id);
+      if (price == null) throw new Error("One or more items are no longer available");
+      const qty = Math.floor(Number(i.qty));
+      if (!Number.isFinite(qty) || qty < 1 || qty > 999) throw new Error("Invalid quantity");
+      return { id: i.id, title: String(i.title ?? "").slice(0, 200), qty, price };
+    });
+
+    const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+    const threshold = Number(settingsRow?.free_shipping_threshold ?? 50);
+    const shipping = subtotal >= threshold || subtotal === 0 ? 0 : SHIPPING_FEE;
+    const total = Math.round((subtotal + shipping) * 100) / 100;
+
+    const [row] = await db
       .insert(orders)
       .values({
         user_id: user?.id ?? null,
-        total: data.total,
+        total,
         status: "pending",
-        items: JSON.stringify(data.items ?? []),
+        items: JSON.stringify(items),
         customer_name: data.customer_name?.trim() || user?.name || null,
         customer_email: data.customer_email?.trim() || user?.email || null,
         customer_phone: data.customer_phone?.trim() || null,
@@ -56,7 +102,7 @@ export const createOrder = createServerFn({ method: "POST" })
     await notifyNewOrder({
       id: row.id,
       total: row.total,
-      items: data.items ?? [],
+      items,
       customer_name: row.customer_name,
       customer_email: row.customer_email,
       customer_phone: row.customer_phone,
@@ -67,7 +113,7 @@ export const createOrder = createServerFn({ method: "POST" })
       location_lng: row.location_lng,
     });
 
-    return { ok: true, id: row.id };
+    return { ok: true, id: row.id, total };
   });
 
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
