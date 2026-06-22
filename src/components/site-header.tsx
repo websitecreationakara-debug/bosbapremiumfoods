@@ -61,15 +61,12 @@ export function SiteHeader() {
             <Menu className="size-5" />
           </button>
 
-          <Link to="/" className="flex items-center gap-2 shrink-0">
+          <Link to="/" className="flex items-center shrink-0" aria-label="BOSBA Premium Foods">
             <img
               src="/logo.png"
               alt="BOSBA Premium Foods"
               className="size-8 rounded-md object-contain"
             />
-            <span className="font-display text-sm font-semibold tracking-tight text-foreground hidden sm:inline">
-              BOSBA
-            </span>
           </Link>
 
           {/* Centered category links */}
