@@ -14,7 +14,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useI18n } from "@/lib/i18n";
 import { useAllVariations } from "@/hooks/use-products";
 import { groupVariations, productFromPrice } from "@/lib/variants";
@@ -49,6 +50,7 @@ function Shop() {
   const [sort, setSort] = useState<Sort>("featured");
   const [range, setRange] = useState<[number, number] | null>(null);
   const [onSale, setOnSale] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const catId = activeCat ? categories.find((c) => c.slug === activeCat)?.id : undefined;
 
@@ -92,107 +94,120 @@ function Shop() {
     }
   });
 
+  const filterPanel = (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          {t("shop.filters")}
+        </span>
+        {filtersActive && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={resetFilters}
+            className="h-auto px-2 py-1 text-xs text-brand hover:text-secondary-accent"
+          >
+            {t("shop.clearAll")}
+          </Button>
+        )}
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          {t("shop.search")}
+        </label>
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+          <Input
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={t("shop.searchPlaceholder")}
+            className="pl-9 rounded-full"
+          />
+        </div>
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          {t("shop.categories")}
+        </label>
+        <div className="space-y-1">
+          <button
+            onClick={() => setActiveCat(undefined)}
+            className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeCat ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
+          >
+            {t("shop.allProducts")}
+          </button>
+          {categories.map((c) => (
+            <button
+              key={c.id}
+              onClick={() => setActiveCat(c.slug)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === c.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
+            >
+              {c.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-3">
+          <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+            {t("shop.price")}
+          </label>
+          <span className="text-xs font-medium text-brand">
+            ${lo} – ${hi}
+          </span>
+        </div>
+        <Slider
+          min={floor}
+          max={ceil}
+          step={1}
+          value={[lo, hi]}
+          onValueChange={(v) => setRange([v[0], v[1]])}
+          className="mt-1"
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
+          {t("shop.offers")}
+        </label>
+        <label className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted cursor-pointer text-sm">
+          <Checkbox checked={onSale} onCheckedChange={(v) => setOnSale(v === true)} />
+          {t("shop.onSaleOnly")}
+        </label>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="mx-auto max-w-7xl px-6 py-10">
-      <div className="mb-10">
-        <h1 className="font-display font-bold text-4xl md:text-5xl">{t("shop.title")}</h1>
+    <div className="mx-auto max-w-7xl px-4 md:px-6 py-8 md:py-10">
+      <div className="mb-6 md:mb-10">
+        <h1 className="font-display font-bold text-3xl md:text-5xl">{t("shop.title")}</h1>
         <p className="text-muted-foreground mt-2">{t("shop.count", { n: sorted.length })}</p>
       </div>
 
       <div className="grid lg:grid-cols-[240px_1fr] gap-8">
-        <aside className="space-y-6">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              {t("shop.filters")}
-            </span>
-            {filtersActive && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={resetFilters}
-                className="h-auto px-2 py-1 text-xs text-brand hover:text-secondary-accent"
-              >
-                {t("shop.clearAll")}
-              </Button>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {t("shop.search")}
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-              <Input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("shop.searchPlaceholder")}
-                className="pl-9 rounded-full"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {t("shop.categories")}
-            </label>
-            <div className="space-y-1">
-              <button
-                onClick={() => setActiveCat(undefined)}
-                className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${!activeCat ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
-              >
-                {t("shop.allProducts")}
-              </button>
-              {categories.map((c) => (
-                <button
-                  key={c.id}
-                  onClick={() => setActiveCat(c.slug)}
-                  className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === c.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
-                >
-                  {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                {t("shop.price")}
-              </label>
-              <span className="text-xs font-medium text-brand">
-                ${lo} – ${hi}
-              </span>
-            </div>
-            <Slider
-              min={floor}
-              max={ceil}
-              step={1}
-              value={[lo, hi]}
-              onValueChange={(v) => setRange([v[0], v[1]])}
-              className="mt-1"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold uppercase tracking-widest text-muted-foreground mb-2">
-              {t("shop.offers")}
-            </label>
-            <label className="flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-muted cursor-pointer text-sm">
-              <Checkbox checked={onSale} onCheckedChange={(v) => setOnSale(v === true)} />
-              {t("shop.onSaleOnly")}
-            </label>
-          </div>
-        </aside>
+        <aside className="hidden lg:block">{filterPanel}</aside>
 
         <div>
-          <div className="flex items-center justify-end mb-6">
-            <div className="flex items-center gap-2">
+          <div className="flex items-center justify-between gap-2 mb-6">
+            <Button
+              variant="outline"
+              onClick={() => setFiltersOpen(true)}
+              className="lg:hidden gap-2 rounded-full"
+            >
+              <SlidersHorizontal className="size-4" />
+              {t("shop.filters")}
+              {filtersActive && <span className="size-2 rounded-full bg-brand" />}
+            </Button>
+            <div className="flex items-center gap-2 ml-auto">
               <span className="text-xs uppercase tracking-widest text-muted-foreground hidden sm:inline">
                 {t("shop.sort")}
               </span>
               <Select value={sort} onValueChange={(v) => setSort(v as Sort)}>
-                <SelectTrigger className="w-48 rounded-full">
+                <SelectTrigger className="w-40 sm:w-48 rounded-full">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
