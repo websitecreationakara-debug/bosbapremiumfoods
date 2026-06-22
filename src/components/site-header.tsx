@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
@@ -33,6 +34,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/comp
 
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const { user, isAdmin, signOut } = useAuth();
   const { data: categories = [] } = useCategories();
   const { data: settings } = useStoreSettings();
@@ -97,9 +99,14 @@ export function SiteHeader() {
               <Search className="size-[18px]" />
             </button>
 
-            <Button variant="ghost" size="icon" asChild className="text-foreground size-9">
+            <Button variant="ghost" size="icon" asChild className="relative text-foreground size-9">
               <Link to="/wishlist" aria-label={t("nav.wishlist")}>
                 <Heart className="size-[18px]" />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-0 right-0 size-4 rounded-full bg-brand text-brand-foreground text-[9px] font-bold grid place-items-center ring-2 ring-background">
+                    {wishlistCount}
+                  </span>
+                )}
               </Link>
             </Button>
 

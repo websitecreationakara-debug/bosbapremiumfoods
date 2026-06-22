@@ -1,12 +1,15 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, SlidersHorizontal } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal, Heart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n } from "@/lib/i18n";
 import type { Product } from "@/lib/types";
 
 export function ProductCard({ product, fromPrice }: { product: Product; fromPrice?: number }) {
   const { add } = useCart();
+  const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const { t } = useI18n();
+  const saved = inWishlist(product.id);
   // Variable products can't be added from the grid — the customer must pick a
   // weight, so the card leads with "from $X" and links through to the page.
   const variable = product.type === "variable";
@@ -39,6 +42,19 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
             -{discount}%
           </span>
         )}
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleWishlist(product.id);
+          }}
+          aria-pressed={saved}
+          aria-label={saved ? "Remove from wishlist" : "Save to wishlist"}
+          className="absolute right-2.5 top-2.5 grid size-8 place-items-center rounded-full bg-background/70 text-foreground backdrop-blur transition-colors hover:text-brand"
+        >
+          <Heart className={`size-4 ${saved ? "fill-brand text-brand" : ""}`} />
+        </button>
       </div>
 
       {/* Body */}

@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useProduct, useStoreSettings, useProductVariations } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
+import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck } from "lucide-react";
+import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_store/product/$id")({
@@ -17,6 +18,7 @@ function ProductDetail() {
   const { data: variations = [] } = useProductVariations(id);
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
+  const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
@@ -209,6 +211,20 @@ function ProductDetail() {
               <ShoppingBag className="size-4 mr-2" />
               Add to Cart
             </Button>
+            <button
+              type="button"
+              onClick={() => toggleWishlist(product.id)}
+              aria-pressed={inWishlist(product.id)}
+              aria-label={inWishlist(product.id) ? "Remove from wishlist" : "Save to wishlist"}
+              className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
+            >
+              <Heart
+                className={cn(
+                  "size-5 transition-colors",
+                  inWishlist(product.id) && "fill-brand text-brand",
+                )}
+              />
+            </button>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">

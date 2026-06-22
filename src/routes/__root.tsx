@@ -12,6 +12,7 @@ import {
 import appCss from "../styles.css?url";
 import { AuthProvider } from "@/hooks/use-auth";
 import { CartProvider } from "@/hooks/use-cart";
+import { WishlistProvider } from "@/hooks/use-wishlist";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { LanguageProvider } from "@/lib/i18n";
 import { CartDrawer } from "@/components/cart-drawer";
@@ -142,11 +143,13 @@ function RootComponent() {
       <ThemeProvider>
         <LanguageProvider>
           <AuthProvider>
-            <CartProvider>
-              <Outlet />
-              <CartDrawer />
-              <Toaster />
-            </CartProvider>
+            <WishlistProvider>
+              <CartProvider>
+                <Outlet />
+                <CartDrawer />
+                <Toaster />
+              </CartProvider>
+            </WishlistProvider>
           </AuthProvider>
         </LanguageProvider>
       </ThemeProvider>
