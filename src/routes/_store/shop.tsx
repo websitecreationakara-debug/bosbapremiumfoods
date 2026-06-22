@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useCategories, useProducts } from "@/hooks/use-products";
 import { ProductCard } from "@/components/product-card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,6 +48,12 @@ function Shop() {
   const [query, setQuery] = useState(search.q ?? "");
   const [activeCat, setActiveCat] = useState<string | undefined>(search.category);
   const [sort, setSort] = useState<Sort>("featured");
+
+  // The Shop component stays mounted across category links in the nav, so the
+  // useState initializers above don't re-run. Sync local filter state when the
+  // URL search params change (e.g. clicking a category in the top bar).
+  useEffect(() => setActiveCat(search.category), [search.category]);
+  useEffect(() => setQuery(search.q ?? ""), [search.q]);
   const [range, setRange] = useState<[number, number] | null>(null);
   const [onSale, setOnSale] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
