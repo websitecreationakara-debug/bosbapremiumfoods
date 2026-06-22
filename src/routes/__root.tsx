@@ -127,8 +127,13 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if (!("serviceWorker" in navigator)) return;
+    if (import.meta.env.PROD) {
       navigator.serviceWorker.register("/sw.js").catch(() => {});
+    } else {
+      // In dev the SW caches stale modules and survives hard refresh; tear it down.
+      navigator.serviceWorker.getRegistrations().then((rs) => rs.forEach((r) => r.unregister()));
+      caches?.keys().then((ks) => ks.forEach((k) => caches.delete(k)));
     }
   }, []);
 
