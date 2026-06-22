@@ -159,7 +159,7 @@ function Checkout() {
                 <Input
                   ref={addressRef}
                   required
-                  placeholder="123 Garden Lane"
+                  placeholder="123 Phnom Penh"
                   className="flex-1 min-w-0"
                 />
                 <Button
