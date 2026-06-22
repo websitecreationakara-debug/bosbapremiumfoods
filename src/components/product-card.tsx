@@ -19,9 +19,9 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
     <Link
       to="/product/$id"
       params={{ id: product.id }}
-      className="group flex flex-col rounded-2xl border border-border bg-card p-2 transition-colors hover:border-foreground/20"
+      className="group flex flex-col rounded-3xl bg-muted p-3 transition-colors hover:bg-accent"
     >
-      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
+      <div className="relative aspect-square overflow-hidden rounded-2xl bg-background">
         {product.image_url ? (
           <img
             src={product.image_url}

@@ -38,45 +38,39 @@ function Home() {
   ];
 
   return (
-    <div className="space-y-20 pb-12">
+    <div className="space-y-24 md:space-y-32 pb-24">
       <HeroSlider />
 
-      {/* Features strip */}
-      <section className="mx-auto max-w-7xl px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Features strip — centered, borderless */}
+      <section className="mx-auto max-w-6xl px-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10">
           {features.map((f) => (
-            <div key={f.title} className="bg-card border rounded-2xl p-5 flex items-start gap-4">
-              <div className="size-11 rounded-xl bg-brand/10 text-brand grid place-items-center shrink-0">
-                <f.icon className="size-5" />
-              </div>
-              <div>
-                <p className="font-display font-bold text-sm">{f.title}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{f.body}</p>
-              </div>
+            <div key={f.title} className="flex flex-col items-center text-center">
+              <f.icon className="size-7 text-brand" strokeWidth={1.5} />
+              <p className="font-display font-semibold text-base mt-4">{f.title}</p>
+              <p className="text-sm text-muted-foreground mt-1 max-w-[22ch]">{f.body}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* Categories */}
-      <section className="mx-auto max-w-7xl px-6">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="font-display font-bold text-3xl md:text-4xl">
-              {t("home.shopByCategory")}
-            </h2>
-            <p className="text-muted-foreground mt-1">{t("home.shopByCategorySub")}</p>
-          </div>
+      <section className="mx-auto max-w-6xl px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-display font-semibold text-4xl md:text-5xl tracking-tight">
+            {t("home.shopByCategory")}
+          </h2>
+          <p className="text-lg text-muted-foreground mt-3">{t("home.shopByCategorySub")}</p>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {categories.map((c, i) => (
             <Link
               key={c.id}
               to="/shop"
               search={{ category: c.slug }}
-              className="group relative aspect-square rounded-2xl bg-card border border-border overflow-hidden p-5 flex flex-col items-center justify-center text-center transition-colors hover:border-foreground/20"
+              className="group flex flex-col items-center justify-center text-center aspect-square rounded-3xl bg-muted p-5 transition-colors hover:bg-accent"
             >
-              <div className="relative mb-4 size-24 overflow-hidden rounded-full bg-muted grid place-items-center">
+              <div className="relative mb-4 size-24 overflow-hidden rounded-full bg-background grid place-items-center">
                 {c.image_url ? (
                   <img
                     src={c.image_url}
@@ -88,30 +82,18 @@ function Home() {
                 )}
               </div>
               <p className="font-display font-semibold text-base text-foreground">{c.name}</p>
-              <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-brand">
-                {t("home.shop")}{" "}
-                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-              </p>
             </Link>
           ))}
         </div>
       </section>
 
       {/* Featured Products */}
-      <section className="mx-auto max-w-7xl px-6">
-        <div className="flex items-end justify-between mb-8">
-          <div>
-            <h2 className="font-display font-bold text-3xl md:text-4xl">
-              {t("home.finestProducts")}
-            </h2>
-            <p className="text-muted-foreground mt-1">{t("home.premiumSelection")}</p>
-          </div>
-          <Link
-            to="/shop"
-            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all hover:gap-2.5"
-          >
-            {t("home.viewAll")} <ArrowRight className="size-4" />
-          </Link>
+      <section className="mx-auto max-w-6xl px-6">
+        <div className="text-center mb-12">
+          <h2 className="font-display font-semibold text-4xl md:text-5xl tracking-tight">
+            {t("home.finestProducts")}
+          </h2>
+          <p className="text-lg text-muted-foreground mt-3">{t("home.premiumSelection")}</p>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {isLoading
@@ -126,35 +108,32 @@ function Home() {
                 />
               ))}
         </div>
-        <div className="mt-10 text-center sm:hidden">
+        <div className="mt-12 text-center">
           <Link
             to="/shop"
-            className="inline-flex items-center gap-2 text-sm font-bold text-brand transition-all hover:gap-3"
+            className="inline-flex items-center gap-1.5 text-base font-medium text-brand transition-all hover:gap-2.5"
           >
             {t("home.viewAll")} <ArrowRight className="size-4" />
           </Link>
         </div>
       </section>
 
-      {/* CTA Banner */}
-      <section className="mx-auto max-w-7xl px-6">
-        <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-widest text-brand mb-3">
-              {t("cta.member")}
-            </p>
-            <h3 className="font-display font-bold text-3xl md:text-5xl text-foreground leading-tight">
-              {t("cta.title")}
-            </h3>
-            <p className="text-muted-foreground mt-4 max-w-md">{t("cta.body")}</p>
-            <Link
-              to="/auth"
-              className="inline-flex mt-6 items-center gap-2 rounded-full bg-brand text-brand-foreground px-6 py-3 text-sm font-bold hover:bg-secondary-accent transition-colors"
-            >
-              {t("cta.join")} <ArrowRight className="size-4" />
-            </Link>
-          </div>
-          <div className="hidden md:block text-9xl text-center">🍣</div>
+      {/* CTA Banner — centered, soft fill */}
+      <section className="mx-auto max-w-6xl px-6">
+        <div className="rounded-3xl bg-muted px-6 py-20 md:py-28 text-center">
+          <p className="text-sm font-medium uppercase tracking-widest text-brand mb-4">
+            {t("cta.member")}
+          </p>
+          <h3 className="font-display font-semibold text-4xl md:text-6xl text-foreground tracking-tight max-w-3xl mx-auto">
+            {t("cta.title")}
+          </h3>
+          <p className="text-lg text-muted-foreground mt-5 max-w-xl mx-auto">{t("cta.body")}</p>
+          <Link
+            to="/auth"
+            className="inline-flex mt-8 items-center gap-2 rounded-full bg-brand text-brand-foreground px-7 py-3 text-sm font-semibold hover:bg-secondary-accent transition-colors"
+          >
+            {t("cta.join")} <ArrowRight className="size-4" />
+          </Link>
         </div>
       </section>
     </div>
