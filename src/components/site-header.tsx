@@ -38,39 +38,110 @@ export function SiteHeader() {
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
-  // Site-wide light/dark toggle. The announcement bar inverts the page theme:
-  // dark site → golden bar, light site → black bar.
   const { theme, toggle } = useTheme();
   const { locale, setLocale, t } = useI18n();
 
+  const runSearch = (value: string) => {
+    const v = value.trim();
+    if (v) window.location.href = `/shop?q=${encodeURIComponent(v)}`;
+  };
+
   return (
     <>
-      {/* Announcement banner — light/dark toggle restyles this bar only */}
-      <div
-        className={`hidden md:block text-xs transition-colors ${
-          theme === "dark" ? "bg-brand text-brand-foreground" : "bg-foreground text-background"
-        }`}
-      >
-        <div className="mx-auto max-w-7xl px-6 h-9 grid grid-cols-3 items-center">
-          <div className="flex items-center gap-5">
-            <span className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity">
-              <MapPin className="size-3.5" /> {t("bar.storeLocator")}
+      {/* Apple-style single nav bar */}
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b">
+        <div className="mx-auto max-w-7xl px-4 md:px-6 h-12 md:h-14 flex items-center gap-3">
+          <button
+            onClick={() => setMenuOpen(true)}
+            className="lg:hidden grid size-9 shrink-0 place-items-center rounded-full hover:bg-muted transition-colors -ml-1"
+            aria-label={t("nav.browse")}
+          >
+            <Menu className="size-5" />
+          </button>
+
+          <Link to="/" className="flex items-center gap-2 shrink-0">
+            <img
+              src="/logo.png"
+              alt="BOSBA Premium Foods"
+              className="size-8 rounded-md object-contain"
+            />
+            <span className="font-display text-sm font-semibold tracking-tight text-foreground hidden sm:inline">
+              BOSBA
             </span>
-            <span className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity">
-              <Phone className="size-3.5" /> +855 99 361 350
-            </span>
-          </div>
-          <div className="text-center font-medium">
-            {t("bar.delivery", { threshold: shipThreshold })}
-          </div>
-          <div className="flex items-center justify-end gap-4">
+          </Link>
+
+          {/* Centered category links */}
+          <nav className="hidden lg:flex flex-1 items-center justify-center gap-7 text-[13px] text-foreground/80">
+            <Link to="/shop" className="hover:text-foreground transition-colors">
+              {t("nav.allProducts")}
+            </Link>
+            {categories.map((c) => (
+              <Link
+                key={c.id}
+                to="/shop"
+                search={{ category: c.slug }}
+                className="hover:text-foreground transition-colors whitespace-nowrap"
+              >
+                {c.name}
+              </Link>
+            ))}
+          </nav>
+
+          {/* Right icons */}
+          <div className="flex items-center gap-0.5 ml-auto lg:ml-0">
+            <button
+              onClick={() => setSearchOpen((o) => !o)}
+              aria-label={t("nav.searchPlaceholder")}
+              aria-expanded={searchOpen}
+              className="grid size-9 place-items-center rounded-full hover:bg-muted transition-colors"
+            >
+              <Search className="size-[18px]" />
+            </button>
+
+            <Button variant="ghost" size="icon" asChild className="text-foreground size-9">
+              <Link to="/wishlist" aria-label={t("nav.wishlist")}>
+                <Heart className="size-[18px]" />
+              </Link>
+            </Button>
+
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center gap-1.5 outline-none hover:opacity-70 transition-opacity">
-                <Globe className="size-3.5" />
-                {LOCALES.find((l) => l.code === locale)?.label}
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="text-foreground size-9">
+                  <User className="size-[18px]" />
+                </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="w-56">
+                {user ? (
+                  <>
+                    <DropdownMenuLabel className="truncate max-w-[200px]">
+                      {user.email}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {isAdmin && (
+                      <DropdownMenuItem asChild>
+                        <Link to="/admin">
+                          <LayoutDashboard className="size-4 mr-2" /> {t("nav.adminDashboard")}
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
+                    <DropdownMenuItem onClick={() => signOut()}>
+                      <LogOut className="size-4 mr-2" /> {t("nav.signOut")}
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem asChild>
+                    <Link to="/auth">
+                      <User className="size-4 mr-2" /> {t("nav.signIn")}
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
+                <DropdownMenuSeparator />
+                <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Globe className="size-3.5" /> {LOCALES.find((l) => l.code === locale)?.label}
+                </DropdownMenuLabel>
                 {LOCALES.map((l) => (
                   <DropdownMenuItem
                     key={l.code}
@@ -81,135 +152,57 @@ export function SiteHeader() {
                     {locale === l.code && <Check className="size-4" />}
                   </DropdownMenuItem>
                 ))}
+
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={toggle}>
+                  {theme === "dark" ? (
+                    <Sun className="size-4 mr-2" />
+                  ) : (
+                    <Moon className="size-4 mr-2" />
+                  )}
+                  {theme === "dark" ? t("theme.light") : t("theme.dark")}
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+
             <button
-              onClick={toggle}
-              aria-label="Toggle light or dark mode"
-              className="inline-flex items-center gap-1.5 hover:opacity-70 transition-opacity"
+              onClick={() => setDrawerOpen(true)}
+              className="relative grid size-9 place-items-center rounded-full hover:bg-muted transition-colors"
+              aria-label={t("nav.cart")}
             >
-              {theme === "dark" ? <Sun className="size-3.5" /> : <Moon className="size-3.5" />}
-              {theme === "dark" ? t("theme.light") : t("theme.dark")}
+              <ShoppingBag className="size-[18px]" />
+              {count > 0 && (
+                <span className="absolute top-0 right-0 size-4 rounded-full bg-brand text-brand-foreground text-[9px] font-bold grid place-items-center ring-2 ring-background">
+                  {count}
+                </span>
+              )}
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Main header */}
-      <header className="sticky top-0 z-40 bg-background/85 backdrop-blur-xl border-b">
-        <div className="mx-auto max-w-7xl px-4 md:px-6 h-16 md:h-20 flex items-center gap-3 md:gap-6">
-          <button
-            onClick={() => setMenuOpen(true)}
-            className="lg:hidden grid size-10 shrink-0 place-items-center rounded-full hover:bg-muted transition-colors -ml-1"
-            aria-label={t("nav.browse")}
-          >
-            <Menu className="size-6" />
-          </button>
-
-          <Link to="/" className="flex items-center gap-2 shrink-0">
-            <img
-              src="/logo.png"
-              alt="BOSBA Premium Foods"
-              className="size-11 md:size-20 rounded-xl object-contain"
-            />
-            <span className="font-display text-2xl font-bold tracking-tight text-brand hidden lg:inline">
-              BOSBA Premium Foods
-            </span>
-          </Link>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="gap-2 hidden md:inline-flex text-foreground">
-                <Menu className="size-4" /> {t("nav.allCategories")}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-56">
-              <DropdownMenuLabel>{t("nav.browse")}</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link to="/shop">{t("nav.allProducts")}</Link>
-              </DropdownMenuItem>
-              {categories.map((c) => (
-                <DropdownMenuItem key={c.id} asChild>
-                  <Link to="/shop" search={{ category: c.slug }}>
-                    {c.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <div className="flex-1 relative max-w-xl">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
-            <input
-              type="search"
-              placeholder={t("nav.searchPlaceholder")}
-              className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border border-transparent text-sm text-foreground outline-none focus:bg-background focus:border-border transition-all"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  const v = (e.target as HTMLInputElement).value;
-                  window.location.href = `/shop?q=${encodeURIComponent(v)}`;
-                }
-              }}
-            />
+        {/* Search field — revealed by the icon, Apple-style */}
+        {searchOpen && (
+          <div className="border-t bg-background/95 backdrop-blur-xl">
+            <div className="mx-auto max-w-3xl px-4 md:px-6 py-3">
+              <div className="relative">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                <input
+                  type="search"
+                  autoFocus
+                  placeholder={t("nav.searchPlaceholder")}
+                  className="w-full h-11 pl-10 pr-4 rounded-full bg-muted border border-transparent text-sm text-foreground outline-none focus:bg-background focus:border-border transition-all"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") runSearch((e.target as HTMLInputElement).value);
+                    if (e.key === "Escape") setSearchOpen(false);
+                  }}
+                />
+              </div>
+            </div>
           </div>
-
-          <nav className="hidden lg:flex items-center gap-1">
-            <Button variant="ghost" size="icon" asChild className="text-foreground">
-              <Link to="/wishlist" aria-label={t("nav.wishlist")}>
-                <Heart className="size-5 fill-none" />
-              </Link>
-            </Button>
-
-            {user ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <User className="size-5" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel className="truncate max-w-[200px]">
-                    {user.email}
-                  </DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  {isAdmin && (
-                    <DropdownMenuItem asChild>
-                      <Link to="/admin">
-                        <LayoutDashboard className="size-4 mr-2" /> {t("nav.adminDashboard")}
-                      </Link>
-                    </DropdownMenuItem>
-                  )}
-                  <DropdownMenuItem onClick={() => signOut()}>
-                    <LogOut className="size-4 mr-2" /> {t("nav.signOut")}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <Button variant="ghost" asChild className="text-foreground">
-                <Link to="/auth">
-                  <User className="size-4 mr-2" /> {t("nav.signIn")}
-                </Link>
-              </Button>
-            )}
-          </nav>
-
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="relative size-11 rounded-full bg-secondary hover:bg-accent transition-colors grid place-items-center"
-            aria-label={t("nav.cart")}
-          >
-            <ShoppingBag className="size-5" />
-            {count > 0 && (
-              <span className="absolute -top-1 -right-1 size-5 rounded-full bg-brand text-brand-foreground text-[10px] font-bold grid place-items-center ring-2 ring-background">
-                {count}
-              </span>
-            )}
-          </button>
-        </div>
+        )}
       </header>
 
-      {/* Mobile navigation — replaces the desktop category dropdown + icon nav */}
+      {/* Mobile navigation */}
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
         <SheetContent side="left" className="w-[86%] max-w-sm flex flex-col p-0">
           <SheetHeader className="px-5 py-4 border-b text-left">

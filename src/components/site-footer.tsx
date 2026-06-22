@@ -1,8 +1,12 @@
 import { Link } from "@tanstack/react-router";
+import { MapPin, Phone } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useStoreSettings } from "@/hooks/use-products";
 
 export function SiteFooter() {
   const { t } = useI18n();
+  const { data: settings } = useStoreSettings();
+  const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
       <div className="mx-auto max-w-7xl px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
@@ -18,6 +22,14 @@ export function SiteFooter() {
             </span>
           </div>
           <p className="text-sm text-muted-foreground leading-relaxed">{t("footer.tagline")}</p>
+          <div className="space-y-2 text-sm text-muted-foreground pt-1">
+            <a href="tel:+85599361350" className="flex items-center gap-2 hover:text-foreground">
+              <Phone className="size-4" /> +855 99 361 350
+            </a>
+            <p className="flex items-center gap-2">
+              <MapPin className="size-4" /> {t("bar.delivery", { threshold: shipThreshold })}
+            </p>
+          </div>
         </div>
 
         <div>
