@@ -3,7 +3,7 @@ import { count, desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders } from "@/db/schema";
 import { notifyNewOrder } from "@/lib/notify";
-import { requireAdmin, requireStaff, requireUser } from "./_auth";
+import { getSessionUser, requireAdmin, requireStaff } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -34,16 +34,18 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
 export const createOrder = createServerFn({ method: "POST" })
   .inputValidator((d: CreateOrderInput) => d)
   .handler(async ({ data }) => {
-    const user = await requireUser();
+    // Guest checkout: a session is optional. Logged-in orders are stamped with
+    // the user id; guest orders carry null and rely on the typed contact fields.
+    const user = await getSessionUser();
     const [row] = await getDb()
       .insert(orders)
       .values({
-        user_id: user.id,
+        user_id: user?.id ?? null,
         total: data.total,
         status: "pending",
         items: JSON.stringify(data.items ?? []),
-        customer_name: data.customer_name?.trim() || user.name,
-        customer_email: data.customer_email?.trim() || user.email,
+        customer_name: data.customer_name?.trim() || user?.name || null,
+        customer_email: data.customer_email?.trim() || user?.email || null,
         customer_phone: data.customer_phone?.trim() || null,
         address: data.address?.trim() || null,
         city: data.city?.trim() || null,

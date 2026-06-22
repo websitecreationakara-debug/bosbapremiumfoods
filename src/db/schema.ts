@@ -84,7 +84,8 @@ export const media = sqliteTable("media", {
 
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey().$defaultFn(uuid),
-  user_id: text("user_id").notNull(),
+  // Nullable: guest checkout creates orders with no associated account.
+  user_id: text("user_id"),
   // Customer contact + delivery captured at checkout. Nullable so the columns
   // add cleanly via ALTER to pre-existing rows.
   customer_name: text("customer_name"),

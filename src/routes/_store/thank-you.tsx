@@ -2,12 +2,17 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 type LastOrder = {
   id: string;
   total: number;
   items: { id: string; title: string; qty: number; price: number }[];
   customer_name: string;
+  customer_email?: string;
 };
 
 export const Route = createFileRoute("/_store/thank-you")({ component: ThankYou });
@@ -58,9 +63,100 @@ function ThankYou() {
         </div>
       )}
 
-      <Button asChild size="lg" className="mt-8 rounded-full">
+      <CreateAccountPrompt
+        defaultName={order?.customer_name ?? ""}
+        defaultEmail={order?.customer_email ?? ""}
+      />
+
+      <Button asChild size="lg" variant="outline" className="mt-8 rounded-full">
         <Link to="/shop">Continue shopping</Link>
       </Button>
+    </div>
+  );
+}
+
+function CreateAccountPrompt({
+  defaultName,
+  defaultEmail,
+}: {
+  defaultName: string;
+  defaultEmail: string;
+}) {
+  const { user, loading, signUp } = useAuth();
+  const [open, setOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
+
+  // Offer only to signed-out guests who left an email to register with.
+  if (loading || user || !defaultEmail) return null;
+
+  if (done) {
+    return (
+      <div className="mt-8 bg-card border rounded-2xl p-6 text-left">
+        <p className="font-display font-bold">Account created 🎉</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          You&rsquo;re signed in — next time your details fill in automatically.
+        </p>
+      </div>
+    );
+  }
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters.");
+      return;
+    }
+    setSubmitting(true);
+    const { error } = await signUp(defaultEmail, password, defaultName || defaultEmail);
+    setSubmitting(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    setDone(true);
+    toast.success("Account created!");
+  };
+
+  return (
+    <div className="mt-8 bg-card border rounded-2xl p-6 text-left">
+      {!open ? (
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="font-display font-bold">Create an account?</p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Save your details for faster checkout next time.
+            </p>
+          </div>
+          <Button onClick={() => setOpen(true)} className="rounded-full shrink-0">
+            Set a password
+          </Button>
+        </div>
+      ) : (
+        <form onSubmit={submit} className="space-y-4">
+          <p className="font-display font-bold">Create your account</p>
+          <div>
+            <Label>Email</Label>
+            <Input type="email" value={defaultEmail} readOnly className="bg-muted/50" />
+          </div>
+          <div>
+            <Label>Password</Label>
+            <Input
+              type="password"
+              autoFocus
+              required
+              minLength={8}
+              placeholder="At least 8 characters"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+          <Button type="submit" disabled={submitting} className="w-full rounded-full">
+            {submitting ? "Creating…" : "Create account"}
+          </Button>
+        </form>
+      )}
     </div>
   );
 }
