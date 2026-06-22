@@ -38,6 +38,10 @@ const env: Record<string, string | undefined> = (() => {
   return {} as Record<string, string | undefined>;
 })();
 
+// Labels which site an alert came from — lets one bot/inbox serve many sites.
+// Each deployment overrides this via the SITE_NAME env var.
+const siteName = () => env.SITE_NAME?.trim() || "BOSBA Premium Foods";
+
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -82,7 +86,7 @@ async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
   try {
     const payload: Record<string, unknown> = {
       chat_id: chatId,
-      text: `🛎️ New order\n\n${text}`,
+      text: `🌐 Website: ${siteName()}\n🛎️ New order\n\n${text}`,
       disable_web_page_preview: true,
     };
     // Forum supergroups route messages into a specific topic by thread id.
@@ -120,6 +124,7 @@ async function sendEmail(
       .join("");
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
+        <p style="margin:0 0 8px;font-size:13px;color:#888">🌐 ${escapeHtml(siteName())}</p>
         <h2 style="margin:0 0 4px">🛎️ New order #${short}</h2>
         <p style="margin:0 0 16px;color:#555">A new order was just placed.</p>
         <p style="margin:0 0 2px"><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? "—")}</p>
@@ -133,7 +138,7 @@ async function sendEmail(
     await resend.emails.send({
       from,
       to,
-      subject: `🛎️ New order #${short} — $${order.total.toFixed(2)}`,
+      subject: `[${siteName()}] 🛎️ New order #${short} — $${order.total.toFixed(2)}`,
       html,
     });
   } catch (e) {
