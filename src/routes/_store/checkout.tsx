@@ -27,7 +27,6 @@ function Checkout() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
-  const postalRef = useRef<HTMLInputElement>(null);
 
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
   const shipping = subtotal >= threshold || subtotal === 0 ? 0 : 4.99;
@@ -54,8 +53,6 @@ function Checkout() {
           const a = data?.address ?? {};
           const city = a.city || a.town || a.village || a.suburb || a.county;
           if (city && cityRef.current && !cityRef.current.value) cityRef.current.value = city;
-          if (a.postcode && postalRef.current && !postalRef.current.value)
-            postalRef.current.value = a.postcode;
         } catch {
           // Geocoding failed — coordinates are still saved; customer can type the address.
         }
@@ -97,7 +94,6 @@ function Checkout() {
           customer_phone: phoneRef.current?.value ?? "",
           address: addressRef.current?.value ?? "",
           city: cityRef.current?.value ?? "",
-          postal_code: postalRef.current?.value ?? "",
           location_lat: coords?.lat ?? null,
           location_lng: coords?.lng ?? null,
         },
@@ -188,13 +184,9 @@ function Checkout() {
                 </a>
               )}
             </div>
-            <div>
+            <div className="sm:col-span-2">
               <Label>City</Label>
               <Input ref={cityRef} required />
-            </div>
-            <div>
-              <Label>Postal code</Label>
-              <Input ref={postalRef} required />
             </div>
           </div>
         </section>

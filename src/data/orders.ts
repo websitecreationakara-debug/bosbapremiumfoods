@@ -15,7 +15,6 @@ type CreateOrderInput = {
   customer_phone: string;
   address: string;
   city: string;
-  postal_code: string;
   location_lat?: number | null;
   location_lng?: number | null;
 };
@@ -49,7 +48,6 @@ export const createOrder = createServerFn({ method: "POST" })
         customer_phone: data.customer_phone?.trim() || null,
         address: data.address?.trim() || null,
         city: data.city?.trim() || null,
-        postal_code: data.postal_code?.trim() || null,
         location_lat: data.location_lat ?? null,
         location_lng: data.location_lng ?? null,
       })
