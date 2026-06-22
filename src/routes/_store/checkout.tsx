@@ -150,8 +150,8 @@ function Checkout() {
               <Input ref={nameRef} required defaultValue={user?.name ?? ""} />
             </div>
             <div>
-              <Label>Email</Label>
-              <Input ref={emailRef} required type="email" defaultValue={user?.email ?? ""} />
+              <Label>Email{!user && <span className="text-muted-foreground"> (optional)</span>}</Label>
+              <Input ref={emailRef} required={!!user} type="email" defaultValue={user?.email ?? ""} />
             </div>
             <div className="sm:col-span-2">
               <Label>Phone</Label>

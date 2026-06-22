@@ -36,7 +36,10 @@ function ThankYou() {
         Thank you{order?.customer_name ? `, ${order.customer_name}` : ""}!
       </h1>
       <p className="mt-3 text-muted-foreground">
-        Your order has been placed. We&rsquo;ll send a confirmation to your email shortly.
+        Your order has been placed.
+        {order?.customer_email
+          ? " We’ll send a confirmation to your email shortly."
+          : " We’ll be in touch shortly to confirm."}
       </p>
 
       {order && (
