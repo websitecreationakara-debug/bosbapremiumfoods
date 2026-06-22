@@ -112,7 +112,7 @@ function Home() {
           </h2>
           <span className="mt-4 block h-px w-16 bg-brand/50" aria-hidden />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
