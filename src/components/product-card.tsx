@@ -19,10 +19,9 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
     <Link
       to="/product/$id"
       params={{ id: product.id }}
-      className="group flex flex-col rounded-[16px] border border-[rgba(201,168,76,0.25)] bg-card p-2 transition-colors hover:border-[rgba(201,168,76,0.55)]"
+      className="group flex flex-col rounded-2xl border border-border bg-card p-2 transition-colors hover:border-foreground/20"
     >
-      {/* Image — 8px inset, concentric radius, dramatic dark crop */}
-      <div className="relative aspect-square overflow-hidden rounded-[10px] bg-muted">
+      <div className="relative aspect-square overflow-hidden rounded-xl bg-muted">
         {product.image_url ? (
           <img
             src={product.image_url}
@@ -35,10 +34,8 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
             {t("product.noImage")}
           </div>
         )}
-        {/* Subtle dark vignette so light-studio photos sit better on the dark card */}
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_50%,rgba(0,0,0,0.45))]" />
         {hasSale && (
-          <span className="absolute left-2.5 top-2.5 rounded-md border border-[rgba(201,168,76,0.4)] bg-black/70 px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-brand backdrop-blur">
+          <span className="absolute left-2.5 top-2.5 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-foreground">
             -{discount}%
           </span>
         )}

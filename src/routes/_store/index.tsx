@@ -74,24 +74,20 @@ function Home() {
               key={c.id}
               to="/shop"
               search={{ category: c.slug }}
-              className="group relative aspect-square rounded-3xl bg-surface border border-[rgba(201,168,76,0.18)] overflow-hidden p-5 flex flex-col items-center justify-center text-center transition-all duration-500 hover:-translate-y-1 hover:border-[rgba(201,168,76,0.5)]"
+              className="group relative aspect-square rounded-2xl bg-card border border-border overflow-hidden p-5 flex flex-col items-center justify-center text-center transition-colors hover:border-foreground/20"
             >
-              {/* Gold halo pedestal */}
-              <div className="relative mb-4 grid place-items-center">
-                <div className="pointer-events-none absolute -inset-3 rounded-full bg-[radial-gradient(circle,rgba(201,168,76,0.30),transparent_70%)] opacity-70 blur-md transition-opacity duration-500 group-hover:opacity-100" />
-                <div className="relative size-24 overflow-hidden rounded-full border border-[rgba(201,168,76,0.4)] bg-muted grid place-items-center">
-                  {c.image_url ? (
-                    <img
-                      src={c.image_url}
-                      alt=""
-                      className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    />
-                  ) : (
-                    <span className="text-4xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
-                  )}
-                </div>
+              <div className="relative mb-4 size-24 overflow-hidden rounded-full bg-muted grid place-items-center">
+                {c.image_url ? (
+                  <img
+                    src={c.image_url}
+                    alt=""
+                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                  />
+                ) : (
+                  <span className="text-4xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
+                )}
               </div>
-              <p className="font-serif text-base text-foreground">{c.name}</p>
+              <p className="font-display font-semibold text-base text-foreground">{c.name}</p>
               <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors group-hover:text-brand">
                 {t("home.shop")}{" "}
                 <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
@@ -103,19 +99,24 @@ function Home() {
 
       {/* Featured Products */}
       <section className="mx-auto max-w-7xl px-6">
-        <div className="mb-10 flex flex-col items-center text-center">
-          <span className="text-xs font-bold uppercase tracking-[0.25em] text-brand">
-            {t("home.premiumSelection")}
-          </span>
-          <h2 className="mt-3 font-serif text-[32px] leading-tight text-foreground">
-            {t("home.finestProducts")}
-          </h2>
-          <span className="mt-4 block h-px w-16 bg-brand/50" aria-hidden />
+        <div className="flex items-end justify-between mb-8">
+          <div>
+            <h2 className="font-display font-bold text-3xl md:text-4xl">
+              {t("home.finestProducts")}
+            </h2>
+            <p className="text-muted-foreground mt-1">{t("home.premiumSelection")}</p>
+          </div>
+          <Link
+            to="/shop"
+            className="hidden sm:inline-flex items-center gap-1.5 text-sm font-semibold text-brand transition-all hover:gap-2.5"
+          >
+            {t("home.viewAll")} <ArrowRight className="size-4" />
+          </Link>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {isLoading
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Skeleton key={i} className="aspect-[4/5] rounded-[16px]" />
+                <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />
               ))
             : featured.map((p) => (
                 <ProductCard
@@ -125,7 +126,7 @@ function Home() {
                 />
               ))}
         </div>
-        <div className="mt-10 text-center">
+        <div className="mt-10 text-center sm:hidden">
           <Link
             to="/shop"
             className="inline-flex items-center gap-2 text-sm font-bold text-brand transition-all hover:gap-3"
@@ -137,7 +138,7 @@ function Home() {
 
       {/* CTA Banner */}
       <section className="mx-auto max-w-7xl px-6">
-        <div className="relative overflow-hidden rounded-3xl bg-surface border border-border p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
+        <div className="relative overflow-hidden rounded-2xl bg-card border border-border p-10 md:p-16 grid md:grid-cols-2 gap-8 items-center">
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-brand mb-3">
               {t("cta.member")}
