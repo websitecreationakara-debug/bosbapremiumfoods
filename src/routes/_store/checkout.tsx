@@ -49,7 +49,8 @@ function Checkout() {
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
           );
           const data = await res.json();
-          if (data?.display_name && addressRef.current) addressRef.current.value = data.display_name;
+          if (data?.display_name && addressRef.current)
+            addressRef.current.value = data.display_name;
           const a = data?.address ?? {};
           const city = a.city || a.town || a.village || a.suburb || a.county;
           if (city && cityRef.current && !cityRef.current.value) cityRef.current.value = city;
@@ -124,7 +125,7 @@ function Checkout() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
-        <h1 className="font-display font-bold text-3xl">Your cart is empty</h1>
+        <h1 className="font-display font-semibold tracking-tight text-3xl">Your cart is empty</h1>
         <Button asChild className="mt-6 rounded-full">
           <Link to="/shop">Continue shopping</Link>
         </Button>
@@ -135,18 +136,25 @@ function Checkout() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 grid lg:grid-cols-[1fr_400px] gap-10">
       <form onSubmit={placeOrder} className="space-y-6">
-        <h1 className="font-display font-bold text-3xl">Checkout</h1>
+        <h1 className="font-display font-semibold tracking-tight text-3xl">Checkout</h1>
 
-        <section className="space-y-4 bg-card border rounded-2xl p-6">
-          <h2 className="font-display font-bold text-lg">Delivery Details</h2>
+        <section className="space-y-4 bg-muted rounded-2xl p-6">
+          <h2 className="font-display font-semibold text-lg">Delivery Details</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Full name</Label>
               <Input ref={nameRef} required defaultValue={user?.name ?? ""} />
             </div>
             <div>
-              <Label>Email{!user && <span className="text-muted-foreground"> (optional)</span>}</Label>
-              <Input ref={emailRef} required={!!user} type="email" defaultValue={user?.email ?? ""} />
+              <Label>
+                Email{!user && <span className="text-muted-foreground"> (optional)</span>}
+              </Label>
+              <Input
+                ref={emailRef}
+                required={!!user}
+                type="email"
+                defaultValue={user?.email ?? ""}
+              />
             </div>
             <div className="sm:col-span-2">
               <Label>Phone</Label>
@@ -190,8 +198,8 @@ function Checkout() {
           </div>
         </section>
 
-        <section className="space-y-4 bg-card border rounded-2xl p-6">
-          <h2 className="font-display font-bold text-lg">Payment</h2>
+        <section className="space-y-4 bg-muted rounded-2xl p-6">
+          <h2 className="font-display font-semibold text-lg">Payment</h2>
           <p className="text-sm text-muted-foreground">
             Demo checkout — no real payment is processed.
           </p>
@@ -202,8 +210,8 @@ function Checkout() {
         </Button>
       </form>
 
-      <aside className="bg-card border rounded-2xl p-6 h-fit sticky top-28 space-y-4">
-        <h2 className="font-display font-bold text-lg">Order Summary</h2>
+      <aside className="bg-muted rounded-2xl p-6 h-fit sticky top-28 space-y-4">
+        <h2 className="font-display font-semibold text-lg">Order Summary</h2>
         <div className="space-y-2 max-h-72 overflow-y-auto">
           {items.map((item) => (
             <div key={itemKey(item)} className="flex justify-between text-sm">
@@ -224,7 +232,7 @@ function Checkout() {
             <span>Shipping</span>
             <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>
           </div>
-          <div className="flex justify-between font-display font-bold text-lg pt-2 border-t">
+          <div className="flex justify-between font-display font-semibold text-lg pt-2 border-t">
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>

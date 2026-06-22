@@ -32,7 +32,7 @@ function ThankYou() {
   return (
     <div className="mx-auto max-w-2xl px-6 py-16 text-center">
       <CheckCircle2 className="mx-auto h-16 w-16 text-primary" />
-      <h1 className="mt-6 font-display font-bold text-3xl">
+      <h1 className="mt-6 font-display font-semibold tracking-tight text-3xl">
         Thank you{order?.customer_name ? `, ${order.customer_name}` : ""}!
       </h1>
       <p className="mt-3 text-muted-foreground">
@@ -43,7 +43,7 @@ function ThankYou() {
       </p>
 
       {order && (
-        <div className="mt-8 bg-card border rounded-2xl p-6 text-left space-y-4">
+        <div className="mt-8 bg-muted rounded-2xl p-6 text-left space-y-4">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Order reference</span>
             <span className="font-mono">#{order.id.slice(0, 8).toUpperCase()}</span>
@@ -59,7 +59,7 @@ function ThankYou() {
               </div>
             ))}
           </div>
-          <div className="border-t pt-4 flex justify-between font-display font-bold text-lg">
+          <div className="border-t pt-4 flex justify-between font-display font-semibold text-lg">
             <span>Total</span>
             <span>${Number(order.total).toFixed(2)}</span>
           </div>
@@ -96,8 +96,8 @@ function CreateAccountPrompt({
 
   if (done) {
     return (
-      <div className="mt-8 bg-card border rounded-2xl p-6 text-left">
-        <p className="font-display font-bold">Account created 🎉</p>
+      <div className="mt-8 bg-muted rounded-2xl p-6 text-left">
+        <p className="font-display font-semibold">Account created 🎉</p>
         <p className="mt-1 text-sm text-muted-foreground">
           You&rsquo;re signed in — next time your details fill in automatically.
         </p>
@@ -127,7 +127,7 @@ function CreateAccountPrompt({
       {!open ? (
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="font-display font-bold">Create an account?</p>
+            <p className="font-display font-semibold">Create an account?</p>
             <p className="mt-1 text-sm text-muted-foreground">
               Save your details for faster checkout next time.
             </p>
@@ -138,7 +138,7 @@ function CreateAccountPrompt({
         </div>
       ) : (
         <form onSubmit={submit} className="space-y-4">
-          <p className="font-display font-bold">Create your account</p>
+          <p className="font-display font-semibold">Create your account</p>
           <div>
             <Label>Email</Label>
             <Input type="email" value={defaultEmail} readOnly className="bg-muted/50" />

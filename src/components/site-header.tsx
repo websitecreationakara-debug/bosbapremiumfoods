@@ -49,7 +49,7 @@ export function SiteHeader() {
       {/* Announcement banner — light/dark toggle restyles this bar only */}
       <div
         className={`hidden md:block text-xs transition-colors ${
-          theme === "dark" ? "bg-[#F5ED7C] text-black" : "bg-black text-white"
+          theme === "dark" ? "bg-brand text-brand-foreground" : "bg-foreground text-background"
         }`}
       >
         <div className="mx-auto max-w-7xl px-6 h-9 grid grid-cols-3 items-center">

@@ -26,7 +26,7 @@ export function CartDrawer() {
               <ShoppingBag className="size-8 text-muted-foreground" />
             </div>
             <div>
-              <p className="font-display font-bold text-lg">No products in cart</p>
+              <p className="font-display font-semibold text-lg">No products in cart</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Start shopping our fresh harvest.
               </p>
@@ -37,7 +37,7 @@ export function CartDrawer() {
           </div>
         ) : (
           <>
-            <div className="px-6 py-4 space-y-2 border-b bg-secondary/40">
+            <div className="px-6 py-4 space-y-2 border-b bg-muted">
               <p className="text-xs font-medium">
                 {remaining > 0 ? (
                   <>
@@ -113,7 +113,7 @@ export function CartDrawer() {
             <div className="border-t px-6 py-5 space-y-4 bg-card">
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal</span>
-                <span className="font-display font-bold text-lg">${subtotal.toFixed(2)}</span>
+                <span className="font-display font-semibold text-lg">${subtotal.toFixed(2)}</span>
               </div>
               <Button
                 size="lg"

@@ -7,7 +7,7 @@ export const Route = createFileRoute("/_store/wishlist")({
       <div className="size-20 rounded-full bg-muted grid place-items-center mx-auto mb-6">
         <Heart className="size-8 text-muted-foreground" />
       </div>
-      <h1 className="font-display font-bold text-3xl">Your wishlist is empty</h1>
+      <h1 className="font-display font-semibold tracking-tight text-3xl">Your wishlist is empty</h1>
       <p className="text-muted-foreground mt-2">Save items you love for later.</p>
     </div>
   ),
