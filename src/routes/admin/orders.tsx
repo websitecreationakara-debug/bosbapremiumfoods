@@ -9,7 +9,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { MapPin, Trash2 } from "lucide-react";
+import { MapPin, Trash2, FileDown } from "lucide-react";
+import { downloadInvoice } from "@/lib/invoice";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -29,6 +30,14 @@ function OrdersAdmin() {
     }
     qc.invalidateQueries({ queryKey: ["orders-admin"] });
     qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
+  };
+
+  const printInvoice = async (order: Parameters<typeof downloadInvoice>[0]) => {
+    try {
+      await downloadInvoice(order);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
+    }
   };
 
   const removeOrder = async (id: string) => {
@@ -116,6 +125,13 @@ function OrdersAdmin() {
                         <SelectItem value="cancelled">Cancelled</SelectItem>
                       </SelectContent>
                     </Select>
+                    <button
+                      onClick={() => printInvoice(o)}
+                      title="Download invoice (PDF)"
+                      className="text-muted-foreground hover:text-brand transition-colors"
+                    >
+                      <FileDown className="size-4" />
+                    </button>
                     <button
                       onClick={() => removeOrder(o.id)}
                       title="Delete order"
