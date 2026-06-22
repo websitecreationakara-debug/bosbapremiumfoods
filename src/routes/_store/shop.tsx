@@ -245,6 +245,20 @@ function Shop() {
           )}
         </div>
       </div>
+
+      <Sheet open={filtersOpen} onOpenChange={setFiltersOpen}>
+        <SheetContent side="left" className="w-[86%] max-w-sm flex flex-col p-0">
+          <SheetHeader className="px-5 py-4 border-b text-left">
+            <SheetTitle className="font-display text-lg">{t("shop.filters")}</SheetTitle>
+          </SheetHeader>
+          <div className="flex-1 overflow-y-auto px-5 py-5">{filterPanel}</div>
+          <div className="border-t px-5 py-4">
+            <Button className="w-full rounded-full" onClick={() => setFiltersOpen(false)}>
+              {t("shop.count", { n: sorted.length })}
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

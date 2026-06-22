@@ -67,7 +67,7 @@ function ProductDetail() {
   const addDisabled = variable && !selected;
 
   return (
-    <div className="mx-auto max-w-6xl px-6 py-10">
+    <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
       <Link
         to="/shop"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
@@ -75,7 +75,7 @@ function ProductDetail() {
         <ArrowLeft className="size-4" /> Back to shop
       </Link>
 
-      <div className="grid md:grid-cols-2 gap-10">
+      <div className="grid md:grid-cols-2 gap-6 md:gap-10">
         <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted border">
           {product.image_url ? (
             <img
