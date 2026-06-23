@@ -18,9 +18,9 @@ import { LanguageProvider } from "@/lib/i18n";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
-// Paste your Cloudflare Web Analytics token here to enable visitor tracking.
-// Get it from Cloudflare dashboard → Analytics & Logs → Web Analytics → Manage site.
-const CF_ANALYTICS_TOKEN = "ddf8b2ed54954a33bbb4aa98e16cb63c";
+// Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
+// 392fa229…), so no manual beacon is needed. Left empty intentionally.
+const CF_ANALYTICS_TOKEN = "";
 
 const ORG_JSON_LD = {
   "@context": "https://schema.org",
