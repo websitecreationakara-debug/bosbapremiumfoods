@@ -28,7 +28,7 @@ const BRAND: [number, number, number] = [201, 168, 76];
 
 async function loadLogo(): Promise<string | null> {
   try {
-    const res = await fetch("/logo.png");
+    const res = await fetch("/invoice-logo.png");
     if (!res.ok) return null;
     const blob = await res.blob();
     return await new Promise((resolve) => {
@@ -56,24 +56,20 @@ export async function downloadInvoice(order: InvoiceOrder) {
   const M = 14;
   const shortId = order.id.slice(0, 8).toUpperCase();
 
-  // ---- Header: logo + store (left) + INVOICE (right) ----
-  let textX = M;
+  // ---- Header: logo (left) + INVOICE (right) ----
+  let infoY = 20;
   if (logo) {
-    const size = 18;
-    doc.addImage(logo, "PNG", M, 12, size, size);
-    textX = M + size + 4;
+    const w = 50;
+    const h = w * (90 / 312); // preserve the logo's aspect ratio
+    doc.addImage(logo, "PNG", M, 12, w, h);
+    infoY = 12 + h + 5;
   }
-
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(20);
-  doc.setTextColor(BRAND[0], BRAND[1], BRAND[2]);
-  doc.text(STORE.name, textX, 20);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(120);
-  doc.text(STORE.phone, textX, 26);
-  doc.text(STORE.site, textX, 30);
+  doc.text(STORE.phone, M, infoY);
+  doc.text(STORE.site, M, infoY + 4);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
