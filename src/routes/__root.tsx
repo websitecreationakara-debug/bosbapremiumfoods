@@ -29,6 +29,12 @@ const ORG_JSON_LD = {
   url: "https://bosbapremiumfoods.com",
   logo: "https://bosbapremiumfoods.com/logo.png",
   telephone: "+855 99 361 350",
+  address: {
+    "@type": "PostalAddress",
+    streetAddress: "Sangkat Tuol Svay Prey Ti Muoy",
+    addressLocality: "Phnom Penh",
+    addressCountry: "KH",
+  },
 };
 
 const WEBSITE_JSON_LD = {
@@ -89,18 +95,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "width=device-width, initial-scale=1, viewport-fit=cover",
       },
       { title: "BOSBA Premium Foods" },
-      { name: "description", content: "High Premium Quality Foods From Japan" },
+      { name: "description", content: "Provides High Premium Quality Foods From Japan" },
       { name: "theme-color", content: "#000000" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
       { name: "apple-mobile-web-app-title", content: "BOSBA" },
       { property: "og:title", content: "BOSBA Premium Foods" },
-      { property: "og:description", content: "High Premium Quality Foods From Japan" },
+      { property: "og:description", content: "Provides High Premium Quality Foods From Japan" },
       { property: "og:type", content: "website" },
       { property: "og:site_name", content: "BOSBA Premium Foods" },
       { name: "twitter:title", content: "BOSBA Premium Foods" },
-      { name: "twitter:description", content: "High Premium Quality Foods From Japan" },
+      { name: "twitter:description", content: "Provides High Premium Quality Foods From Japan" },
       {
         property: "og:image",
         content:

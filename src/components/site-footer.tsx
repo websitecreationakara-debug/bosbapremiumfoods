@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { MapPin, Phone } from "lucide-react";
+import { MapPin, Phone, Truck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useStoreSettings } from "@/hooks/use-products";
 
@@ -27,7 +27,10 @@ export function SiteFooter() {
               <Phone className="size-4" /> +855 99 361 350
             </a>
             <p className="flex items-center gap-2">
-              <MapPin className="size-4" /> {t("bar.delivery", { threshold: shipThreshold })}
+              <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
+            </p>
+            <p className="flex items-center gap-2">
+              <Truck className="size-4 shrink-0" /> {t("bar.delivery", { threshold: shipThreshold })}
             </p>
           </div>
         </div>

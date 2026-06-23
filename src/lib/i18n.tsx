@@ -72,8 +72,7 @@ const en = {
   "shop.noProductsSub": "Try adjusting your filters or search term.",
   "shop.clearFilters": "Clear filters",
   // footer
-  "footer.tagline":
-    "Sashimi-grade Japanese seafood, sourced at the market and shipped fresh on ice to your doorstep.",
+  "footer.tagline": "Provides High Premium Quality Foods From Japan",
   "footer.marketplace": "Marketplace",
   "footer.sashimiFillets": "Sashimi & Fillets",
   "footer.shellfish": "Shellfish",
@@ -153,8 +152,7 @@ const km: Dict = {
   "shop.noProducts": "រកមិនឃើញផលិតផល",
   "shop.noProductsSub": "សូមកែតម្រូវតម្រង ឬពាក្យស្វែងរករបស់អ្នក។",
   "shop.clearFilters": "សម្អាតតម្រង",
-  "footer.tagline":
-    "ត្រីសមុទ្រជប៉ុនកម្រិតសាស៊ីមី ប្រភពពីផ្សារ និងដឹកជញ្ជូនស្រស់លើទឹកកកដល់ផ្ទះអ្នក។",
+  "footer.tagline": "ផ្គត់ផ្គង់ម្ហូបអាហារគុណភាពខ្ពស់បំផុតពីប្រទេសជប៉ុន",
   "footer.marketplace": "ផ្សារ",
   "footer.sashimiFillets": "សាស៊ីមី និងសាច់ត្រី",
   "footer.shellfish": "សត្វសំបកសមុទ្រ",
@@ -231,8 +229,7 @@ const ja: Dict = {
   "shop.noProducts": "商品が見つかりません",
   "shop.noProductsSub": "フィルターや検索語を調整してください。",
   "shop.clearFilters": "フィルターをクリア",
-  "footer.tagline":
-    "刺身グレードの日本産魚介を市場から仕入れ、氷詰めで新鮮なままご自宅へお届けします。",
+  "footer.tagline": "日本産の高品質プレミアム食品をご提供します",
   "footer.marketplace": "マーケット",
   "footer.sashimiFillets": "刺身・切り身",
   "footer.shellfish": "貝類",

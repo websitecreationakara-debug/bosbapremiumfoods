@@ -12,6 +12,7 @@ import {
   LogOut,
   LayoutDashboard,
   Package,
+  Truck,
   Menu,
   Globe,
   Check,
@@ -331,7 +332,10 @@ export function SiteHeader() {
               <Phone className="size-4" /> +855 99 361 350
             </a>
             <p className="flex items-center gap-2">
-              <MapPin className="size-4" /> {t("bar.delivery", { threshold: shipThreshold })}
+              <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
+            </p>
+            <p className="flex items-center gap-2">
+              <Truck className="size-4 shrink-0" /> {t("bar.delivery", { threshold: shipThreshold })}
             </p>
           </div>
         </SheetContent>
