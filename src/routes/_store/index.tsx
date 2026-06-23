@@ -95,7 +95,7 @@ function Home() {
           </h2>
           <p className="text-lg text-muted-foreground mt-3">{t("home.premiumSelection")}</p>
         </div>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {isLoading
             ? Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />
