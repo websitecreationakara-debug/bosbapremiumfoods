@@ -20,7 +20,7 @@ import { Toaster } from "@/components/ui/sonner";
 
 // Paste your Cloudflare Web Analytics token here to enable visitor tracking.
 // Get it from Cloudflare dashboard → Analytics & Logs → Web Analytics → Manage site.
-const CF_ANALYTICS_TOKEN = "";
+const CF_ANALYTICS_TOKEN = "ddf8b2ed54954a33bbb4aa98e16cb63c";
 
 const ORG_JSON_LD = {
   "@context": "https://schema.org",
