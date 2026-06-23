@@ -1,12 +1,160 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useProducts } from "@/hooks/use-products";
 import { listOrders } from "@/data/orders";
+import { getSiteAnalytics } from "@/data/analytics";
 import { useQuery } from "@tanstack/react-query";
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
+import { DollarSign, Package, ShoppingCart, Users, Eye, MousePointerClick } from "lucide-react";
+import { ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip } from "recharts";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminHome,
 });
+
+function VisitorsSection() {
+  const { data, isLoading, isError, error } = useQuery({
+    queryKey: ["site-analytics", 30],
+    queryFn: () => getSiteAnalytics({ data: { days: 30 } }),
+    staleTime: 5 * 60 * 1000,
+  });
+
+  if (isLoading) {
+    return (
+      <section className="bg-card border rounded-2xl p-6">
+        <h2 className="font-display font-bold text-lg mb-2">Website Visitors</h2>
+        <p className="text-sm text-muted-foreground">Loading analytics…</p>
+      </section>
+    );
+  }
+
+  if (isError) {
+    return (
+      <section className="bg-card border rounded-2xl p-6">
+        <h2 className="font-display font-bold text-lg mb-2">Website Visitors</h2>
+        <p className="text-sm text-destructive">
+          {error instanceof Error ? error.message : "Failed to load analytics."}
+        </p>
+      </section>
+    );
+  }
+
+  if (!data?.configured) {
+    return (
+      <section className="bg-card border rounded-2xl p-6">
+        <h2 className="font-display font-bold text-lg mb-2">Website Visitors</h2>
+        <p className="text-sm text-muted-foreground">
+          Analytics isn’t connected yet. Add the <code>CLOUDFLARE_API_TOKEN</code>,{" "}
+          <code>CLOUDFLARE_ACCOUNT_ID</code>, and <code>CF_WEB_ANALYTICS_SITE_TAG</code> secrets to
+          the Worker, then redeploy.
+        </p>
+      </section>
+    );
+  }
+
+  const fmt = (d: string) => {
+    const date = new Date(d);
+    return `${date.getMonth() + 1}/${date.getDate()}`;
+  };
+
+  return (
+    <section className="bg-card border rounded-2xl p-6 space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="font-display font-bold text-lg">Website Visitors · Last 30 days</h2>
+        <div className="flex gap-6">
+          <div className="flex items-center gap-2">
+            <Eye className="size-4 text-brand" />
+            <div>
+              <p className="font-display font-bold text-xl leading-none">
+                {data.totalPageViews.toLocaleString()}
+              </p>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Views</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <MousePointerClick className="size-4 text-brand" />
+            <div>
+              <p className="font-display font-bold text-xl leading-none">
+                {data.totalVisits.toLocaleString()}
+              </p>
+              <p className="text-[11px] uppercase tracking-widest text-muted-foreground">Visits</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {data.series.length > 0 ? (
+        <div className="h-56 -ml-2">
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={data.series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id="views" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="var(--brand)" stopOpacity={0.35} />
+                  <stop offset="100%" stopColor="var(--brand)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <XAxis
+                dataKey="date"
+                tickFormatter={fmt}
+                tick={{ fontSize: 11 }}
+                stroke="currentColor"
+                className="text-muted-foreground"
+              />
+              <YAxis tick={{ fontSize: 11 }} stroke="currentColor" className="text-muted-foreground" width={32} allowDecimals={false} />
+              <Tooltip
+                labelFormatter={(l) => new Date(l as string).toLocaleDateString()}
+                contentStyle={{ fontSize: 12, borderRadius: 12 }}
+              />
+              <Area
+                type="monotone"
+                dataKey="pageViews"
+                name="Views"
+                stroke="var(--brand)"
+                strokeWidth={2}
+                fill="url(#views)"
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">
+          No visits recorded yet — data appears once the tracking beacon starts receiving traffic.
+        </p>
+      )}
+
+      {data.topPages.length > 0 && (
+        <div className="grid sm:grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">
+              Top pages
+            </p>
+            <ul className="space-y-1.5 text-sm">
+              {data.topPages.slice(0, 5).map((r) => (
+                <li key={r.label} className="flex justify-between gap-3">
+                  <span className="truncate text-muted-foreground">{r.label}</span>
+                  <span className="font-semibold shrink-0">{r.views.toLocaleString()}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          {data.topReferrers.length > 0 && (
+            <div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground font-bold mb-2">
+                Top referrers
+              </p>
+              <ul className="space-y-1.5 text-sm">
+                {data.topReferrers.slice(0, 5).map((r) => (
+                  <li key={r.label} className="flex justify-between gap-3">
+                    <span className="truncate text-muted-foreground">{r.label}</span>
+                    <span className="font-semibold shrink-0">{r.views.toLocaleString()}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function AdminHome() {
   const { data: products = [] } = useProducts({ all: true });
@@ -101,6 +249,8 @@ function AdminHome() {
           ))}
         </div>
       </section>
+
+      <VisitorsSection />
 
       <section className="bg-card border rounded-2xl overflow-hidden">
         <div className="px-6 py-4 border-b">
