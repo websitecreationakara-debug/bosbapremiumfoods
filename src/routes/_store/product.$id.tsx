@@ -1,20 +1,86 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useProduct, useStoreSettings, useProductVariations } from "@/hooks/use-products";
+import { useStoreSettings, useProductVariations } from "@/hooks/use-products";
+import { getProduct } from "@/data/products";
+import type { Product } from "@/lib/types";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+const SITE = "https://bosbapremiumfoods.com";
+
+const metaDescription = (p: Product) =>
+  (p.description?.trim() || `${p.title} — premium quality foods from BOSBA Premium Foods.`)
+    .replace(/\s+/g, " ")
+    .slice(0, 160);
+
 export const Route = createFileRoute("/_store/product/$id")({
+  loader: ({ params }) => getProduct({ data: { id: params.id } }) as Promise<Product | null>,
+  head: ({ loaderData: product, params }) => {
+    const url = `${SITE}/product/${params.id}`;
+    if (!product) {
+      return {
+        meta: [
+          { title: "Product not found — BOSBA Premium Foods" },
+          { name: "robots", content: "noindex" },
+        ],
+      };
+    }
+    const desc = metaDescription(product);
+    const img = product.image_url ?? undefined;
+    return {
+      meta: [
+        { title: `${product.title} — BOSBA Premium Foods` },
+        { name: "description", content: desc },
+        { property: "og:title", content: product.title },
+        { property: "og:description", content: desc },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: url },
+        ...(img
+          ? [
+              { property: "og:image", content: img },
+              { name: "twitter:image", content: img },
+            ]
+          : []),
+        { name: "twitter:title", content: product.title },
+        { name: "twitter:description", content: desc },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
   component: ProductDetail,
 });
 
+function ProductJsonLd({ product }: { product: Product }) {
+  const price = product.sale_price ?? product.price;
+  const ld: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.title,
+    image: product.image_url ?? undefined,
+    description: product.description ?? undefined,
+    brand: { "@type": "Brand", name: "BOSBA Premium Foods" },
+  };
+  if (price > 0) {
+    ld.offers = {
+      "@type": "Offer",
+      priceCurrency: "USD",
+      price: price.toFixed(2),
+      availability:
+        product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      url: `${SITE}/product/${product.id}`,
+    };
+  }
+  return (
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+  );
+}
+
 function ProductDetail() {
+  const product = Route.useLoaderData();
   const { id } = Route.useParams();
-  const { data: product, isLoading } = useProduct(id);
   const { data: variations = [] } = useProductVariations(id);
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
@@ -26,20 +92,6 @@ function ProductDetail() {
   const variable = product?.type === "variable";
   // Default to the first (cheapest) variation until the customer picks one.
   const selected = variations.find((v) => v.id === selectedId) ?? variations[0] ?? null;
-
-  if (isLoading) {
-    return (
-      <div className="mx-auto max-w-6xl px-6 py-10 grid md:grid-cols-2 gap-10">
-        <Skeleton className="aspect-square rounded-3xl" />
-        <div className="space-y-4">
-          <Skeleton className="h-10 w-3/4" />
-          <Skeleton className="h-6 w-1/3" />
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-12 w-1/2" />
-        </div>
-      </div>
-    );
-  }
 
   if (!product) {
     return (
@@ -70,6 +122,7 @@ function ProductDetail() {
 
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
+      <ProductJsonLd product={product} />
       <Link
         to="/shop"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"

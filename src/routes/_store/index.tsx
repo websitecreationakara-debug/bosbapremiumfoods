@@ -13,6 +13,18 @@ import { useI18n } from "@/lib/i18n";
 import { groupVariations, productFromPrice } from "@/lib/variants";
 
 export const Route = createFileRoute("/_store/")({
+  head: () => ({
+    meta: [
+      { title: "BOSBA Premium Foods — Premium Japanese Seafood Delivered" },
+      {
+        name: "description",
+        content:
+          "Premium quality seafood and foods from Japan — sashimi-grade tuna, salmon, uni, scallops and more, delivered chilled across Cambodia.",
+      },
+      { property: "og:url", content: "https://bosbapremiumfoods.com/" },
+    ],
+    links: [{ rel: "canonical", href: "https://bosbapremiumfoods.com/" }],
+  }),
   component: Home,
 });
 

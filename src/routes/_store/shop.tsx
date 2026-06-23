@@ -32,6 +32,18 @@ export const Route = createFileRoute("/_store/shop")({
     category: typeof s.category === "string" ? s.category : undefined,
     q: typeof s.q === "string" ? s.q : undefined,
   }),
+  head: () => ({
+    meta: [
+      { title: "Shop — BOSBA Premium Foods" },
+      {
+        name: "description",
+        content:
+          "Browse premium Japanese seafood and foods — sashimi-grade tuna, salmon, uni, scallops and more, delivered chilled.",
+      },
+      { property: "og:url", content: "https://bosbapremiumfoods.com/shop" },
+    ],
+    links: [{ rel: "canonical", href: "https://bosbapremiumfoods.com/shop" }],
+  }),
   component: Shop,
 });
 

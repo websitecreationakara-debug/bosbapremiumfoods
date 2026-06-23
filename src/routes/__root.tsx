@@ -18,6 +18,26 @@ import { LanguageProvider } from "@/lib/i18n";
 import { CartDrawer } from "@/components/cart-drawer";
 import { Toaster } from "@/components/ui/sonner";
 
+// Paste your Cloudflare Web Analytics token here to enable visitor tracking.
+// Get it from Cloudflare dashboard → Analytics & Logs → Web Analytics → Manage site.
+const CF_ANALYTICS_TOKEN = "";
+
+const ORG_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "BOSBA Premium Foods",
+  url: "https://bosbapremiumfoods.com",
+  logo: "https://bosbapremiumfoods.com/logo.png",
+  telephone: "+855 99 361 350",
+};
+
+const WEBSITE_JSON_LD = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "BOSBA Premium Foods",
+  url: "https://bosbapremiumfoods.com",
+};
+
 function NotFoundComponent() {
   return (
     <div className="min-h-screen grid place-items-center p-6">
@@ -78,6 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { property: "og:title", content: "BOSBA Premium Foods" },
       { property: "og:description", content: "High Premium Quality Foods From Japan" },
       { property: "og:type", content: "website" },
+      { property: "og:site_name", content: "BOSBA Premium Foods" },
       { name: "twitter:title", content: "BOSBA Premium Foods" },
       { name: "twitter:description", content: "High Premium Quality Foods From Japan" },
       {
@@ -115,10 +136,25 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSON_LD) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSON_LD) }}
+        />
       </head>
       <body>
         {children}
         <Scripts />
+        {CF_ANALYTICS_TOKEN && (
+          <script
+            defer
+            src="https://static.cloudflareinsights.com/beacon.min.js"
+            data-cf-beacon={`{"token": "${CF_ANALYTICS_TOKEN}"}`}
+          />
+        )}
       </body>
     </html>
   );
