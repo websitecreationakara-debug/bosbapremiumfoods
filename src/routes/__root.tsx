@@ -180,6 +180,22 @@ function RootComponent() {
     }
   }, []);
 
+  useEffect(() => {
+    // A tab open since an earlier deploy references chunk hashes that no longer
+    // exist (e.g. the lazily-imported jspdf for invoices). Vite fires this when a
+    // dynamic import 404s — reload once to pull the current asset manifest.
+    const onPreloadError = () => {
+      const KEY = "chunk-reload-at";
+      const last = Number(sessionStorage.getItem(KEY) || 0);
+      if (Date.now() - last > 10000) {
+        sessionStorage.setItem(KEY, String(Date.now()));
+        window.location.reload();
+      }
+    };
+    window.addEventListener("vite:preloadError", onPreloadError);
+    return () => window.removeEventListener("vite:preloadError", onPreloadError);
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
