@@ -23,7 +23,7 @@ function Home() {
   const { data: variations = [] } = useAllVariations();
   const { t } = useI18n();
   const variationsByProduct = groupVariations(variations);
-  const featured = products.slice(0, 16);
+  const featured = products.slice(0, 8);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
@@ -97,7 +97,7 @@ function Home() {
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {isLoading
-            ? Array.from({ length: 16 }).map((_, i) => (
+            ? Array.from({ length: 8 }).map((_, i) => (
                 <Skeleton key={i} className="aspect-[4/5] rounded-2xl" />
               ))
             : featured.map((p) => (
