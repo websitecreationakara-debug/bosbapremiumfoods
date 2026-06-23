@@ -202,13 +202,6 @@ function Checkout() {
           </div>
         </section>
 
-        <section className="space-y-4 bg-muted rounded-2xl p-6">
-          <h2 className="font-display font-semibold text-lg">Payment</h2>
-          <p className="text-sm text-muted-foreground">
-            Demo checkout — no real payment is processed.
-          </p>
-        </section>
-
         <Button type="submit" disabled={submitting} size="lg" className="w-full rounded-full">
           {submitting ? "Placing order..." : `Place order — $${total.toFixed(2)}`}
         </Button>
