@@ -113,6 +113,10 @@ function Checkout() {
           items: orderItems,
           customer_name: customerName,
           customer_email: customerEmail,
+          customer_phone: phoneRef.current?.value ?? "",
+          address: addressRef.current?.value ?? "",
+          city: cityRef.current?.value ?? "",
+          created_at: new Date().toISOString(),
         }),
       );
     } catch {

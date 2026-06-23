@@ -1,10 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, FileDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { downloadInvoice } from "@/lib/invoice";
 import { toast } from "sonner";
 
 type LastOrder = {
@@ -13,6 +14,10 @@ type LastOrder = {
   items: { id: string; title: string; qty: number; price: number }[];
   customer_name: string;
   customer_email?: string;
+  customer_phone?: string;
+  address?: string;
+  city?: string;
+  created_at?: string;
 };
 
 export const Route = createFileRoute("/_store/thank-you")({ component: ThankYou });
@@ -63,6 +68,23 @@ function ThankYou() {
             <span>Total</span>
             <span>${Number(order.total).toFixed(2)}</span>
           </div>
+          <Button
+            variant="outline"
+            className="w-full rounded-full"
+            onClick={async () => {
+              try {
+                await downloadInvoice({
+                  ...order,
+                  created_at: order.created_at ?? new Date().toISOString(),
+                });
+              } catch (err) {
+                toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
+              }
+            }}
+          >
+            <FileDown className="mr-2 h-4 w-4" />
+            Download invoice
+          </Button>
         </div>
       )}
 

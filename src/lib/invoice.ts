@@ -26,8 +26,28 @@ const STORE = {
 
 const BRAND: [number, number, number] = [201, 168, 76];
 
+async function loadLogo(): Promise<string | null> {
+  try {
+    const res = await fetch("/logo.png");
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    return await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(blob);
+    });
+  } catch {
+    return null;
+  }
+}
+
 export async function downloadInvoice(order: InvoiceOrder) {
-  const [{ jsPDF }, autoTableMod] = await Promise.all([import("jspdf"), import("jspdf-autotable")]);
+  const [{ jsPDF }, autoTableMod, logo] = await Promise.all([
+    import("jspdf"),
+    import("jspdf-autotable"),
+    loadLogo(),
+  ]);
   const autoTable = autoTableMod.default;
 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -36,17 +56,24 @@ export async function downloadInvoice(order: InvoiceOrder) {
   const M = 14;
   const shortId = order.id.slice(0, 8).toUpperCase();
 
-  // ---- Header: store (left) + INVOICE (right) ----
+  // ---- Header: logo + store (left) + INVOICE (right) ----
+  let textX = M;
+  if (logo) {
+    const size = 18;
+    doc.addImage(logo, "PNG", M, 12, size, size);
+    textX = M + size + 4;
+  }
+
   doc.setFont("helvetica", "bold");
   doc.setFontSize(20);
   doc.setTextColor(BRAND[0], BRAND[1], BRAND[2]);
-  doc.text(STORE.name, M, 20);
+  doc.text(STORE.name, textX, 20);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(120);
-  doc.text(STORE.phone, M, 26);
-  doc.text(STORE.site, M, 30);
+  doc.text(STORE.phone, textX, 26);
+  doc.text(STORE.site, textX, 30);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
