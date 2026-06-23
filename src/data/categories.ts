@@ -5,7 +5,7 @@ import { categories } from "@/db/schema";
 import { requireAdmin } from "./_auth";
 
 export const listCategories = createServerFn({ method: "GET" }).handler(async () => {
-  return getDb().select().from(categories).orderBy(asc(categories.name));
+  return getDb().select().from(categories).orderBy(asc(categories.created_at));
 });
 
 export const createCategory = createServerFn({ method: "POST" })
