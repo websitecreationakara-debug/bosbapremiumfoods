@@ -23,6 +23,7 @@ const en = {
   "nav.wishlist": "Wishlist",
   "nav.signIn": "Sign in",
   "nav.adminDashboard": "Admin Dashboard",
+  "nav.myOrders": "My Orders",
   "nav.signOut": "Sign out",
   "nav.cart": "Cart",
   // home
@@ -107,6 +108,7 @@ const km: Dict = {
   "nav.wishlist": "បញ្ជីប្រាថ្នា",
   "nav.signIn": "ចូលគណនី",
   "nav.adminDashboard": "ផ្ទាំងគ្រប់គ្រង",
+  "nav.myOrders": "ការបញ្ជាទិញរបស់ខ្ញុំ",
   "nav.signOut": "ចាកចេញ",
   "nav.cart": "កន្ត្រក",
   "home.premiumSelection": "ការជ្រើសរើសពិសេសរបស់យើង",
@@ -184,6 +186,7 @@ const ja: Dict = {
   "nav.wishlist": "お気に入り",
   "nav.signIn": "ログイン",
   "nav.adminDashboard": "管理ダッシュボード",
+  "nav.myOrders": "注文履歴",
   "nav.signOut": "ログアウト",
   "nav.cart": "カート",
   "home.premiumSelection": "プレミアムセレクション",

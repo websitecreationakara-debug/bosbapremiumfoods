@@ -11,6 +11,7 @@ import {
   Phone,
   LogOut,
   LayoutDashboard,
+  Package,
   Menu,
   Globe,
   Check,
@@ -123,6 +124,11 @@ export function SiteHeader() {
                       {user.email}
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/orders">
+                        <Package className="size-4 mr-2" /> {t("nav.myOrders")}
+                      </Link>
+                    </DropdownMenuItem>
                     {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin">
@@ -250,6 +256,14 @@ export function SiteHeader() {
               </SheetClose>
               {user ? (
                 <>
+                  <SheetClose asChild>
+                    <Link
+                      to="/orders"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                      <Package className="size-4" /> {t("nav.myOrders")}
+                    </Link>
+                  </SheetClose>
                   {isAdmin && (
                     <SheetClose asChild>
                       <Link

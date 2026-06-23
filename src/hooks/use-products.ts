@@ -3,8 +3,15 @@ import { listProducts, getProduct, listVariations, getVariations } from "@/data/
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
 import { getSettings } from "@/data/settings";
-import { countPendingOrders } from "@/data/orders";
-import type { Product, ProductVariation, Category, HeroSlide, StoreSettings } from "@/lib/types";
+import { countPendingOrders, listMyOrders } from "@/data/orders";
+import type {
+  Product,
+  ProductVariation,
+  Category,
+  HeroSlide,
+  StoreSettings,
+  Order,
+} from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
   return useQuery({
@@ -54,6 +61,14 @@ export function useStoreSettings() {
   return useQuery({
     queryKey: ["store_settings"],
     queryFn: () => getSettings() as Promise<StoreSettings | null>,
+  });
+}
+
+export function useMyOrders(enabled: boolean) {
+  return useQuery({
+    queryKey: ["my-orders"],
+    queryFn: () => listMyOrders() as Promise<Order[]>,
+    enabled,
   });
 }
 

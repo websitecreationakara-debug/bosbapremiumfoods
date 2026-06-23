@@ -3,7 +3,7 @@ import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, product_variations, store_settings } from "@/db/schema";
 import { notifyNewOrder } from "@/lib/notify";
-import { getSessionUser, requireAdmin, requireStaff } from "./_auth";
+import { getSessionUser, requireAdmin, requireStaff, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -115,6 +115,16 @@ export const createOrder = createServerFn({ method: "POST" })
 
     return { ok: true, id: row.id, total };
   });
+
+export const listMyOrders = createServerFn({ method: "GET" }).handler(async () => {
+  const user = await requireUser();
+  const rows = await getDb()
+    .select()
+    .from(orders)
+    .where(eq(orders.user_id, user.id))
+    .orderBy(desc(orders.created_at));
+  return rows.map(parseItems);
+});
 
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireStaff();

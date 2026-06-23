@@ -69,6 +69,25 @@ export type CartItem = {
   qty: number;
 };
 
+export type OrderItem = { id: string; title: string; qty: number; price: number };
+
+export type Order = {
+  id: string;
+  user_id: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  customer_phone: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  address: string | null;
+  city: string | null;
+  postal_code: string | null;
+  items: OrderItem[];
+  status: string;
+  total: number;
+  created_at: string;
+};
+
 export type StoreSettings = {
   id: string;
   banner_text: string | null;
