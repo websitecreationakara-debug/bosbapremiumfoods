@@ -48,9 +48,11 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
     await requireAdmin();
 
     const e = env as unknown as Record<string, string | undefined>;
-    const token = e.CLOUDFLARE_API_TOKEN;
-    const accountTag = e.CLOUDFLARE_ACCOUNT_ID;
-    const siteTag = e.CF_WEB_ANALYTICS_SITE_TAG;
+    // Trim: secrets set via a piped shell command can carry a trailing newline,
+    // which would corrupt the Authorization header and the GraphQL query string.
+    const token = e.CLOUDFLARE_API_TOKEN?.trim();
+    const accountTag = e.CLOUDFLARE_ACCOUNT_ID?.trim();
+    const siteTag = e.CF_WEB_ANALYTICS_SITE_TAG?.trim();
 
     const days = Math.min(Math.max(Math.floor(data?.days ?? 30), 1), 90);
     if (!token || !accountTag || !siteTag) return EMPTY(days, false);
@@ -85,7 +87,10 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       body: JSON.stringify({ query }),
     });
-    if (!res.ok) throw new Error(`Cloudflare API error (${res.status})`);
+    if (!res.ok) {
+      const detail = (await res.text()).slice(0, 300);
+      throw new Error(`Cloudflare API error (${res.status}): ${detail}`);
+    }
 
     const json = (await res.json()) as {
       data?: { viewer?: { accounts?: { byDate?: Group[]; topPages?: Group[]; topReferrers?: Group[]; topCountries?: Group[] }[] } };
