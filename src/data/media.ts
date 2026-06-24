@@ -36,8 +36,16 @@ export const uploadMedia = createServerFn({ method: "POST" })
     if (file.size > MAX_BYTES)
       throw new Error("Image is too large even after compression — try a smaller one");
 
-    const ext = file.name.includes(".") ? file.name.split(".").pop() : "bin";
-    const key = `${crypto.randomUUID()}.${ext}`;
+    const dot = file.name.lastIndexOf(".");
+    const ext = (dot > 0 ? file.name.slice(dot + 1) : "bin").toLowerCase();
+    const slug =
+      (dot > 0 ? file.name.slice(0, dot) : file.name)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "")
+        .slice(0, 60) || "image";
+    // Short random suffix keeps the URL readable while guaranteeing uniqueness.
+    const key = `${slug}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const url = `/media/${key}`;
     await getDb().insert(media).values({
       key,
