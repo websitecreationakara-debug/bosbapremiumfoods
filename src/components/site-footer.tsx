@@ -87,7 +87,8 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div className="rounded-2xl bg-muted p-6">
+        <div>
+          <div className="rounded-2xl bg-muted p-6">
           <h4 className="font-display font-semibold mb-2">{t("footer.joinTitle")}</h4>
           <p className="text-xs text-muted-foreground mb-4">{t("footer.joinSub")}</p>
           <form className="flex gap-2">
@@ -100,13 +101,14 @@ export function SiteFooter() {
               {t("footer.join")}
             </button>
           </form>
-          <div className="flex items-center gap-3 mt-5">
+          </div>
+          <div className="flex items-center gap-3 mt-5 px-1">
             <a
               href="https://www.facebook.com/bosbapremiumfoods"
               target="_blank"
               rel="noreferrer"
               aria-label="Facebook"
-              className="flex size-9 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               <Facebook className="size-4" />
             </a>
@@ -115,7 +117,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="Instagram"
-              className="flex size-9 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               <Instagram className="size-4" />
             </a>
@@ -124,7 +126,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="TikTok"
-              className="flex size-9 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
                 <path d="M16.5 3a5.6 5.6 0 0 0 3.9 4.6v3a8.6 8.6 0 0 1-3.9-1v6.2a5.8 5.8 0 1 1-5.8-5.8c.3 0 .6 0 .9.1v3.1a2.8 2.8 0 1 0 1.9 2.6V3h3z" />
@@ -135,7 +137,7 @@ export function SiteFooter() {
               target="_blank"
               rel="noreferrer"
               aria-label="Telegram"
-              className="flex size-9 items-center justify-center rounded-full bg-background text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="flex size-9 items-center justify-center rounded-full bg-muted text-muted-foreground transition-colors hover:bg-brand hover:text-brand-foreground"
             >
               <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
                 <path d="M21.9 4.3 18.6 19.5c-.2 1.1-.9 1.4-1.8.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.7 13.5l-4.8-1.5c-1.1-.3-1.1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1z" />
