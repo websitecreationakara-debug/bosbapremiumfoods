@@ -154,6 +154,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <body>
         {children}
         <Scripts />
+        <script
+          type="text/javascript"
+          defer
+          src="https://botcommerce.planifyx.com/script/webchat-link.js?code=1779553226287033"
+        />
         {CF_ANALYTICS_TOKEN && (
           <script
             defer
