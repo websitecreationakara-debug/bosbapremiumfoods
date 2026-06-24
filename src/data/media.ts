@@ -50,6 +50,16 @@ export const uploadMedia = createServerFn({ method: "POST" })
     return { url, key };
   });
 
+export const renameMedia = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; filename: string }) => d)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    const filename = data.filename.trim();
+    if (!filename) throw new Error("Name cannot be empty");
+    await getDb().update(media).set({ filename }).where(eq(media.id, data.id));
+    return { ok: true };
+  });
+
 export const deleteMedia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {

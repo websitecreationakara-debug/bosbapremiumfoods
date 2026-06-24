@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listMedia, uploadMedia, deleteMedia } from "@/data/media";
+import { listMedia, uploadMedia, deleteMedia, renameMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { Button } from "@/components/ui/button";
-import { Upload, Trash2, Copy, Loader2 } from "lucide-react";
+import { Upload, Trash2, Copy, Loader2, Pencil } from "lucide-react";
 import { toast } from "sonner";
 import type { Media } from "@/lib/types";
 
@@ -20,6 +20,26 @@ function MediaAdmin() {
   const qc = useQueryClient();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [draft, setDraft] = useState("");
+
+  const startRename = (m: Media) => {
+    setEditing(m.id);
+    setDraft(m.filename);
+  };
+
+  const saveRename = async (m: Media) => {
+    const filename = draft.trim();
+    setEditing(null);
+    if (!filename || filename === m.filename) return;
+    try {
+      await renameMedia({ data: { id: m.id, filename } });
+      qc.invalidateQueries({ queryKey: ["media"] });
+      toast.success("Renamed");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Rename failed");
+    }
+  };
 
   const onFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -52,9 +72,9 @@ function MediaAdmin() {
     qc.invalidateQueries({ queryKey: ["media"] });
   };
 
-  const copy = (url: string) => {
-    navigator.clipboard.writeText(url);
-    toast.success("URL copied");
+  const copy = (m: Media) => {
+    navigator.clipboard.writeText(`${window.location.origin}${m.url}`);
+    toast.success("Full URL copied");
   };
 
   return (
@@ -98,17 +118,46 @@ function MediaAdmin() {
                 <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
               </div>
               <div className="p-2">
-                <p className="text-xs truncate" title={m.filename}>
-                  {m.filename}
-                </p>
+                {editing === m.id ? (
+                  <input
+                    autoFocus
+                    value={draft}
+                    onChange={(e) => setDraft(e.target.value)}
+                    onBlur={() => saveRename(m)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") saveRename(m);
+                      if (e.key === "Escape") setEditing(null);
+                    }}
+                    className="w-full text-xs bg-background border rounded px-1 py-0.5 outline-none focus:border-primary"
+                  />
+                ) : (
+                  <p className="text-xs truncate" title={m.filename}>
+                    {m.filename}
+                  </p>
+                )}
                 <p className="text-[10px] text-muted-foreground">{(m.size / 1024).toFixed(0)} KB</p>
+                <button
+                  onClick={() => copy(m)}
+                  title="Click to copy full URL"
+                  className="mt-1 w-full text-left font-mono text-[10px] text-muted-foreground/80 truncate hover:text-foreground"
+                >
+                  {m.url}
+                </button>
               </div>
               <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 <Button
                   variant="secondary"
                   size="icon"
                   className="size-7"
-                  onClick={() => copy(m.url)}
+                  onClick={() => startRename(m)}
+                >
+                  <Pencil className="size-3.5" />
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="size-7"
+                  onClick={() => copy(m)}
                 >
                   <Copy className="size-3.5" />
                 </Button>
