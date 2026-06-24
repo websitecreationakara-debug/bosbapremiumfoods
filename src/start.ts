@@ -6,6 +6,7 @@ import { renderErrorPage } from "./lib/error-page";
 import { getAuth } from "./lib/auth";
 import { getDb } from "./db";
 import { media, products, categories } from "./db/schema";
+import { slugify } from "./lib/utils";
 
 const SITE = "https://bosbapremiumfoods.com";
 
@@ -60,7 +61,7 @@ const sitemapMiddleware = createMiddleware().server(async ({ next }) => {
   const db = getDb();
   const [prods, cats] = await Promise.all([
     db
-      .select({ id: products.id, updated_at: products.updated_at })
+      .select({ id: products.id, title: products.title, updated_at: products.updated_at })
       .from(products)
       .where(eq(products.status, "published")),
     db.select({ slug: categories.slug }).from(categories),
@@ -75,7 +76,7 @@ const sitemapMiddleware = createMiddleware().server(async ({ next }) => {
     priority: "0.7",
   }));
   const prodUrls = prods.map((p) => ({
-    loc: `${SITE}/product/${p.id}`,
+    loc: `${SITE}/product/${slugify(p.title) || p.id}`,
     lastmod: p.updated_at ? new Date(p.updated_at).toISOString().slice(0, 10) : undefined,
     priority: "0.8",
   }));

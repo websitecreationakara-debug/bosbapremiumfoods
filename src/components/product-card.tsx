@@ -3,6 +3,7 @@ import { ShoppingBag, SlidersHorizontal, Heart } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n } from "@/lib/i18n";
+import { slugify } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
 export function ProductCard({ product, fromPrice }: { product: Product; fromPrice?: number }) {
@@ -21,7 +22,7 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
   return (
     <Link
       to="/product/$id"
-      params={{ id: product.id }}
+      params={{ id: slugify(product.title) || product.id }}
       className="group flex flex-col rounded-3xl bg-muted p-3 transition-colors hover:bg-accent"
     >
       <div className="relative aspect-square overflow-hidden rounded-2xl bg-background">

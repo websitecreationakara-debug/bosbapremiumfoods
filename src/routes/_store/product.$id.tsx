@@ -7,7 +7,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, slugify } from "@/lib/utils";
 
 const SITE = "https://bosbapremiumfoods.com";
 
@@ -19,7 +19,7 @@ const metaDescription = (p: Product) =>
 export const Route = createFileRoute("/_store/product/$id")({
   loader: ({ params }) => getProduct({ data: { id: params.id } }) as Promise<Product | null>,
   head: ({ loaderData: product, params }) => {
-    const url = `${SITE}/product/${params.id}`;
+    const url = `${SITE}/product/${product ? slugify(product.title) || product.id : params.id}`;
     if (!product) {
       return {
         meta: [
@@ -70,7 +70,7 @@ function ProductJsonLd({ product }: { product: Product }) {
       price: price.toFixed(2),
       availability:
         product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      url: `${SITE}/product/${product.id}`,
+      url: `${SITE}/product/${slugify(product.title) || product.id}`,
     };
   }
   return (
@@ -80,8 +80,7 @@ function ProductJsonLd({ product }: { product: Product }) {
 
 function ProductDetail() {
   const product = Route.useLoaderData();
-  const { id } = Route.useParams();
-  const { data: variations = [] } = useProductVariations(id);
+  const { data: variations = [] } = useProductVariations(product?.id ?? "");
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();

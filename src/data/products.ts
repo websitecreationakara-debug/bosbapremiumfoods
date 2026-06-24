@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, product_variations } from "@/db/schema";
+import { slugify, isUuid } from "@/lib/utils";
 import { requireAdmin } from "./_auth";
 
 type ProductInput = {
@@ -44,11 +45,19 @@ export const listProducts = createServerFn({ method: "GET" })
     return rows;
   });
 
+// `id` may be a real UUID (old links, admin) or a title-derived slug (pretty
+// URLs). UUIDs resolve directly; slugs fall back to a scan since there's no
+// slug column on products.
 export const getProduct = createServerFn({ method: "GET" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    const [row] = await getDb().select().from(products).where(eq(products.id, data.id));
-    return row ?? null;
+    const db = getDb();
+    if (isUuid(data.id)) {
+      const [row] = await db.select().from(products).where(eq(products.id, data.id));
+      if (row) return row;
+    }
+    const all = await db.select().from(products);
+    return all.find((p) => slugify(p.title) === data.id) ?? null;
   });
 
 // Every variation row across the catalog — small table, fetched once so the
