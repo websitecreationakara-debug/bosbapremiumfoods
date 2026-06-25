@@ -1,6 +1,6 @@
-// Server-only: emails the store admin when a new order comes in. Reuses the same
-// Resend setup as auth emails. Never throws — a failed notification must not fail
-// the order itself.
+// Server-only: on a new order, alerts the store admin (Telegram + email) and
+// emails the customer a confirmation. Reuses the same Resend setup as auth
+// emails. Never throws — a failed notification must not fail the order itself.
 import { Resend } from "resend";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
@@ -53,6 +53,14 @@ const mapsUrl = (o: OrderNotification): string | null =>
     ? `https://www.google.com/maps?q=${o.location_lat},${o.location_lng}`
     : null;
 
+const itemRowsHtml = (items: OrderItem[]): string =>
+  items
+    .map(
+      (i) =>
+        `<tr><td style="padding:4px 10px">${i.qty}×</td><td style="padding:4px 10px">${escapeHtml(i.title)}</td><td style="padding:4px 10px;text-align:right;white-space:nowrap">$${(i.price * i.qty).toFixed(2)}</td></tr>`,
+    )
+    .join("");
+
 export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const short = order.id.slice(0, 8);
   const shipTo = [order.address, order.city, order.postal_code].filter(Boolean).join(", ");
@@ -72,6 +80,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const results = await Promise.allSettled([
     sendTelegram(textSummary),
     sendEmail(order, short, shipTo),
+    sendCustomerEmail(order, short, shipTo),
   ]);
   if (results.every((r) => r.status === "fulfilled" && r.value === "skipped")) {
     // Nothing configured (e.g. local dev) — log so the order is still visible.
@@ -116,12 +125,7 @@ async function sendEmail(
   try {
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
-    const rows = order.items
-      .map(
-        (i) =>
-          `<tr><td style="padding:4px 10px">${i.qty}×</td><td style="padding:4px 10px">${escapeHtml(i.title)}</td><td style="padding:4px 10px;text-align:right;white-space:nowrap">$${(i.price * i.qty).toFixed(2)}</td></tr>`,
-      )
-      .join("");
+    const rows = itemRowsHtml(order.items);
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
         <p style="margin:0 0 8px;font-size:13px;color:#888">🌐 ${escapeHtml(siteName())}</p>
@@ -143,6 +147,39 @@ async function sendEmail(
     });
   } catch (e) {
     console.error("[order-notify] email failed", e);
+  }
+  return "sent";
+}
+
+async function sendCustomerEmail(
+  order: OrderNotification,
+  short: string,
+  shipTo: string,
+): Promise<"sent" | "skipped"> {
+  const to = order.customer_email?.trim();
+  if (!env.RESEND_API_KEY || !to) return "skipped";
+  try {
+    const resend = new Resend(env.RESEND_API_KEY);
+    const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
+    const name = order.customer_name?.trim() || "there";
+    const html = `
+      <div style="font-family:system-ui,sans-serif;max-width:560px">
+        <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
+        <p style="margin:0 0 16px;color:#555">We've received your order and will contact you by phone to confirm delivery.</p>
+        <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
+        ${shipTo ? `<p style="margin:0 0 16px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>` : ""}
+        <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
+        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
+        <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>
+      </div>`;
+    await resend.emails.send({
+      from,
+      to,
+      subject: `Your ${siteName()} order #${short} is confirmed`,
+      html,
+    });
+  } catch (e) {
+    console.error("[order-notify] customer email failed", e);
   }
   return "sent";
 }
