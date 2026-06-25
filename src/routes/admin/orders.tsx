@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listOrders, updateOrderStatus, deleteOrder } from "@/data/orders";
+import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -30,6 +31,17 @@ function OrdersAdmin() {
     }
     qc.invalidateQueries({ queryKey: ["orders-admin"] });
     qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
+  };
+
+  const saveTracking = async (id: string, tracking_url: string, current: string | null) => {
+    if (tracking_url.trim() === (current ?? "")) return;
+    try {
+      await updateOrderTracking({ data: { id, tracking_url } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to save tracking link");
+    }
+    qc.invalidateQueries({ queryKey: ["orders-admin"] });
+    toast.success("Tracking link saved");
   };
 
   const printInvoice = async (order: Parameters<typeof downloadInvoice>[0]) => {
@@ -140,6 +152,15 @@ function OrdersAdmin() {
                       <Trash2 className="size-4" />
                     </button>
                   </div>
+                  <Input
+                    key={o.tracking_url ?? ""}
+                    type="url"
+                    defaultValue={o.tracking_url ?? ""}
+                    placeholder="Grab delivery link…"
+                    title="Paste the Grab tracking link, then click away to save. Sent to the customer when marked Shipped."
+                    onBlur={(e) => saveTracking(o.id, e.target.value, o.tracking_url)}
+                    className="mt-2 h-8 w-56 text-xs"
+                  />
                 </td>
               </tr>
             ))}

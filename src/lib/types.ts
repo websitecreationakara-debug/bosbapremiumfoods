@@ -84,6 +84,7 @@ export type Order = {
   postal_code: string | null;
   items: OrderItem[];
   status: string;
+  tracking_url: string | null;
   total: number;
   created_at: string;
 };

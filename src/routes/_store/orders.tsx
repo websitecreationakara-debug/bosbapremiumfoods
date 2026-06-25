@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Package, FileDown, User } from "lucide-react";
+import { Package, FileDown, User, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
@@ -57,7 +57,9 @@ function MyOrders() {
         <div className="size-20 rounded-full bg-muted grid place-items-center mx-auto mb-6">
           <User className="size-8 text-muted-foreground" />
         </div>
-        <h1 className="font-display font-semibold tracking-tight text-3xl">Sign in to see orders</h1>
+        <h1 className="font-display font-semibold tracking-tight text-3xl">
+          Sign in to see orders
+        </h1>
         <p className="text-muted-foreground mt-2">
           Your order history and statuses live in your account.
         </p>
@@ -128,8 +130,25 @@ function MyOrders() {
                 ))}
               </ul>
 
+              {o.status === "shipped" && o.tracking_url && (
+                <a
+                  href={o.tracking_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="mt-4 flex items-center justify-center gap-2 rounded-full bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition-colors"
+                >
+                  <Truck className="h-4 w-4" />
+                  Track your delivery
+                </a>
+              )}
+
               <div className="mt-4 border-t pt-4 flex items-center justify-between">
-                <Button variant="outline" size="sm" className="rounded-full" onClick={() => printInvoice(o)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-full"
+                  onClick={() => printInvoice(o)}
+                >
                   <FileDown className="mr-2 h-4 w-4" />
                   Invoice
                 </Button>

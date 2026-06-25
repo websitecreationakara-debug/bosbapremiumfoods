@@ -99,6 +99,8 @@ export const orders = sqliteTable("orders", {
   // JSON array of line items, stored as text (parsed/stringified in the app layer).
   items: text("items").notNull().default("[]"),
   status: text("status").notNull().default("pending"),
+  // Courier tracking link (e.g. a Grab delivery URL), set by staff when shipping.
+  tracking_url: text("tracking_url"),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });

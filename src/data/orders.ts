@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders, products, product_variations, store_settings } from "@/db/schema";
-import { notifyNewOrder } from "@/lib/notify";
+import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import { getSessionUser, requireAdmin, requireStaff, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
@@ -136,7 +136,31 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; status: string }) => d)
   .handler(async ({ data }) => {
     await requireStaff();
-    await getDb().update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
+    const db = getDb();
+    const [before] = await db.select().from(orders).where(eq(orders.id, data.id));
+    if (!before) throw new Error("Order not found");
+    await db.update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
+
+    // Only notify on the transition into "shipped", not on repeated saves.
+    if (data.status === "shipped" && before.status !== "shipped") {
+      await notifyOrderShipped({
+        id: before.id,
+        items: JSON.parse(before.items || "[]") as OrderItem[],
+        total: before.total,
+        customer_name: before.customer_name,
+        customer_email: before.customer_email,
+        tracking_url: before.tracking_url,
+      });
+    }
+    return { ok: true };
+  });
+
+export const updateOrderTracking = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; tracking_url: string }) => d)
+  .handler(async ({ data }) => {
+    await requireStaff();
+    const url = data.tracking_url.trim() || null;
+    await getDb().update(orders).set({ tracking_url: url }).where(eq(orders.id, data.id));
     return { ok: true };
   });
 
