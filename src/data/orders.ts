@@ -141,8 +141,11 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (!before) throw new Error("Order not found");
     await db.update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
 
-    // Only notify on the transition into "shipped", not on repeated saves.
-    if (data.status === "shipped" && before.status !== "shipped") {
+    // Notify on the transition into "shipped" — but only if a tracking link is
+    // already set. Normally the link is added after shipping (the admin input
+    // only appears once shipped), so the email is sent from updateOrderTracking
+    // instead. This branch covers the rare case the link was set beforehand.
+    if (data.status === "shipped" && before.status !== "shipped" && before.tracking_url) {
       await notifyOrderShipped({
         id: before.id,
         items: JSON.parse(before.items || "[]") as OrderItem[],
@@ -159,8 +162,24 @@ export const updateOrderTracking = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; tracking_url: string }) => d)
   .handler(async ({ data }) => {
     await requireStaff();
+    const db = getDb();
+    const [before] = await db.select().from(orders).where(eq(orders.id, data.id));
+    if (!before) throw new Error("Order not found");
     const url = data.tracking_url.trim() || null;
-    await getDb().update(orders).set({ tracking_url: url }).where(eq(orders.id, data.id));
+    await db.update(orders).set({ tracking_url: url }).where(eq(orders.id, data.id));
+
+    // First time a link is added to an already-shipped order → notify the
+    // customer with the track button. Editing an existing link won't re-send.
+    if (url && before.status === "shipped" && !before.tracking_url) {
+      await notifyOrderShipped({
+        id: before.id,
+        items: JSON.parse(before.items || "[]") as OrderItem[],
+        total: before.total,
+        customer_name: before.customer_name,
+        customer_email: before.customer_email,
+        tracking_url: url,
+      });
+    }
     return { ok: true };
   });
 

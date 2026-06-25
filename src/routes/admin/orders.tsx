@@ -77,7 +77,6 @@ function OrdersAdmin() {
               <th className="text-left px-6 py-3">Items</th>
               <th className="text-left px-6 py-3">Total</th>
               <th className="text-left px-6 py-3">Status</th>
-              <th className="text-left px-6 py-3">Delivery</th>
             </tr>
           </thead>
           <tbody>
@@ -153,23 +152,23 @@ function OrdersAdmin() {
                       <Trash2 className="size-4" />
                     </button>
                   </div>
-                </td>
-                <td className="px-6 py-3">
-                  <Input
-                    key={o.tracking_url ?? ""}
-                    type="url"
-                    defaultValue={o.tracking_url ?? ""}
-                    placeholder="Grab delivery link…"
-                    title="Paste the Grab tracking link, then click away to save. Sent to the customer when marked Shipped."
-                    onBlur={(e) => saveTracking(o.id, e.target.value, o.tracking_url)}
-                    className="h-8 w-56 text-xs"
-                  />
+                  {o.status === "shipped" && (
+                    <Input
+                      key={o.tracking_url ?? ""}
+                      type="url"
+                      defaultValue={o.tracking_url ?? ""}
+                      placeholder="Grab delivery link…"
+                      title="Paste the Grab tracking link, then click away to save. Sent to the customer when marked Shipped."
+                      onBlur={(e) => saveTracking(o.id, e.target.value, o.tracking_url)}
+                      className="mt-2 h-8 w-56 text-xs"
+                    />
+                  )}
                 </td>
               </tr>
             ))}
             {orders.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
                   No orders yet
                 </td>
               </tr>
