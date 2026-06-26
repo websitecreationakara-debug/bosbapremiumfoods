@@ -56,7 +56,12 @@ function SettingsAdmin() {
           <Input
             value={form.banner_text}
             onChange={(e) => setForm({ ...form, banner_text: e.target.value })}
+            placeholder="e.g. 🎉 Free delivery this weekend — use code SAVE20"
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            Shows as a dismissible bar at the top of the store. Leave blank to hide it. Editing the
+            text shows it again to everyone.
+          </p>
         </div>
         <div>
           <Label>Global Discount %</Label>
