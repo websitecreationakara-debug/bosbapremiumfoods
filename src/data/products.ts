@@ -36,12 +36,15 @@ export const listProducts = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const db = getDb();
     const rows = data.all
-      ? await db.select().from(products).orderBy(desc(products.created_at))
+      ? await db
+          .select()
+          .from(products)
+          .orderBy(asc(products.sort_order), desc(products.created_at))
       : await db
           .select()
           .from(products)
           .where(eq(products.status, "published"))
-          .orderBy(asc(products.created_at));
+          .orderBy(asc(products.sort_order), desc(products.created_at));
     return rows;
   });
 
@@ -130,6 +133,21 @@ export const updateProduct = createServerFn({ method: "POST" })
       .update(products)
       .set({ ...rest, updated_at: new Date().toISOString() })
       .where(eq(products.id, id));
+    return { ok: true };
+  });
+
+// Persist a new global product order from admin drag-and-drop: sort_order
+// becomes each id's position in the array. Ids not passed keep their old value.
+export const reorderProducts = createServerFn({ method: "POST" })
+  .inputValidator((d: { ids: string[] }) => d)
+  .handler(async ({ data }) => {
+    await requireAdmin();
+    const db = getDb();
+    await Promise.all(
+      data.ids.map((id, i) =>
+        db.update(products).set({ sort_order: i }).where(eq(products.id, id)),
+      ),
+    );
     return { ok: true };
   });
 

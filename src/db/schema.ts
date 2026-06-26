@@ -50,6 +50,8 @@ export const products = sqliteTable("products", {
   // "simple" | "variable". A variable product is a container: its own price and
   // stock are ignored and the purchasable options live in product_variations.
   type: text("type").notNull().default("simple"),
+  // Manual display order (admin drag-to-reorder). Lower = earlier. Ties break by created_at.
+  sort_order: integer("sort_order").notNull().default(0),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });

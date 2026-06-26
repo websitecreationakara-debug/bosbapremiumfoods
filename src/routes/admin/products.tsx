@@ -5,6 +5,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  reorderProducts,
   getVariations,
   saveVariations,
 } from "@/data/products";
@@ -36,8 +37,10 @@ import {
   Search,
   ChevronLeft,
   ChevronRight,
+  GripVertical,
 } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
@@ -94,6 +97,8 @@ function ProductsAdmin() {
   const [typeFilter, setTypeFilter] = useState("all");
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
 
   const variationsByProduct = groupVariations(allVariations);
 
@@ -126,6 +131,27 @@ function ProductsAdmin() {
     setStatusFilter("all");
     setTypeFilter("all");
     setPage(1);
+  };
+
+  // Drag-reorder only makes sense against the full, unfiltered list — that's the
+  // global order the storefront reads. With filters on, positions are ambiguous.
+  const canReorder = !filtersActive;
+  const reorder = async (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const ids = products.map((p) => p.id);
+    const from = ids.indexOf(fromId);
+    const to = ids.indexOf(toId);
+    if (from < 0 || to < 0) return;
+    ids.splice(to, 0, ids.splice(from, 1)[0]);
+    const byId = new Map(products.map((p) => [p.id, p]));
+    const next = ids.map((id) => byId.get(id)!);
+    qc.setQueryData(["products", "all"], next);
+    try {
+      await reorderProducts({ data: { ids } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to reorder");
+    }
+    qc.invalidateQueries({ queryKey: ["products"] });
   };
 
   const onUpload = async (file: File | undefined) => {
@@ -385,10 +411,17 @@ function ProductsAdmin() {
         )}
       </div>
 
+      <p className="text-xs text-muted-foreground">
+        {canReorder
+          ? "Drag the ⠿ handle to reorder — this sets the order shown in the store."
+          : "Clear filters and search to drag-reorder products."}
+      </p>
+
       <div className="bg-card border rounded-2xl overflow-hidden">
         <table className="w-full text-sm">
           <thead className="bg-muted text-xs uppercase tracking-widest text-muted-foreground">
             <tr>
+              <th className="w-8 px-2 py-3"></th>
               <th className="text-left px-6 py-3">Product</th>
               <th className="text-left px-6 py-3">Price</th>
               <th className="text-left px-6 py-3">Weight</th>
@@ -400,13 +433,43 @@ function ProductsAdmin() {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
                   No products match your filters.
                 </td>
               </tr>
             )}
             {paged.map((p) => (
-              <tr key={p.id} className="border-t">
+              <tr
+                key={p.id}
+                draggable={canReorder}
+                onDragStart={() => canReorder && setDragId(p.id)}
+                onDragOver={(e) => {
+                  if (!canReorder || !dragId) return;
+                  e.preventDefault();
+                  setOverId(p.id);
+                }}
+                onDrop={() => {
+                  if (canReorder && dragId) reorder(dragId, p.id);
+                  setDragId(null);
+                  setOverId(null);
+                }}
+                onDragEnd={() => {
+                  setDragId(null);
+                  setOverId(null);
+                }}
+                className={cn(
+                  "border-t",
+                  dragId === p.id && "opacity-40",
+                  overId === p.id && dragId !== p.id && "border-t-2 border-t-brand",
+                )}
+              >
+                <td className="px-2 py-3 text-center">
+                  {canReorder ? (
+                    <GripVertical className="size-4 text-muted-foreground/60 cursor-grab inline-block" />
+                  ) : (
+                    <GripVertical className="size-4 text-muted-foreground/20 inline-block" />
+                  )}
+                </td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-3">
                     <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
