@@ -135,12 +135,12 @@ function VisitorsSection() {
                   <XAxis
                     dataKey="date"
                     tickFormatter={fmt}
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: 11, fill: "currentColor" }}
                     stroke="currentColor"
                     className="text-muted-foreground"
                   />
                   <YAxis
-                    tick={{ fontSize: 11 }}
+                    tick={{ fontSize: 11, fill: "currentColor" }}
                     stroke="currentColor"
                     className="text-muted-foreground"
                     width={32}
@@ -148,7 +148,15 @@ function VisitorsSection() {
                   />
                   <Tooltip
                     labelFormatter={(l) => new Date(l as string).toLocaleDateString()}
-                    contentStyle={{ fontSize: 12, borderRadius: 12 }}
+                    contentStyle={{
+                      fontSize: 12,
+                      borderRadius: 12,
+                      background: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      color: "var(--popover-foreground)",
+                    }}
+                    labelStyle={{ color: "var(--popover-foreground)" }}
+                    itemStyle={{ color: "var(--popover-foreground)" }}
                   />
                   <Area
                     type="monotone"
