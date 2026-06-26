@@ -12,7 +12,13 @@ import {
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
-import { getSessionUser, requireAdmin, requireStaff, requireUser } from "./_auth";
+import {
+  getSessionUser,
+  requireAdmin,
+  requireOrderViewer,
+  requireStaff,
+  requireUser,
+} from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -39,7 +45,7 @@ const parseItems = (row: typeof orders.$inferSelect) => ({
 });
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
-  await requireStaff();
+  await requireOrderViewer();
   const rows = await getDb().select().from(orders).orderBy(desc(orders.created_at));
   return rows.map(parseItems);
 });

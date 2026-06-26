@@ -37,3 +37,12 @@ export async function requireStaff(): Promise<SessionUser> {
   if (user.role !== "admin" && user.role !== "sales") throw new Error("Forbidden: staff only");
   return user;
 }
+
+// Read-only order access for the dashboard: admin, sales, or marketing. Order
+// mutations stay on requireStaff/requireAdmin — marketing can view, not manage.
+export async function requireOrderViewer(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin" && user.role !== "sales" && user.role !== "marketing")
+    throw new Error("Forbidden");
+  return user;
+}
