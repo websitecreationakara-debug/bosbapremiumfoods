@@ -53,6 +53,7 @@
 
 :root {
   --radius: 0.875rem;
+  color-scheme: light;
 
   /* LIGHT theme — warm white + gold */
   --background: #fafafa;
@@ -102,6 +103,8 @@
 
 .dark {
   /* DARK luxury / Japanese omakase — near-black + warm gold */
+  /* Render native controls (date/time pickers, their calendar icons) in dark. */
+  color-scheme: dark;
   --background: #0a0a0a;
   --foreground: #f0ede6;
   --surface: #0d0d0d;
