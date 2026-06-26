@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { env } from "cloudflare:workers";
-import { requireAdmin } from "./_auth";
+import { requireManager } from "./_auth";
 
 export type AnalyticsDay = { date: string; pageViews: number; visits: number };
 export type AnalyticsRow = { label: string; views: number };
@@ -45,7 +45,7 @@ const estimate = (g: Group, field: "count" | "visits") => {
 export const getSiteAnalytics = createServerFn({ method: "GET" })
   .inputValidator((d: { days?: number }) => d)
   .handler(async ({ data }): Promise<SiteAnalytics> => {
-    await requireAdmin();
+    await requireManager();
 
     const e = env as unknown as Record<string, string | undefined>;
     // Trim: secrets set via a piped shell command can carry a trailing newline,
@@ -61,7 +61,9 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
     const start = new Date(end.getTime() - (days - 1) * 86400000);
     const startStr = start.toISOString().slice(0, 10);
     const endStr = end.toISOString().slice(0, 10);
-    const f = `siteTag: "${siteTag}", date_geq: "${startStr}", date_leq: "${endStr}"`;
+    // Exclude admin traffic (the owner's own testing) so the figures reflect
+    // real storefront visitors. `_notlike` with `%` covers every /admin subpath.
+    const f = `siteTag: "${siteTag}", date_geq: "${startStr}", date_leq: "${endStr}", requestPath_notlike: "/admin%"`;
 
     const query = `query {
       viewer {
@@ -93,7 +95,16 @@ export const getSiteAnalytics = createServerFn({ method: "GET" })
     }
 
     const json = (await res.json()) as {
-      data?: { viewer?: { accounts?: { byDate?: Group[]; topPages?: Group[]; topReferrers?: Group[]; topCountries?: Group[] }[] } };
+      data?: {
+        viewer?: {
+          accounts?: {
+            byDate?: Group[];
+            topPages?: Group[];
+            topReferrers?: Group[];
+            topCountries?: Group[];
+          }[];
+        };
+      };
       errors?: { message: string }[];
     };
     if (json.errors?.length) throw new Error(json.errors[0].message);

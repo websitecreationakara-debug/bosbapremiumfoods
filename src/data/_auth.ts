@@ -21,6 +21,16 @@ export async function requireAdmin(): Promise<SessionUser> {
   return user;
 }
 
+// Catalog/marketing manager: admin or marketing. Gates the writes the marketing
+// role is allowed to perform — products, categories, media, promotions, promo
+// codes — while keeping users/settings/banners/orders admin-only.
+export async function requireManager(): Promise<SessionUser> {
+  const user = await requireUser();
+  if (user.role !== "admin" && user.role !== "marketing")
+    throw new Error("Forbidden: manager only");
+  return user;
+}
+
 // Admin or sales — sales staff are scoped to order handling only.
 export async function requireStaff(): Promise<SessionUser> {
   const user = await requireUser();

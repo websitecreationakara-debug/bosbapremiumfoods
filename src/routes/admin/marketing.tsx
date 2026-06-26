@@ -7,7 +7,13 @@ import {
   deletePromotion,
   assignPromotion,
 } from "@/data/promotions";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  listPromoCodes,
+  createPromoCode,
+  updatePromoCode,
+  deletePromoCode,
+} from "@/data/promo-codes";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,10 +26,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, X, Search, Tag, Percent } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Search, Tag, Percent, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { KIND_LABEL } from "@/lib/promotions";
-import type { Promotion } from "@/lib/types";
+import type { Promotion, PromoCode } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/marketing")({ component: MarketingAdmin });
 
@@ -55,6 +61,11 @@ const period = (p: Promotion) => {
   return `${p.starts_at || "…"} → ${p.ends_at || "…"}`;
 };
 
+const emptyCode = { id: "", code: "", type: "percent", value: "", active: "true" };
+
+const codeValueLabel = (c: PromoCode) =>
+  c.type === "fixed" ? `$${c.value.toFixed(2)} off` : `${c.value}% off`;
+
 function MarketingAdmin() {
   const { data: promos = [] } = usePromotions({ all: true });
   const { data: products = [] } = useProducts({ all: true });
@@ -68,9 +79,64 @@ function MarketingAdmin() {
   const [pickerSel, setPickerSel] = useState<Set<string>>(new Set());
   const [pickerQuery, setPickerQuery] = useState("");
 
+  // Promo codes.
+  const { data: codes = [] } = useQuery({
+    queryKey: ["promo-codes"],
+    queryFn: () => listPromoCodes() as Promise<PromoCode[]>,
+  });
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [codeForm, setCodeForm] = useState(emptyCode);
+  const codeEditing = !!codeForm.id;
+
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["promotions"] });
     qc.invalidateQueries({ queryKey: ["products"] });
+  };
+  const refreshCodes = () => qc.invalidateQueries({ queryKey: ["promo-codes"] });
+
+  const openNewCode = () => {
+    setCodeForm(emptyCode);
+    setCodeOpen(true);
+  };
+  const openEditCode = (c: PromoCode) => {
+    setCodeForm({
+      id: c.id,
+      code: c.code,
+      type: c.type,
+      value: String(c.value),
+      active: c.active ? "true" : "false",
+    });
+    setCodeOpen(true);
+  };
+  const saveCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const payload = {
+      code: codeForm.code,
+      type: codeForm.type,
+      value: codeForm.value.trim() === "" ? 0 : Number(codeForm.value),
+      active: codeForm.active === "true",
+    };
+    try {
+      if (codeEditing) await updatePromoCode({ data: { id: codeForm.id, ...payload } });
+      else await createPromoCode({ data: payload });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to save code");
+      return;
+    }
+    toast.success(codeEditing ? "Code updated" : "Code created");
+    refreshCodes();
+    setCodeOpen(false);
+  };
+  const delCode = async (id: string) => {
+    if (!confirm("Delete this promo code?")) return;
+    try {
+      await deletePromoCode({ data: { id } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to delete");
+      return;
+    }
+    toast.success("Code deleted");
+    refreshCodes();
   };
 
   const openNew = () => {
@@ -271,6 +337,152 @@ function MarketingAdmin() {
           );
         })}
       </div>
+
+      {/* Promo codes */}
+      <div className="space-y-4 pt-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="font-display font-bold text-xl">Promo Codes</h2>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              Discount codes customers enter at checkout.
+            </p>
+          </div>
+          <Button onClick={openNewCode} variant="outline" className="rounded-full">
+            <Plus className="size-4 mr-1.5" /> New Code
+          </Button>
+        </div>
+
+        <div className="bg-card border rounded-2xl overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-muted text-xs uppercase tracking-widest text-muted-foreground">
+              <tr>
+                <th className="text-left px-6 py-3">Code</th>
+                <th className="text-left px-6 py-3">Discount</th>
+                <th className="text-left px-6 py-3">Status</th>
+                <th className="px-6 py-3"></th>
+              </tr>
+            </thead>
+            <tbody>
+              {codes.length === 0 && (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
+                    No promo codes yet.
+                  </td>
+                </tr>
+              )}
+              {codes.map((c) => (
+                <tr key={c.id} className="border-t">
+                  <td className="px-6 py-3">
+                    <span className="inline-flex items-center gap-2 font-mono font-bold">
+                      <Ticket className="size-4 text-brand" /> {c.code}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3">{codeValueLabel(c)}</td>
+                  <td className="px-6 py-3">
+                    <span
+                      className={`px-2 py-0.5 rounded text-xs font-bold uppercase ${
+                        c.active ? "bg-success/20 text-success" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {c.active ? "Active" : "Off"}
+                    </span>
+                  </td>
+                  <td className="px-6 py-3 text-right">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditCode(c)}
+                        aria-label="Edit"
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => delCode(c.id)}
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="size-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Create / edit promo code */}
+      <Dialog open={codeOpen} onOpenChange={setCodeOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{codeEditing ? "Edit Code" : "New Code"}</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={saveCode} className="space-y-4">
+            <div>
+              <Label>Code</Label>
+              <Input
+                required
+                value={codeForm.code}
+                onChange={(e) => setCodeForm({ ...codeForm, code: e.target.value })}
+                placeholder="SAVE10"
+                className="uppercase"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Saved in capitals; customers can type it any case.
+              </p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Type</Label>
+                <Select
+                  value={codeForm.type}
+                  onValueChange={(v) => setCodeForm({ ...codeForm, type: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">% off</SelectItem>
+                    <SelectItem value="fixed">$ off</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>{codeForm.type === "fixed" ? "Amount ($)" : "Percent (%)"}</Label>
+                <Input
+                  required
+                  type="number"
+                  min="0"
+                  step={codeForm.type === "fixed" ? "0.01" : "1"}
+                  value={codeForm.value}
+                  onChange={(e) => setCodeForm({ ...codeForm, value: e.target.value })}
+                />
+              </div>
+            </div>
+            <div>
+              <Label>Status</Label>
+              <Select
+                value={codeForm.active}
+                onValueChange={(v) => setCodeForm({ ...codeForm, active: v })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="true">Active</SelectItem>
+                  <SelectItem value="false">Off</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button type="submit" className="w-full">
+              {codeEditing ? "Save changes" : "Create code"}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
 
       {/* Create / edit offer */}
       <Dialog open={open} onOpenChange={setOpen}>

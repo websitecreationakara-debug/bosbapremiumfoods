@@ -5,7 +5,7 @@ export type Product = {
   price: number;
   sale_price: number | null;
   category_id: string | null;
-  stock: number;
+  stock: number | null;
   status: string;
   image_url: string | null;
   badge: string | null;
@@ -40,7 +40,7 @@ export type ProductVariation = {
   weight: string;
   price: number;
   sale_price: number | null;
-  stock: number;
+  stock: number | null;
   pcs: number | null;
   sort_order: number;
   created_at: string;
@@ -66,6 +66,15 @@ export type HeroSlide = {
   cta_label: string | null;
   cta_link: string;
   sort_order: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type PromoCode = {
+  id: string;
+  code: string;
+  type: string;
+  value: number;
   active: boolean;
   created_at: string;
 };
@@ -102,6 +111,8 @@ export type Order = {
   items: OrderItem[];
   status: string;
   tracking_url: string | null;
+  promo_code: string | null;
+  discount: number;
   total: number;
   created_at: string;
 };

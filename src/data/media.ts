@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { desc, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { media } from "@/db/schema";
-import { requireAdmin } from "./_auth";
+import { requireManager } from "./_auth";
 
 // D1's hard limit is 2,000,000 bytes per row/BLOB; stay safely under it.
 // Large originals are downscaled client-side (src/lib/image.ts) before hitting this.
@@ -29,7 +29,7 @@ export const uploadMedia = createServerFn({ method: "POST" })
     return d;
   })
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const file = data.get("file");
     if (!(file instanceof File)) throw new Error("No file provided");
     if (!file.type.startsWith("image/")) throw new Error("Only image files are allowed");
@@ -47,21 +47,23 @@ export const uploadMedia = createServerFn({ method: "POST" })
     // Short random suffix keeps the URL readable while guaranteeing uniqueness.
     const key = `${slug}-${crypto.randomUUID().slice(0, 8)}.${ext}`;
     const url = `/media/${key}`;
-    await getDb().insert(media).values({
-      key,
-      url,
-      filename: file.name,
-      content_type: file.type,
-      size: file.size,
-      data: Buffer.from(await file.arrayBuffer()),
-    });
+    await getDb()
+      .insert(media)
+      .values({
+        key,
+        url,
+        filename: file.name,
+        content_type: file.type,
+        size: file.size,
+        data: Buffer.from(await file.arrayBuffer()),
+      });
     return { url, key };
   });
 
 export const renameMedia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; filename: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const filename = data.filename.trim();
     if (!filename) throw new Error("Name cannot be empty");
     await getDb().update(media).set({ filename }).where(eq(media.id, data.id));
@@ -71,7 +73,7 @@ export const renameMedia = createServerFn({ method: "POST" })
 export const deleteMedia = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     await getDb().delete(media).where(eq(media.id, data.id));
     return { ok: true };
   });

@@ -3,7 +3,7 @@ import { asc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { promotions, products } from "@/db/schema";
 import { isPromoLive } from "@/lib/promotions";
-import { requireAdmin } from "./_auth";
+import { requireManager } from "./_auth";
 
 type PromotionInput = {
   name: string;
@@ -30,7 +30,7 @@ export const listPromotions = createServerFn({ method: "GET" })
 export const createPromotion = createServerFn({ method: "POST" })
   .inputValidator((d: PromotionInput) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const [row] = await getDb().insert(promotions).values(data).returning({ id: promotions.id });
     return { id: row.id };
   });
@@ -38,7 +38,7 @@ export const createPromotion = createServerFn({ method: "POST" })
 export const updatePromotion = createServerFn({ method: "POST" })
   .inputValidator((d: PromotionInput & { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const { id, ...rest } = data;
     await getDb().update(promotions).set(rest).where(eq(promotions.id, id));
     return { ok: true };
@@ -47,7 +47,7 @@ export const updatePromotion = createServerFn({ method: "POST" })
 export const deletePromotion = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     // FK is ON DELETE SET NULL, so assigned products simply lose their offer.
     await getDb().delete(promotions).where(eq(promotions.id, data.id));
     return { ok: true };
@@ -58,7 +58,7 @@ export const deletePromotion = createServerFn({ method: "POST" })
 export const assignPromotion = createServerFn({ method: "POST" })
   .inputValidator((d: { productIds: string[]; promotionId: string | null }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     if (data.productIds.length === 0) return { ok: true };
     await getDb()
       .update(products)

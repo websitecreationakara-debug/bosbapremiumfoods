@@ -127,6 +127,20 @@
       "when": 1782459707776,
       "tag": "0017_sudden_shockwave",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1782463617359,
+      "tag": "0018_odd_blazing_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "6",
+      "when": 1782464998713,
+      "tag": "0019_secret_patch",
+      "breakpoints": true
     }
   ]
 }

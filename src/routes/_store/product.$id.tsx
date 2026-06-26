@@ -69,7 +69,7 @@ function ProductJsonLd({ product }: { product: Product }) {
       priceCurrency: "USD",
       price: price.toFixed(2),
       availability:
-        product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+        product.stock === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
       url: `${SITE}/product/${slugify(product.title) || product.id}`,
     };
   }
@@ -111,13 +111,15 @@ function ProductDetail() {
   // otherwise from the product itself.
   const basePrice = variable ? (selected?.price ?? 0) : product.price;
   const salePrice = variable ? (selected?.sale_price ?? null) : product.sale_price;
-  const activeStock = variable ? (selected?.stock ?? 0) : product.stock;
+  // null = untracked (always available); 0 = out of stock; >0 = tracked count.
+  const activeStock = variable ? (selected?.stock ?? null) : product.stock;
+  const soldOut = activeStock === 0;
   const weightLabel = variable ? selected?.weight : product.weight;
   const pcs = variable ? (selected?.pcs ?? null) : product.pcs;
   const hasSale = salePrice != null && salePrice < basePrice;
   const price = salePrice ?? basePrice;
   const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
-  const addDisabled = variable && !selected;
+  const addDisabled = (variable && !selected) || soldOut;
 
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
@@ -175,9 +177,13 @@ function ProductDetail() {
               {product.rating ?? 4.5}
             </span>
             <span className="opacity-50">·</span>
-            <span className="text-success font-medium">
-              {activeStock > 0 ? `In stock (${activeStock})` : "In stock"}
-            </span>
+            {soldOut ? (
+              <span className="text-destructive font-medium">Out of stock</span>
+            ) : (
+              <span className="text-success font-medium">
+                {activeStock != null ? `In stock (${activeStock})` : "In stock"}
+              </span>
+            )}
             {weightLabel && (
               <>
                 <span className="opacity-50">·</span>
@@ -247,7 +253,7 @@ function ProductDetail() {
               <span className="w-10 text-center font-bold">{qty}</span>
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.min(activeStock || 99, q + 1))}
+                onClick={() => setQty((q) => Math.min(activeStock ?? 99, q + 1))}
                 className="size-10 grid place-items-center text-muted-foreground hover:text-foreground"
                 aria-label="Increase quantity"
               >
@@ -261,7 +267,7 @@ function ProductDetail() {
               className="flex-1 rounded-full font-bold"
             >
               <ShoppingBag className="size-4 mr-2" />
-              Add to Cart
+              {soldOut ? "Out of Stock" : "Add to Cart"}
             </Button>
             <button
               type="button"

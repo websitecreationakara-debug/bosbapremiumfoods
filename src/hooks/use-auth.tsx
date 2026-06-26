@@ -13,7 +13,10 @@ type AuthCtx = {
   loading: boolean;
   isAdmin: boolean;
   isSales: boolean;
+  isMarketing: boolean;
   isStaff: boolean;
+  // Anyone allowed into the /admin area: admin, sales, or marketing.
+  canAccessAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
@@ -89,7 +92,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         loading: isPending,
         isAdmin: user?.role === "admin",
         isSales: user?.role === "sales",
+        isMarketing: user?.role === "marketing",
         isStaff: user?.role === "admin" || user?.role === "sales",
+        canAccessAdmin:
+          user?.role === "admin" || user?.role === "sales" || user?.role === "marketing",
         signIn,
         signUp,
         signInWithGoogle,

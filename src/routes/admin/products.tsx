@@ -189,7 +189,7 @@ function ProductsAdmin() {
       price: String(p.price),
       sale_price: p.sale_price != null ? String(p.sale_price) : "",
       category_id: p.category_id ?? "",
-      stock: p.stock > 0 ? String(p.stock) : "",
+      stock: p.stock != null ? String(p.stock) : "",
       status: p.status,
       image_url: p.image_url ?? "",
       badge: p.badge ?? "",
@@ -208,7 +208,7 @@ function ProductsAdmin() {
           weight: v.weight,
           price: String(v.price),
           sale_price: v.sale_price != null ? String(v.sale_price) : "",
-          stock: v.stock > 0 ? String(v.stock) : "",
+          stock: v.stock != null ? String(v.stock) : "",
           pcs: v.pcs != null ? String(v.pcs) : "",
         })),
       );
@@ -225,7 +225,7 @@ function ProductsAdmin() {
         weight: v.weight.trim(),
         price: Number(v.price) || 0,
         sale_price: v.sale_price.trim() === "" ? null : Number(v.sale_price),
-        stock: v.stock.trim() === "" ? 0 : Number(v.stock),
+        stock: v.stock.trim() === "" ? null : Number(v.stock),
         pcs: v.pcs.trim() === "" ? null : Number(v.pcs),
         sort_order: i,
       }));
@@ -240,7 +240,7 @@ function ProductsAdmin() {
       price: variable ? 0 : Number(form.price),
       sale_price: variable || !form.sale_price ? null : Number(form.sale_price),
       category_id: form.category_id || null,
-      stock: variable || form.stock.trim() === "" ? 0 : Number(form.stock),
+      stock: variable || form.stock.trim() === "" ? null : Number(form.stock),
       status: form.status,
       image_url: form.image_url || null,
       badge: form.badge || null,
@@ -344,10 +344,12 @@ function ProductsAdmin() {
     return `${n} variation${n === 1 ? "" : "s"}`;
   };
   const stockLabel = (p: Product) => {
-    if (p.type !== "variable") return p.stock > 0 ? p.stock : "∞";
+    if (p.type !== "variable") return p.stock == null ? "∞" : p.stock;
     const vs = variationsByProduct.get(p.id) ?? [];
     if (!vs.length) return "—";
-    return vs.reduce((a, v) => a + v.stock, 0) || "∞";
+    const tracked = vs.filter((v) => v.stock != null);
+    if (tracked.length === 0) return "∞";
+    return tracked.reduce((a, v) => a + (v.stock ?? 0), 0);
   };
 
   return (
@@ -640,7 +642,7 @@ function ProductsAdmin() {
                     />
                   </div>
                   <div>
-                    <Label>Stock (blank = in stock, no limit)</Label>
+                    <Label>Stock (blank = unlimited · 0 = out of stock)</Label>
                     <Input
                       type="number"
                       min="0"

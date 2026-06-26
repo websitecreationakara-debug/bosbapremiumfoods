@@ -58,7 +58,8 @@ export const products = sqliteTable("products", {
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),
   category_id: text("category_id").references(() => categories.id, { onDelete: "set null" }),
-  stock: integer("stock").notNull().default(0),
+  // null = stock untracked (always available); a number = tracked count (0 = out of stock).
+  stock: integer("stock"),
   status: text("status").notNull().default("published"),
   image_url: text("image_url"),
   badge: text("badge"),
@@ -86,10 +87,23 @@ export const product_variations = sqliteTable("product_variations", {
   weight: text("weight").notNull(),
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),
-  stock: integer("stock").notNull().default(0),
+  // null = stock untracked (always available); a number = tracked count (0 = out of stock).
+  stock: integer("stock"),
   // Pieces per box for this weight, when sold by count. Null = N/A.
   pcs: integer("pcs"),
   sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// Checkout discount codes (managed under Marketing). A code is either a percent
+// or a fixed-amount discount, toggled on/off via `active`.
+export const promo_codes = sqliteTable("promo_codes", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  code: text("code").notNull().unique(),
+  // "percent" | "fixed"
+  type: text("type").notNull().default("percent"),
+  value: real("value").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
@@ -124,6 +138,9 @@ export const orders = sqliteTable("orders", {
   status: text("status").notNull().default("pending"),
   // Courier tracking link (e.g. a Grab delivery URL), set by staff when shipping.
   tracking_url: text("tracking_url"),
+  // Promo code applied at checkout and the dollar amount it took off, if any.
+  promo_code: text("promo_code"),
+  discount: real("discount").notNull().default(0),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });

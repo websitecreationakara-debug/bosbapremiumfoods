@@ -186,6 +186,7 @@ function UsersAdmin() {
                       <SelectContent>
                         <SelectItem value="user">User</SelectItem>
                         <SelectItem value="sales">Sales</SelectItem>
+                        <SelectItem value="marketing">Marketing</SelectItem>
                         <SelectItem value="admin">Admin</SelectItem>
                       </SelectContent>
                     </Select>
@@ -321,6 +322,7 @@ function UsersAdmin() {
                 <SelectContent>
                   <SelectItem value="user">User</SelectItem>
                   <SelectItem value="sales">Sales</SelectItem>
+                  <SelectItem value="marketing">Marketing</SelectItem>
                   <SelectItem value="admin">Admin</SelectItem>
                 </SelectContent>
               </Select>

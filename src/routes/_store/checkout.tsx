@@ -7,8 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRef, useState } from "react";
 import { createOrder } from "@/data/orders";
+import { validatePromoCode } from "@/data/promo-codes";
+import { promoCodeDiscount } from "@/lib/promo-code";
 import { toast } from "sonner";
-import { MapPin, Check } from "lucide-react";
+import { MapPin, Check, Tag, X } from "lucide-react";
 
 export const Route = createFileRoute("/_store/checkout")({
   component: Checkout,
@@ -22,15 +24,45 @@ function Checkout() {
   const [submitting, setSubmitting] = useState(false);
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [locating, setLocating] = useState(false);
+  const [code, setCode] = useState("");
+  const [applied, setApplied] = useState<{ code: string; type: string; value: number } | null>(
+    null,
+  );
+  const [checking, setChecking] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const emailRef = useRef<HTMLInputElement>(null);
   const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
 
+  const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
+  const discountedSubtotal = Math.max(0, subtotal - discount);
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
-  const shipping = subtotal >= threshold || subtotal === 0 ? 0 : 4.99;
-  const total = subtotal + shipping;
+  const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : 4.99;
+  const total = discountedSubtotal + shipping;
+
+  const applyCode = async () => {
+    const c = code.trim();
+    if (!c) return;
+    setChecking(true);
+    try {
+      const r = await validatePromoCode({ data: { code: c, subtotal } });
+      if (!r.valid) {
+        setApplied(null);
+        toast.error(r.message ?? "Invalid code");
+      } else if (r.discount <= 0) {
+        setApplied(null);
+        toast.error("This code doesn't apply to your cart.");
+      } else {
+        setApplied({ code: r.code, type: r.type, value: r.value });
+        toast.success(`Code ${r.code} applied`);
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Couldn't apply code");
+    } finally {
+      setChecking(false);
+    }
+  };
 
   const captureLocation = () => {
     if (!navigator.geolocation) {
@@ -96,6 +128,7 @@ function Checkout() {
           city: cityRef.current?.value ?? "",
           location_lat: coords?.lat ?? null,
           location_lng: coords?.lng ?? null,
+          promo_code: applied?.code ?? null,
         },
       });
     } catch (err) {
@@ -110,6 +143,8 @@ function Checkout() {
         JSON.stringify({
           id: res.id,
           total: res.total,
+          discount,
+          promo_code: applied?.code ?? null,
           items: orderItems,
           customer_name: customerName,
           customer_email: customerEmail,
@@ -220,11 +255,60 @@ function Checkout() {
             </div>
           ))}
         </div>
+        <div className="border-t pt-4">
+          {applied ? (
+            <div className="flex items-center justify-between text-sm">
+              <span className="inline-flex items-center gap-1.5 font-medium text-brand">
+                <Tag className="size-4" /> {applied.code}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setApplied(null);
+                  setCode("");
+                }}
+                className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
+              >
+                <X className="size-3.5" /> Remove
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <Input
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    applyCode();
+                  }
+                }}
+                placeholder="Promo code"
+                className="flex-1 min-w-0 uppercase"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                onClick={applyCode}
+                disabled={checking || !code.trim()}
+                className="shrink-0"
+              >
+                {checking ? "…" : "Apply"}
+              </Button>
+            </div>
+          )}
+        </div>
         <div className="border-t pt-4 space-y-2 text-sm">
           <div className="flex justify-between">
             <span>Subtotal</span>
             <span>${subtotal.toFixed(2)}</span>
           </div>
+          {discount > 0 && (
+            <div className="flex justify-between text-brand">
+              <span>Discount{applied ? ` (${applied.code})` : ""}</span>
+              <span>−${discount.toFixed(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span>Shipping</span>
             <span>{shipping === 0 ? "Free" : `$${shipping.toFixed(2)}`}</span>

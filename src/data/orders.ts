@@ -1,8 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { orders, products, product_variations, promotions, store_settings } from "@/db/schema";
+import {
+  orders,
+  products,
+  product_variations,
+  promotions,
+  promo_codes,
+  store_settings,
+} from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
+import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import { getSessionUser, requireAdmin, requireStaff, requireUser } from "./_auth";
 
@@ -18,6 +26,7 @@ type CreateOrderInput = {
   city: string;
   location_lat?: number | null;
   location_lng?: number | null;
+  promo_code?: string | null;
 };
 
 // Flat-rate shipping below the free-delivery threshold (kept in sync with the
@@ -56,6 +65,7 @@ export const createOrder = createServerFn({ method: "POST" })
           id: products.id,
           price: products.price,
           sale_price: products.sale_price,
+          stock: products.stock,
           promotion_id: products.promotion_id,
         })
         .from(products)
@@ -65,6 +75,7 @@ export const createOrder = createServerFn({ method: "POST" })
           id: product_variations.id,
           price: product_variations.price,
           sale_price: product_variations.sale_price,
+          stock: product_variations.stock,
           product_id: product_variations.product_id,
         })
         .from(product_variations)
@@ -118,16 +129,51 @@ export const createOrder = createServerFn({ method: "POST" })
       return { id: i.id, title: String(i.title ?? "").slice(0, 200), qty, price };
     });
 
+    // Inventory guard. null stock = untracked (always available); a number is a
+    // tracked count. Block the order if any tracked line is short — checked
+    // against the summed quantity per id, before anything is written.
+    const stockById = new Map<string, number | null>();
+    for (const p of prodRows) stockById.set(p.id, p.stock);
+    for (const v of varRows) stockById.set(v.id, v.stock);
+    const neededById = new Map<string, number>();
+    for (const i of items) neededById.set(i.id, (neededById.get(i.id) ?? 0) + i.qty);
+    for (const [id, need] of neededById) {
+      const stock = stockById.get(id);
+      if (stock != null && need > stock) {
+        const title = items.find((i) => i.id === id)?.title ?? "An item";
+        throw new Error(
+          stock <= 0 ? `${title} is out of stock.` : `Only ${stock} of "${title}" left in stock.`,
+        );
+      }
+    }
+
     const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+
+    // Apply a promo code if one was entered and is still active. Recomputed
+    // server-side from the DB — the client's quoted discount is never trusted.
+    let discount = 0;
+    let appliedCode: string | null = null;
+    const codeInput = data.promo_code?.trim().toUpperCase();
+    if (codeInput) {
+      const [pc] = await db.select().from(promo_codes).where(eq(promo_codes.code, codeInput));
+      if (pc && pc.active) {
+        discount = promoCodeDiscount(pc.type, pc.value, subtotal);
+        if (discount > 0) appliedCode = pc.code;
+      }
+    }
+    const discountedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
+
     const threshold = Number(settingsRow?.free_shipping_threshold ?? 50);
-    const shipping = subtotal >= threshold || subtotal === 0 ? 0 : SHIPPING_FEE;
-    const total = Math.round((subtotal + shipping) * 100) / 100;
+    const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
+    const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
     const [row] = await db
       .insert(orders)
       .values({
         user_id: user?.id ?? null,
         total,
+        discount,
+        promo_code: appliedCode,
         status: "pending",
         items: JSON.stringify(items),
         customer_name: data.customer_name?.trim() || user?.name || null,
@@ -139,6 +185,21 @@ export const createOrder = createServerFn({ method: "POST" })
         location_lng: data.location_lng ?? null,
       })
       .returning();
+
+    // Deduct tracked inventory now that the order is committed. Untracked
+    // (null) lines are skipped; counts are clamped at 0 as a belt-and-braces
+    // guard even though the check above already prevents oversell.
+    const productIdSet = new Set(prodRows.map((p) => p.id));
+    await Promise.all(
+      [...neededById].map(([id, need]) => {
+        const stock = stockById.get(id);
+        if (stock == null) return null;
+        const next = Math.max(0, stock - need);
+        return productIdSet.has(id)
+          ? db.update(products).set({ stock: next }).where(eq(products.id, id))
+          : db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, id));
+      }),
+    );
 
     await notifyNewOrder({
       id: row.id,

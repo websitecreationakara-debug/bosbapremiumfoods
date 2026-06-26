@@ -22,6 +22,9 @@ export function ProductCard({
   // Variable products can't be added from the grid — the customer must pick a
   // weight, so the card leads with "from $X" and links through to the page.
   const variable = product.type === "variable";
+  // Simple products track their own stock; 0 = out of stock. Variable products
+  // carry stock on their variations, so the grid card never blocks them here.
+  const soldOut = !variable && product.stock === 0;
   const hasSale = product.sale_price != null && product.sale_price < product.price;
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
@@ -46,14 +49,19 @@ export function ProductCard({
             {t("product.noImage")}
           </div>
         )}
-        {(offerLabel || hasSale) && (
+        {(offerLabel || hasSale || soldOut) && (
           <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
-            {offerLabel && (
+            {soldOut && (
+              <span className="rounded-full bg-foreground/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-background">
+                Sold out
+              </span>
+            )}
+            {offerLabel && !soldOut && (
               <span className="rounded-full bg-foreground/85 px-2 py-0.5 text-[10px] font-bold tracking-wide text-background">
                 {offerLabel}
               </span>
             )}
-            {hasSale && (
+            {hasSale && !soldOut && (
               <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-foreground">
                 -{discount}%
               </span>
@@ -113,13 +121,14 @@ export function ProductCard({
             </span>
           ) : (
             <button
+              disabled={soldOut}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 add(product);
               }}
               aria-label={t("product.addToCart")}
-              className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground disabled:opacity-40 disabled:pointer-events-none"
             >
               <ShoppingBag className="size-4" />
             </button>

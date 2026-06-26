@@ -4,7 +4,7 @@ import { getDb } from "@/db";
 import { products, product_variations, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
 import { applyPromo } from "@/lib/promotions";
-import { requireAdmin } from "./_auth";
+import { requireManager } from "./_auth";
 
 type ProductInput = {
   title: string;
@@ -12,7 +12,7 @@ type ProductInput = {
   price: number;
   sale_price: number | null;
   category_id: string | null;
-  stock: number;
+  stock: number | null;
   status: string;
   image_url: string | null;
   badge: string | null;
@@ -75,7 +75,7 @@ type VariationInput = {
   weight: string;
   price: number;
   sale_price: number | null;
-  stock: number;
+  stock: number | null;
   pcs: number | null;
   sort_order: number;
 };
@@ -144,7 +144,7 @@ export const getVariations = createServerFn({ method: "GET" })
 export const saveVariations = createServerFn({ method: "POST" })
   .inputValidator((d: { productId: string; variations: VariationInput[] }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const db = getDb();
     const existing = await db
       .select({ id: product_variations.id })
@@ -175,7 +175,7 @@ export const saveVariations = createServerFn({ method: "POST" })
 export const createProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const [row] = await getDb().insert(products).values(data).returning({ id: products.id });
     return { id: row.id };
   });
@@ -183,7 +183,7 @@ export const createProduct = createServerFn({ method: "POST" })
 export const updateProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput & { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const { id, ...rest } = data;
     await getDb()
       .update(products)
@@ -197,7 +197,7 @@ export const updateProduct = createServerFn({ method: "POST" })
 export const reorderProducts = createServerFn({ method: "POST" })
   .inputValidator((d: { ids: string[] }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const db = getDb();
     await Promise.all(
       data.ids.map((id, i) =>
@@ -210,7 +210,7 @@ export const reorderProducts = createServerFn({ method: "POST" })
 export const deleteProduct = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireManager();
     const db = getDb();
     await db.delete(product_variations).where(eq(product_variations.product_id, data.id));
     await db.delete(products).where(eq(products.id, data.id));

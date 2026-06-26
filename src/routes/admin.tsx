@@ -35,7 +35,7 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, isSales, isStaff, loading } = useAuth();
+  const { user, isAdmin, isSales, isMarketing, isStaff, canAccessAdmin, loading } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
@@ -44,15 +44,29 @@ function AdminLayout() {
 
   // Sales can only ever be on the Orders page.
   const salesBlocked = isSales && !isAdmin && !path.startsWith("/admin/orders");
-  const visibleNav = isAdmin ? nav : nav.filter((n) => n.to === "/admin/orders");
+  // Marketing is scoped to the catalog/marketing sections.
+  const marketingPaths = [
+    "/admin/products",
+    "/admin/marketing",
+    "/admin/categories",
+    "/admin/media",
+  ];
+  const marketingBlocked =
+    isMarketing && !isAdmin && path !== "/admin" && !marketingPaths.some((p) => path.startsWith(p));
+  const visibleNav = isAdmin
+    ? nav
+    : isMarketing
+      ? nav.filter((n) => n.to === "/admin" || marketingPaths.includes(n.to))
+      : nav.filter((n) => n.to === "/admin/orders");
 
   useEffect(() => {
-    if (!loading && (!user || !isStaff)) navigate({ to: "/" });
-  }, [loading, user, isStaff, navigate]);
+    if (!loading && (!user || !canAccessAdmin)) navigate({ to: "/" });
+  }, [loading, user, canAccessAdmin, navigate]);
 
   useEffect(() => {
     if (salesBlocked) navigate({ to: "/admin/orders" });
-  }, [salesBlocked, navigate]);
+    else if (marketingBlocked) navigate({ to: "/admin" });
+  }, [salesBlocked, marketingBlocked, navigate]);
 
   useEffect(() => {
     // Alert only on an actual increase, never on first load.
@@ -63,7 +77,7 @@ function AdminLayout() {
     prevCount.current = pendingCount;
   }, [pendingCount]);
 
-  if (loading || !user || !isStaff) {
+  if (loading || !user || !canAccessAdmin) {
     return (
       <div className="min-h-screen grid place-items-center text-muted-foreground">
         Checking access...
@@ -118,7 +132,11 @@ function AdminLayout() {
         </Link>
       </aside>
       <main className="flex-1 bg-background p-8 overflow-x-auto">
-        {salesBlocked ? <div className="text-muted-foreground">Redirecting…</div> : <Outlet />}
+        {salesBlocked || marketingBlocked ? (
+          <div className="text-muted-foreground">Redirecting…</div>
+        ) : (
+          <Outlet />
+        )}
       </main>
     </div>
   );

@@ -122,7 +122,14 @@ function OrdersAdmin() {
                     <span className="text-muted-foreground">—</span>
                   )}
                 </td>
-                <td className="px-6 py-3 font-bold">${Number(o.total).toFixed(2)}</td>
+                <td className="px-6 py-3 font-bold">
+                  ${Number(o.total).toFixed(2)}
+                  {o.discount > 0 && (
+                    <span className="block text-[11px] font-medium text-brand">
+                      {o.promo_code ? `${o.promo_code}: ` : ""}−${Number(o.discount).toFixed(2)}
+                    </span>
+                  )}
+                </td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2">
                     <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
