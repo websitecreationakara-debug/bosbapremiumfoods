@@ -65,7 +65,7 @@ export const createOrder = createServerFn({ method: "POST" })
     // from the DB (matching either a simple product or a variation id) and
     // recompute the total + shipping server-side.
     const ids = rawItems.map((i) => i.id).filter(Boolean);
-    const [prodRows, varRows, settingsRow] = await Promise.all([
+    const [prodRows, varRows, settingsRows] = await Promise.all([
       db
         .select({
           id: products.id,
@@ -169,7 +169,7 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const discountedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
 
-    const threshold = Number(settingsRow?.free_shipping_threshold ?? 50);
+    const threshold = Number(settingsRows[0]?.free_shipping_threshold ?? 50);
     const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
