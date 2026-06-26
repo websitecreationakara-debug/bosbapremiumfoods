@@ -73,9 +73,7 @@ function AdminLayout() {
     <div className="min-h-screen flex bg-sidebar">
       <aside className="w-64 border-r border-sidebar-border p-6 flex flex-col gap-8 shrink-0">
         <Link to="/" className="flex items-center gap-2">
-          <div className="size-9 rounded-lg bg-brand text-brand-foreground grid place-items-center font-display font-bold">
-            B
-          </div>
+          <img src="/logo.png" alt="BOSBA Premium Foods" className="size-9 rounded-lg object-contain" />
           <span className="font-display text-lg font-bold text-sidebar-foreground">
             BOSBA Premium Foods
           </span>
