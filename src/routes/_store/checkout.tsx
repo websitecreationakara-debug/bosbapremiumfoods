@@ -38,7 +38,7 @@ function Checkout() {
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
-  const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : 4.99;
+  const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : 2.5;
   const total = discountedSubtotal + shipping;
 
   const applyCode = async () => {

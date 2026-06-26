@@ -37,7 +37,7 @@ type CreateOrderInput = {
 
 // Flat-rate shipping below the free-delivery threshold (kept in sync with the
 // store-front summary in checkout.tsx).
-const SHIPPING_FEE = 4.99;
+const SHIPPING_FEE = 2.5;
 
 const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,
