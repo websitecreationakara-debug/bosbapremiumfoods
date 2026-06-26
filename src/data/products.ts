@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products, product_variations } from "@/db/schema";
+import { products, product_variations, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
+import { applyPromo } from "@/lib/promotions";
 import { requireAdmin } from "./_auth";
 
 type ProductInput = {
@@ -19,7 +20,55 @@ type ProductInput = {
   weight: string | null;
   pcs: number | null;
   type: string;
+  promotion_id: string | null;
 };
+
+type ProductRow = typeof products.$inferSelect;
+type VariationRow = typeof product_variations.$inferSelect;
+
+// Lower a product's sale_price to reflect any live promotion discount, so every
+// storefront surface (cards, cart snapshot, product page) shows the offer price
+// without each having to know about promotions. Admin reads skip this.
+async function applyProductPromos(rows: ProductRow[]): Promise<ProductRow[]> {
+  const ids = [...new Set(rows.map((r) => r.promotion_id).filter((id): id is string => !!id))];
+  if (ids.length === 0) return rows;
+  const promos = await getDb().select().from(promotions).where(inArray(promotions.id, ids));
+  const map = new Map(promos.map((p) => [p.id, p]));
+  const now = Date.now();
+  return rows.map((r) => {
+    const promo = r.promotion_id ? map.get(r.promotion_id) : undefined;
+    if (!promo) return r;
+    const base = r.sale_price ?? r.price;
+    const discounted = applyPromo(base, promo, now);
+    return discounted < base ? { ...r, sale_price: discounted } : r;
+  });
+}
+
+// Same idea for variations: the discount lives on the parent product's promotion.
+async function applyVariationPromos(rows: VariationRow[]): Promise<VariationRow[]> {
+  const productIds = [...new Set(rows.map((v) => v.product_id))];
+  if (productIds.length === 0) return rows;
+  const parents = await getDb()
+    .select({ id: products.id, promotion_id: products.promotion_id })
+    .from(products)
+    .where(inArray(products.id, productIds));
+  const promoIdByProduct = new Map(parents.map((p) => [p.id, p.promotion_id]));
+  const promoIds = [
+    ...new Set(parents.map((p) => p.promotion_id).filter((id): id is string => !!id)),
+  ];
+  if (promoIds.length === 0) return rows;
+  const promos = await getDb().select().from(promotions).where(inArray(promotions.id, promoIds));
+  const map = new Map(promos.map((p) => [p.id, p]));
+  const now = Date.now();
+  return rows.map((v) => {
+    const pid = promoIdByProduct.get(v.product_id);
+    const promo = pid ? map.get(pid) : undefined;
+    if (!promo) return v;
+    const base = v.sale_price ?? v.price;
+    const discounted = applyPromo(base, promo, now);
+    return discounted < base ? { ...v, sale_price: discounted } : v;
+  });
+}
 
 type VariationInput = {
   id?: string;
@@ -35,17 +84,19 @@ export const listProducts = createServerFn({ method: "GET" })
   .inputValidator((d: { all?: boolean } | undefined) => d ?? {})
   .handler(async ({ data }) => {
     const db = getDb();
-    const rows = data.all
-      ? await db
-          .select()
-          .from(products)
-          .orderBy(asc(products.sort_order), desc(products.created_at))
-      : await db
-          .select()
-          .from(products)
-          .where(eq(products.status, "published"))
-          .orderBy(asc(products.sort_order), desc(products.created_at));
-    return rows;
+    if (data.all) {
+      // Admin view: raw prices, no promotion discount applied.
+      return db
+        .select()
+        .from(products)
+        .orderBy(asc(products.sort_order), desc(products.created_at));
+    }
+    const rows = await db
+      .select()
+      .from(products)
+      .where(eq(products.status, "published"))
+      .orderBy(asc(products.sort_order), desc(products.created_at));
+    return applyProductPromos(rows);
   });
 
 // `id` may be a real UUID (old links, admin) or a title-derived slug (pretty
@@ -57,30 +108,35 @@ export const getProduct = createServerFn({ method: "GET" })
     const db = getDb();
     if (isUuid(data.id)) {
       const [row] = await db.select().from(products).where(eq(products.id, data.id));
-      if (row) return row;
+      if (row) return (await applyProductPromos([row]))[0];
     }
     const all = await db.select().from(products);
-    return all.find((p) => slugify(p.title) === data.id) ?? null;
+    const match = all.find((p) => slugify(p.title) === data.id);
+    return match ? (await applyProductPromos([match]))[0] : null;
   });
 
 // Every variation row across the catalog — small table, fetched once so the
 // shop grid can show "from $X" per variable product without N queries.
 export const listVariations = createServerFn({ method: "GET" }).handler(async () => {
-  return getDb()
+  const rows = await getDb()
     .select()
     .from(product_variations)
     .orderBy(asc(product_variations.sort_order), asc(product_variations.price));
+  return applyVariationPromos(rows);
 });
 
-// Variations for a single product, cheapest-first within sort order.
+// Variations for a single product, cheapest-first within sort order. `raw`
+// skips promotion discounts — the admin editor needs the true stored prices so
+// it doesn't save offer-adjusted values back.
 export const getVariations = createServerFn({ method: "GET" })
-  .inputValidator((d: { productId: string }) => d)
+  .inputValidator((d: { productId: string; raw?: boolean }) => d)
   .handler(async ({ data }) => {
-    return getDb()
+    const rows = await getDb()
       .select()
       .from(product_variations)
       .where(eq(product_variations.product_id, data.productId))
       .orderBy(asc(product_variations.sort_order), asc(product_variations.price));
+    return data.raw ? rows : applyVariationPromos(rows);
   });
 
 // Replace a product's variations with the supplied set: update existing rows,

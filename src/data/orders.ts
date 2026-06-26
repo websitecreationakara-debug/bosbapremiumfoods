@@ -1,7 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { orders, products, product_variations, store_settings } from "@/db/schema";
+import { orders, products, product_variations, promotions, store_settings } from "@/db/schema";
+import { applyPromo } from "@/lib/promotions";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import { getSessionUser, requireAdmin, requireStaff, requireUser } from "./_auth";
 
@@ -51,7 +52,12 @@ export const createOrder = createServerFn({ method: "POST" })
     const ids = rawItems.map((i) => i.id).filter(Boolean);
     const [prodRows, varRows, settingsRow] = await Promise.all([
       db
-        .select({ id: products.id, price: products.price, sale_price: products.sale_price })
+        .select({
+          id: products.id,
+          price: products.price,
+          sale_price: products.sale_price,
+          promotion_id: products.promotion_id,
+        })
         .from(products)
         .where(inArray(products.id, ids)),
       db
@@ -59,15 +65,50 @@ export const createOrder = createServerFn({ method: "POST" })
           id: product_variations.id,
           price: product_variations.price,
           sale_price: product_variations.sale_price,
+          product_id: product_variations.product_id,
         })
         .from(product_variations)
         .where(inArray(product_variations.id, ids)),
       db.select().from(store_settings).limit(1),
     ]);
 
+    // A variation's discount comes from its parent product's promotion, so fetch
+    // those parents, then load every referenced promotion once.
+    const parentIds = [...new Set(varRows.map((v) => v.product_id))];
+    const parents = parentIds.length
+      ? await db
+          .select({ id: products.id, promotion_id: products.promotion_id })
+          .from(products)
+          .where(inArray(products.id, parentIds))
+      : [];
+    const promoIdByParent = new Map(parents.map((p) => [p.id, p.promotion_id]));
+    const promoIds = [
+      ...new Set(
+        [...prodRows.map((p) => p.promotion_id), ...parents.map((p) => p.promotion_id)].filter(
+          (id): id is string => !!id,
+        ),
+      ),
+    ];
+    const promoRows = promoIds.length
+      ? await db.select().from(promotions).where(inArray(promotions.id, promoIds))
+      : [];
+    const promoById = new Map(promoRows.map((p) => [p.id, p]));
+    const now = Date.now();
+
+    // SECURITY: re-price from the DB and apply any live promotion discount here
+    // — the server is the single source of truth for what the customer is
+    // charged, regardless of what the client showed. applyPromo never raises the
+    // price (an expired offer simply falls back to sale_price/price).
     const priceById = new Map<string, number>();
-    for (const p of prodRows) priceById.set(p.id, p.sale_price ?? p.price);
-    for (const v of varRows) priceById.set(v.id, v.sale_price ?? v.price);
+    for (const p of prodRows) {
+      const promo = p.promotion_id ? promoById.get(p.promotion_id) : undefined;
+      priceById.set(p.id, applyPromo(p.sale_price ?? p.price, promo, now));
+    }
+    for (const v of varRows) {
+      const pid = promoIdByParent.get(v.product_id);
+      const promo = pid ? promoById.get(pid) : undefined;
+      priceById.set(v.id, applyPromo(v.sale_price ?? v.price, promo, now));
+    }
 
     const items: OrderItem[] = rawItems.map((i) => {
       const price = priceById.get(i.id);

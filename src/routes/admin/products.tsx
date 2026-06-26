@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { useProducts, useCategories, useAllVariations } from "@/hooks/use-products";
+import { useProducts, useCategories, useAllVariations, usePromotions } from "@/hooks/use-products";
 import {
   createProduct,
   updateProduct,
@@ -62,6 +62,7 @@ const empty = {
   weight: "",
   pcs: "",
   type: "simple",
+  promotion_id: "",
 };
 
 type VarRow = {
@@ -77,6 +78,7 @@ const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock:
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
   const { data: categories = [] } = useCategories();
+  const { data: promos = [] } = usePromotions({ all: true });
   const { data: allVariations = [] } = useAllVariations();
   const { data: mediaItems = [] } = useQuery({
     queryKey: ["media"],
@@ -195,10 +197,11 @@ function ProductsAdmin() {
       weight: p.weight ?? "",
       pcs: p.pcs != null ? String(p.pcs) : "",
       type: p.type,
+      promotion_id: p.promotion_id ?? "",
     });
     setOpen(true);
     if (p.type === "variable") {
-      const rows = await getVariations({ data: { productId: p.id } });
+      const rows = await getVariations({ data: { productId: p.id, raw: true } });
       setVars(
         rows.map((v) => ({
           id: v.id,
@@ -245,6 +248,7 @@ function ProductsAdmin() {
       weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
       pcs: variable || form.pcs.trim() === "" ? null : Number(form.pcs),
       type: form.type,
+      promotion_id: form.promotion_id || null,
     };
     try {
       let productId = form.id;
@@ -291,10 +295,11 @@ function ProductsAdmin() {
           weight: p.weight,
           pcs: p.pcs,
           type: p.type,
+          promotion_id: p.promotion_id,
         },
       });
       if (p.type === "variable") {
-        const rows = await getVariations({ data: { productId: p.id } });
+        const rows = await getVariations({ data: { productId: p.id, raw: true } });
         await saveVariations({
           data: {
             productId: id,
@@ -677,6 +682,25 @@ function ProductsAdmin() {
                     {categories.map((c) => (
                       <SelectItem key={c.id} value={c.id}>
                         {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Offer / Promotion</Label>
+                <Select
+                  value={form.promotion_id || "none"}
+                  onValueChange={(v) => setForm({ ...form, promotion_id: v === "none" ? "" : v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="No offer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No offer</SelectItem>
+                    {promos.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

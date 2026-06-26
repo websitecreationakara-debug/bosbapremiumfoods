@@ -6,7 +6,15 @@ import { useI18n } from "@/lib/i18n";
 import { slugify } from "@/lib/utils";
 import type { Product } from "@/lib/types";
 
-export function ProductCard({ product, fromPrice }: { product: Product; fromPrice?: number }) {
+export function ProductCard({
+  product,
+  fromPrice,
+  offerLabel,
+}: {
+  product: Product;
+  fromPrice?: number;
+  offerLabel?: string;
+}) {
   const { add } = useCart();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const { t } = useI18n();
@@ -38,10 +46,19 @@ export function ProductCard({ product, fromPrice }: { product: Product; fromPric
             {t("product.noImage")}
           </div>
         )}
-        {hasSale && (
-          <span className="absolute left-2.5 top-2.5 rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-foreground">
-            -{discount}%
-          </span>
+        {(offerLabel || hasSale) && (
+          <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
+            {offerLabel && (
+              <span className="rounded-full bg-foreground/85 px-2 py-0.5 text-[10px] font-bold tracking-wide text-background">
+                {offerLabel}
+              </span>
+            )}
+            {hasSale && (
+              <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold tracking-wide text-brand-foreground">
+                -{discount}%
+              </span>
+            )}
+          </div>
         )}
         <button
           type="button"

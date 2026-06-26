@@ -23,7 +23,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { useCategories, useStoreSettings } from "@/hooks/use-products";
+import { useCategories, useStoreSettings, usePromotions } from "@/hooks/use-products";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -39,6 +39,8 @@ export function SiteHeader() {
   const { count: wishlistCount } = useWishlist();
   const { user, isAdmin, signOut } = useAuth();
   const { data: categories = [] } = useCategories();
+  const { data: promotions = [] } = usePromotions();
+  const hasOffers = promotions.length > 0;
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -78,6 +80,14 @@ export function SiteHeader() {
             <Link to="/shop" className="hover:text-foreground transition-colors whitespace-nowrap">
               {t("nav.allProducts")}
             </Link>
+            {hasOffers && (
+              <Link
+                to="/offers"
+                className="font-medium text-brand hover:text-brand/80 transition-colors whitespace-nowrap"
+              >
+                {t("nav.offers")}
+              </Link>
+            )}
             {categories.map((c) => (
               <Link
                 key={c.id}
@@ -233,6 +243,16 @@ export function SiteHeader() {
                   {t("nav.allProducts")}
                 </Link>
               </SheetClose>
+              {hasOffers && (
+                <SheetClose asChild>
+                  <Link
+                    to="/offers"
+                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
+                  >
+                    {t("nav.offers")}
+                  </Link>
+                </SheetClose>
+              )}
               {categories.map((c) => (
                 <SheetClose asChild key={c.id}>
                   <Link
@@ -335,7 +355,8 @@ export function SiteHeader() {
               <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
             </p>
             <p className="flex items-center gap-2">
-              <Truck className="size-4 shrink-0" /> {t("bar.delivery", { threshold: shipThreshold })}
+              <Truck className="size-4 shrink-0" />{" "}
+              {t("bar.delivery", { threshold: shipThreshold })}
             </p>
           </div>
         </SheetContent>

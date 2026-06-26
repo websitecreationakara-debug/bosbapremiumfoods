@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
+import { OfferSection } from "@/components/offer-section";
 import {
   useCategories,
   useProducts,
+  usePromotions,
   useStoreSettings,
   useAllVariations,
 } from "@/hooks/use-products";
@@ -31,11 +33,15 @@ export const Route = createFileRoute("/_store/")({
 function Home() {
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
+  const { data: promotions = [] } = usePromotions();
   const { data: settings } = useStoreSettings();
   const { data: variations = [] } = useAllVariations();
   const { t } = useI18n();
   const variationsByProduct = groupVariations(variations);
   const featured = products.slice(0, 8);
+  const offerSections = promotions
+    .map((promo) => ({ promo, items: products.filter((p) => p.promotion_id === promo.id) }))
+    .filter((s) => s.items.length > 0);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
@@ -98,6 +104,29 @@ function Home() {
           ))}
         </div>
       </section>
+
+      {/* Offers */}
+      {offerSections.length > 0 && (
+        <div className="mx-auto max-w-6xl px-6 space-y-16">
+          {offerSections.map(({ promo, items }) => (
+            <OfferSection
+              key={promo.id}
+              promotion={promo}
+              products={items}
+              variationsByProduct={variationsByProduct}
+              limit={8}
+            />
+          ))}
+          <div className="text-center">
+            <Link
+              to="/offers"
+              className="inline-flex items-center gap-1.5 text-base font-medium text-brand transition-all hover:gap-2.5"
+            >
+              {t("offers.viewAll")} <ArrowRight className="size-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* Featured Products */}
       <section className="mx-auto max-w-6xl px-6">

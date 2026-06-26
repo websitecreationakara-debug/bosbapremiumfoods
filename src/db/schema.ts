@@ -32,6 +32,25 @@ export const hero_slides = sqliteTable("hero_slides", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
+// Marketing campaigns / offers. A product points at one promotion; while the
+// promotion is active and within its date window, the product is featured in
+// that offer's storefront section and (if discount_pct is set) sells at a
+// discount. Dates are ISO YYYY-MM-DD; null bound = open-ended on that side.
+export const promotions = sqliteTable("promotions", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  name: text("name").notNull(),
+  // "limited" | "seasonal" | "special" — drives the badge label/styling.
+  kind: text("kind").notNull().default("special"),
+  description: text("description"),
+  // Percent off assigned products while live. Null/0 = featured grouping only.
+  discount_pct: real("discount_pct"),
+  starts_at: text("starts_at"),
+  ends_at: text("ends_at"),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const products = sqliteTable("products", {
   id: text("id").primaryKey().$defaultFn(uuid),
   title: text("title").notNull(),
@@ -52,6 +71,8 @@ export const products = sqliteTable("products", {
   type: text("type").notNull().default("simple"),
   // Manual display order (admin drag-to-reorder). Lower = earlier. Ties break by created_at.
   sort_order: integer("sort_order").notNull().default(0),
+  // Optional marketing offer this product belongs to. Cleared if the promotion is deleted.
+  promotion_id: text("promotion_id").references(() => promotions.id, { onDelete: "set null" }),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });

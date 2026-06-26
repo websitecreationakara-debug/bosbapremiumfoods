@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { listProducts, getProduct, listVariations, getVariations } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
+import { listPromotions } from "@/data/promotions";
 import { getSettings } from "@/data/settings";
 import { countPendingOrders, listMyOrders } from "@/data/orders";
 import type {
@@ -9,6 +10,7 @@ import type {
   ProductVariation,
   Category,
   HeroSlide,
+  Promotion,
   StoreSettings,
   Order,
 } from "@/lib/types";
@@ -54,6 +56,13 @@ export function useHeroSlides(opts?: { all?: boolean }) {
   return useQuery({
     queryKey: ["hero_slides", opts?.all ? "all" : "active"],
     queryFn: () => listHeroSlides({ data: { all: !!opts?.all } }) as Promise<HeroSlide[]>,
+  });
+}
+
+export function usePromotions(opts?: { all?: boolean }) {
+  return useQuery({
+    queryKey: ["promotions", opts?.all ? "all" : "live"],
+    queryFn: () => listPromotions({ data: { all: !!opts?.all } }) as Promise<Promotion[]>,
   });
 }
 

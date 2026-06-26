@@ -13,6 +13,7 @@ import {
   Settings,
   Image,
   GalleryHorizontalEnd,
+  Megaphone,
   ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -25,6 +26,7 @@ const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/banners", label: "Hero Banner", icon: GalleryHorizontalEnd },
   { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
@@ -73,7 +75,11 @@ function AdminLayout() {
     <div className="min-h-screen flex bg-sidebar">
       <aside className="w-64 border-r border-sidebar-border p-6 flex flex-col gap-8 shrink-0">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/logo.png" alt="BOSBA Premium Foods" className="size-9 rounded-lg object-contain" />
+          <img
+            src="/logo.png"
+            alt="BOSBA Premium Foods"
+            className="size-9 rounded-lg object-contain"
+          />
           <span className="font-display text-lg font-bold text-sidebar-foreground">
             BOSBA Premium Foods
           </span>
@@ -112,11 +118,7 @@ function AdminLayout() {
         </Link>
       </aside>
       <main className="flex-1 bg-background p-8 overflow-x-auto">
-        {salesBlocked ? (
-          <div className="text-muted-foreground">Redirecting…</div>
-        ) : (
-          <Outlet />
-        )}
+        {salesBlocked ? <div className="text-muted-foreground">Redirecting…</div> : <Outlet />}
       </main>
     </div>
   );

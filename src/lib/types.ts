@@ -13,8 +13,25 @@ export type Product = {
   weight: string | null;
   pcs: number | null;
   type: string;
+  sort_order: number;
+  promotion_id: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type PromotionKind = "limited" | "seasonal" | "special";
+
+export type Promotion = {
+  id: string;
+  name: string;
+  kind: PromotionKind;
+  description: string | null;
+  discount_pct: number | null;
+  starts_at: string | null;
+  ends_at: string | null;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
 };
 
 export type ProductVariation = {
