@@ -33,6 +33,7 @@ type CreateOrderInput = {
   location_lat?: number | null;
   location_lng?: number | null;
   promo_code?: string | null;
+  scheduled_at?: string | null;
 };
 
 // Flat-rate shipping below the free-delivery threshold (kept in sync with the
@@ -189,6 +190,7 @@ export const createOrder = createServerFn({ method: "POST" })
         city: data.city?.trim() || null,
         location_lat: data.location_lat ?? null,
         location_lng: data.location_lng ?? null,
+        scheduled_at: data.scheduled_at?.trim() || null,
       })
       .returning();
 
@@ -219,6 +221,7 @@ export const createOrder = createServerFn({ method: "POST" })
       postal_code: row.postal_code,
       location_lat: row.location_lat,
       location_lng: row.location_lng,
+      scheduled_at: row.scheduled_at,
     });
 
     return { ok: true, id: row.id, total };

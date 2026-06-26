@@ -5,12 +5,39 @@ import { useStoreSettings } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useRef, useState } from "react";
 import { createOrder } from "@/data/orders";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { MapPin, Check, Tag, X } from "lucide-react";
+import { MapPin, Check, Tag, X, Zap, CalendarClock } from "lucide-react";
+
+// Half-hour delivery slots, 8:00 AM – 8:00 PM.
+const TIME_SLOTS = (() => {
+  const out: string[] = [];
+  for (let h = 8; h <= 20; h++) {
+    out.push(`${String(h).padStart(2, "0")}:00`);
+    if (h < 20) out.push(`${String(h).padStart(2, "0")}:30`);
+  }
+  return out;
+})();
+const timeLabel = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  const h12 = h % 12 === 0 ? 12 : h % 12;
+  return `${h12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
+const localToday = () => {
+  const d = new Date();
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+};
 
 export const Route = createFileRoute("/_store/checkout")({
   component: Checkout,
@@ -34,6 +61,11 @@ function Checkout() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
+  const [schedMode, setSchedMode] = useState<"asap" | "schedule">("asap");
+  const [schedDate, setSchedDate] = useState("");
+  const [schedTime, setSchedTime] = useState("");
+  const scheduledAt =
+    schedMode === "schedule" && schedDate && schedTime ? `${schedDate}T${schedTime}` : null;
 
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
@@ -129,6 +161,7 @@ function Checkout() {
           location_lat: coords?.lat ?? null,
           location_lng: coords?.lng ?? null,
           promo_code: applied?.code ?? null,
+          scheduled_at: scheduledAt,
         },
       });
     } catch (err) {
@@ -145,6 +178,7 @@ function Checkout() {
           total: res.total,
           discount,
           promo_code: applied?.code ?? null,
+          scheduled_at: scheduledAt,
           items: orderItems,
           customer_name: customerName,
           customer_email: customerEmail,
@@ -233,6 +267,67 @@ function Checkout() {
             <div className="sm:col-span-2">
               <Label>City</Label>
               <Input ref={cityRef} required />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Delivery time</Label>
+              <div className="mt-1.5 grid grid-cols-2 gap-2">
+                {(
+                  [
+                    { key: "asap", label: "As soon as possible", icon: Zap },
+                    { key: "schedule", label: "Schedule (pre-order)", icon: CalendarClock },
+                  ] as const
+                ).map((opt) => (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={() => setSchedMode(opt.key)}
+                    className={cn(
+                      "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
+                      schedMode === opt.key
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-border hover:bg-background",
+                    )}
+                  >
+                    <opt.icon className="size-4" />
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+
+              {schedMode === "schedule" && (
+                <div className="mt-3 grid grid-cols-2 gap-3">
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Date</Label>
+                    <Input
+                      type="date"
+                      min={localToday()}
+                      value={schedDate}
+                      onChange={(e) => setSchedDate(e.target.value)}
+                      className="bg-background"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Time</Label>
+                    <Select value={schedTime} onValueChange={setSchedTime}>
+                      <SelectTrigger className="bg-background">
+                        <SelectValue placeholder="Pick a time" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-60">
+                        {TIME_SLOTS.map((t) => (
+                          <SelectItem key={t} value={t}>
+                            {timeLabel(t)}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {schedMode === "schedule" && (!schedDate || !schedTime) && (
+                    <p className="col-span-2 text-xs text-muted-foreground">
+                      Pick a date and time, or switch back to “As soon as possible.”
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         </section>

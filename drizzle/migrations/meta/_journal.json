@@ -141,6 +141,13 @@
       "when": 1782464998713,
       "tag": "0019_secret_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "6",
+      "when": 1782471518045,
+      "tag": "0020_easy_blackheart",
+      "breakpoints": true
     }
   ]
 }

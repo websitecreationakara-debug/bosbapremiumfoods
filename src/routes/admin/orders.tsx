@@ -106,6 +106,11 @@ function OrdersAdmin() {
                       <MapPin className="size-3" /> View on map
                     </a>
                   )}
+                  {o.scheduled_at && (
+                    <div className="mt-1 inline-flex items-center gap-1 text-xs font-bold text-warning">
+                      🗓️ Scheduled: {o.scheduled_at.replace("T", " ")}
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">

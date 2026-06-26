@@ -113,6 +113,7 @@ export type Order = {
   tracking_url: string | null;
   promo_code: string | null;
   discount: number;
+  scheduled_at: string | null;
   total: number;
   created_at: string;
 };

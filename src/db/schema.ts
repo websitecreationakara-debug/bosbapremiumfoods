@@ -141,6 +141,8 @@ export const orders = sqliteTable("orders", {
   // Promo code applied at checkout and the dollar amount it took off, if any.
   promo_code: text("promo_code"),
   discount: real("discount").notNull().default(0),
+  // Optional customer-chosen delivery/pre-order time (datetime-local string). Null = ASAP.
+  scheduled_at: text("scheduled_at"),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
