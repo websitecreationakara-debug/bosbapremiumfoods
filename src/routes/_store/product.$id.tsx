@@ -1,13 +1,34 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { useStoreSettings, useProductVariations } from "@/hooks/use-products";
+import {
+  useStoreSettings,
+  useProductVariations,
+  useProducts,
+  useAllVariations,
+} from "@/hooks/use-products";
 import { getProduct } from "@/data/products";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
+import { ProductCard } from "@/components/product-card";
+import { productFromPrice, groupVariations } from "@/lib/variants";
 import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
+
+const RELATED_COUNT = 4;
+
+// Same-category products first (excluding this one), backfilled with other
+// published products so the row is never sparse. Selection is client-side off
+// the already-cached catalog — no extra fetch in practice.
+function relatedProducts(current: Product, all: Product[]): Product[] {
+  const pool = all.filter((p) => p.id !== current.id);
+  const sameCat = current.category_id
+    ? pool.filter((p) => p.category_id === current.category_id)
+    : [];
+  const rest = pool.filter((p) => !sameCat.includes(p));
+  return [...sameCat, ...rest].slice(0, RELATED_COUNT);
+}
 
 const SITE = "https://bosbapremiumfoods.com";
 
@@ -81,6 +102,8 @@ function ProductJsonLd({ product }: { product: Product }) {
 function ProductDetail() {
   const product = Route.useLoaderData();
   const { data: variations = [] } = useProductVariations(product?.id ?? "");
+  const { data: allProducts = [] } = useProducts();
+  const { data: allVariations = [] } = useAllVariations();
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
@@ -120,6 +143,9 @@ function ProductDetail() {
   const price = salePrice ?? basePrice;
   const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
   const addDisabled = (variable && !selected) || soldOut;
+
+  const related = relatedProducts(product, allProducts);
+  const variationsByProduct = groupVariations(allVariations);
 
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
@@ -291,6 +317,23 @@ function ProductDetail() {
           </div>
         </div>
       </div>
+
+      {related.length > 0 && (
+        <section className="mt-16 md:mt-20">
+          <h2 className="font-display font-semibold tracking-tight text-2xl md:text-3xl mb-6">
+            You might also like
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {related.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                fromPrice={productFromPrice(p, variationsByProduct.get(p.id) ?? [])}
+              />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
