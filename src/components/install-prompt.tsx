@@ -30,8 +30,20 @@ export function InstallPrompt() {
   useEffect(() => {
     if (isStandalone() || recentlyDismissed()) return;
 
-    // Android/Chromium: capture the install event so we can trigger it from our
-    // own button (one tap) instead of relying on the hidden browser menu.
+    const w = window as typeof window & { __bipEvent?: BeforeInstallPromptEvent | null };
+
+    // The install event may have already fired before hydration — it's stashed
+    // on window by the capture script in __root. Pick it up if it's there...
+    const adopt = () => {
+      if (w.__bipEvent) {
+        setDeferred(w.__bipEvent);
+        setVisible(true);
+      }
+    };
+    adopt();
+
+    // ...and listen for it firing later (or being re-captured).
+    window.addEventListener("bip-available", adopt);
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
@@ -44,6 +56,7 @@ export function InstallPrompt() {
       setDeferred(null);
     };
     window.addEventListener("appinstalled", onInstalled);
+    window.addEventListener("bip-installed", onInstalled);
 
     // iOS Safari never fires beforeinstallprompt — the only path is the manual
     // Share → Add to Home Screen, so we show a short instruction instead.
@@ -56,8 +69,10 @@ export function InstallPrompt() {
     }
 
     return () => {
+      window.removeEventListener("bip-available", adopt);
       window.removeEventListener("beforeinstallprompt", onPrompt);
       window.removeEventListener("appinstalled", onInstalled);
+      window.removeEventListener("bip-installed", onInstalled);
     };
   }, []);
 

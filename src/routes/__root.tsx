@@ -54,6 +54,24 @@ const TIKTOK_PIXEL = `!function (w, d, t) {
   ttq.page();
 }(window, document, 'ttq');`;
 
+// The browser fires `beforeinstallprompt` very early — often before React
+// hydrates and our InstallPrompt listener attaches, so the event is lost and no
+// banner shows. Capture it here (runs in <head>, before hydration) and stash it
+// on window for the component to pick up.
+const BIP_CAPTURE = `
+(function(){
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault();
+    window.__bipEvent = e;
+    window.dispatchEvent(new Event('bip-available'));
+  });
+  window.addEventListener('appinstalled', function(){
+    window.__bipEvent = null;
+    window.dispatchEvent(new Event('bip-installed'));
+  });
+})();
+`;
+
 function NotFoundComponent() {
   return (
     <div className="min-h-screen grid place-items-center p-6">
@@ -152,6 +170,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en" className="dark">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: BIP_CAPTURE }} />
         <script dangerouslySetInnerHTML={{ __html: TIKTOK_PIXEL }} />
         <script
           type="application/ld+json"
