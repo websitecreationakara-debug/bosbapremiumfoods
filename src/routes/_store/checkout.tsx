@@ -18,7 +18,7 @@ import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { MapPin, Check, Tag, X, Zap, CalendarClock } from "lucide-react";
+import { MapPin, Check, Tag, X, Zap, CalendarClock, Minus, Plus, Trash2 } from "lucide-react";
 
 // Half-hour delivery slots, 8:00 AM – 8:00 PM.
 const TIME_SLOTS = (() => {
@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_store/checkout")({
 });
 
 function Checkout() {
-  const { items, subtotal, clear } = useCart();
+  const { items, subtotal, clear, setQty, remove } = useCart();
   const { user } = useAuth();
   const { data: settings } = useStoreSettings();
   const navigate = useNavigate();
@@ -339,16 +339,49 @@ function Checkout() {
 
       <aside className="bg-muted rounded-2xl p-6 h-fit sticky top-28 space-y-4">
         <h2 className="font-display font-semibold text-lg">Order Summary</h2>
-        <div className="space-y-2 max-h-72 overflow-y-auto">
-          {items.map((item) => (
-            <div key={itemKey(item)} className="flex justify-between text-sm">
-              <span className="truncate pr-2">
-                {item.product.title}
-                {item.variation ? ` (${item.variation.weight})` : ""} × {item.qty}
-              </span>
-              <span className="font-bold">${(itemUnitPrice(item) * item.qty).toFixed(2)}</span>
-            </div>
-          ))}
+        <div className="space-y-3 max-h-80 overflow-y-auto">
+          {items.map((item) => {
+            const key = itemKey(item);
+            const unit = itemUnitPrice(item);
+            return (
+              <div key={key} className="flex items-center gap-2 text-sm">
+                <div className="flex-1 min-w-0">
+                  <p className="truncate font-medium">
+                    {item.product.title}
+                    {item.variation ? ` (${item.variation.weight})` : ""}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-0.5">${unit.toFixed(2)} each</p>
+                </div>
+                <div className="flex items-center gap-1 border rounded-full shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => setQty(key, item.qty - 1)}
+                    className="size-7 grid place-items-center hover:bg-background rounded-full"
+                  >
+                    <Minus className="size-3" />
+                  </button>
+                  <span className="text-xs font-semibold w-5 text-center">{item.qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => setQty(key, item.qty + 1)}
+                    className="size-7 grid place-items-center hover:bg-background rounded-full"
+                  >
+                    <Plus className="size-3" />
+                  </button>
+                </div>
+                <span className="font-bold w-16 text-right shrink-0">
+                  ${(unit * item.qty).toFixed(2)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => remove(key)}
+                  className="text-muted-foreground hover:text-destructive shrink-0"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </div>
+            );
+          })}
         </div>
         <div className="border-t pt-4">
           {applied ? (
