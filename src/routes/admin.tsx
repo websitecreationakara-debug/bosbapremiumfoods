@@ -109,29 +109,22 @@ function AdminLayout() {
           collapsed ? "w-20 p-3 items-center" : "w-64 p-6",
         )}
       >
-        <div className={cn("flex w-full items-center", collapsed ? "flex-col gap-3" : "justify-between gap-2")}>
-          <Link to="/" className="flex items-center gap-2 min-w-0" title="BOSBA Premium Foods">
-            <img
-              src="/logo.png"
-              alt="BOSBA Premium Foods"
-              className="size-9 rounded-lg object-contain shrink-0"
-            />
-            {!collapsed && (
-              <span className="font-display text-lg font-bold text-sidebar-foreground truncate">
-                BOSBA Premium Foods
-              </span>
-            )}
-          </Link>
-          <button
-            type="button"
-            onClick={toggleSidebar}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="grid size-8 shrink-0 place-items-center rounded-lg text-sidebar-foreground/70 hover:bg-sidebar-accent"
-          >
-            {collapsed ? <PanelLeftOpen className="size-4" /> : <PanelLeftClose className="size-4" />}
-          </button>
-        </div>
+        <Link
+          to="/"
+          title="BOSBA Premium Foods"
+          className={cn("flex items-center gap-2 min-w-0", collapsed && "justify-center")}
+        >
+          <img
+            src="/logo.png"
+            alt="BOSBA Premium Foods"
+            className="size-9 rounded-lg object-contain shrink-0"
+          />
+          {!collapsed && (
+            <span className="font-display text-lg font-bold text-sidebar-foreground truncate">
+              BOSBA Premium Foods
+            </span>
+          )}
+        </Link>
         <nav className="flex-1 w-full space-y-1">
           {visibleNav.map((n) => {
             const active = "exact" in n && n.exact ? path === n.to : path.startsWith(n.to);
@@ -163,17 +156,36 @@ function AdminLayout() {
             );
           })}
         </nav>
-        <Link
-          to="/"
-          title={collapsed ? "Back to storefront" : undefined}
-          className={cn(
-            "flex items-center text-xs text-sidebar-foreground/60 hover:text-sidebar-foreground",
-            collapsed ? "justify-center" : "gap-2",
-          )}
-        >
-          <ArrowLeft className="size-3.5 shrink-0" />
-          {!collapsed && "Back to storefront"}
-        </Link>
+        <div className="w-full space-y-1">
+          <button
+            type="button"
+            onClick={toggleSidebar}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            className={cn(
+              "flex w-full items-center rounded-lg text-xs font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent",
+              collapsed ? "justify-center p-2.5" : "gap-2 px-3 py-2.5",
+            )}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="size-4 shrink-0" />
+            ) : (
+              <PanelLeftClose className="size-4 shrink-0" />
+            )}
+            {!collapsed && "Collapse"}
+          </button>
+          <Link
+            to="/"
+            title={collapsed ? "Back to storefront" : undefined}
+            className={cn(
+              "flex items-center rounded-lg text-xs text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              collapsed ? "justify-center p-2.5" : "gap-2 px-3 py-2.5",
+            )}
+          >
+            <ArrowLeft className="size-3.5 shrink-0" />
+            {!collapsed && "Back to storefront"}
+          </Link>
+        </div>
       </aside>
       <main className="flex-1 bg-background p-8 overflow-x-auto">
         {salesBlocked || marketingBlocked ? (

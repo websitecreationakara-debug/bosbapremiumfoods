@@ -53,6 +53,10 @@ const slotMinutes = (t: string) => {
 // Minimum lead time before a same-day slot can be booked (so customers can't
 // pick a slot that's already passed, or one that's only minutes away).
 const LEAD_MINUTES = 30;
+
+// Temporarily hide the KHQR/COD payment selector until online payment goes live.
+// When false, every order is Cash on Delivery. Flip back to true to re-enable.
+const PAYMENT_METHODS_ENABLED = false;
 const localToday = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -400,6 +404,7 @@ function Checkout() {
           </div>
         </section>
 
+        {PAYMENT_METHODS_ENABLED && (
         <section className="space-y-4 bg-muted rounded-2xl p-6">
           <h2 className="font-display font-semibold text-lg">Payment Method</h2>
           <div className="grid sm:grid-cols-2 gap-3">
@@ -441,6 +446,7 @@ function Checkout() {
             ))}
           </div>
         </section>
+        )}
 
         <Button type="submit" disabled={submitting} size="lg" className="w-full rounded-full">
           {submitting
