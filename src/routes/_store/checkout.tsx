@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
@@ -46,6 +46,13 @@ const timeLabel = (t: string) => {
   const h12 = h % 12 === 0 ? 12 : h % 12;
   return `${h12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
 };
+const slotMinutes = (t: string) => {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+};
+// Minimum lead time before a same-day slot can be booked (so customers can't
+// pick a slot that's already passed, or one that's only minutes away).
+const LEAD_MINUTES = 30;
 const localToday = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -79,6 +86,23 @@ function Checkout() {
   const [payment, setPayment] = useState<"cod" | "khqr">("cod");
   const scheduledAt =
     schedMode === "schedule" && schedDate && schedTime ? `${schedDate}T${schedTime}` : null;
+
+  // For a same-day delivery, only offer slots at least LEAD_MINUTES from now so a
+  // customer can't schedule a time that's already passed. Future dates: all slots.
+  const isToday = schedDate === localToday();
+  const earliestToday = (() => {
+    const d = new Date();
+    return d.getHours() * 60 + d.getMinutes() + LEAD_MINUTES;
+  })();
+  const availableSlots = isToday
+    ? TIME_SLOTS.filter((t) => slotMinutes(t) >= earliestToday)
+    : TIME_SLOTS;
+
+  // If the day changes (or time passes) and the chosen slot is no longer valid,
+  // clear it so a stale past time can't be submitted.
+  useEffect(() => {
+    if (schedTime && !availableSlots.includes(schedTime)) setSchedTime("");
+  }, [schedTime, availableSlots]);
 
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
@@ -152,6 +176,12 @@ function Checkout() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
+    // Guard against a scheduled time that has already passed (e.g. the slot
+    // lapsed while the form sat open).
+    if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
+      toast.error("That delivery time has already passed — please pick a later time.");
+      return;
+    }
     setSubmitting(true);
     const orderItems = items.map((i) => ({
       id: i.variation?.id ?? i.product.id,
@@ -328,12 +358,16 @@ function Checkout() {
                   </div>
                   <div>
                     <Label className="text-xs text-muted-foreground">Time</Label>
-                    <Select value={schedTime} onValueChange={setSchedTime}>
+                    <Select
+                      value={schedTime}
+                      onValueChange={setSchedTime}
+                      disabled={!schedDate || availableSlots.length === 0}
+                    >
                       <SelectTrigger className="bg-background">
                         <SelectValue placeholder="Pick a time" />
                       </SelectTrigger>
                       <SelectContent className="max-h-60">
-                        {TIME_SLOTS.map((t) => (
+                        {availableSlots.map((t) => (
                           <SelectItem key={t} value={t}>
                             {timeLabel(t)}
                           </SelectItem>
@@ -341,10 +375,16 @@ function Checkout() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {schedMode === "schedule" && (!schedDate || !schedTime) && (
-                    <p className="col-span-2 text-xs text-muted-foreground">
-                      Pick a date and time, or switch back to “As soon as possible.”
+                  {isToday && availableSlots.length === 0 ? (
+                    <p className="col-span-2 text-xs text-destructive">
+                      No more delivery slots today — please choose another date.
                     </p>
+                  ) : (
+                    (!schedDate || !schedTime) && (
+                      <p className="col-span-2 text-xs text-muted-foreground">
+                        Pick a date and time, or switch back to “As soon as possible.”
+                      </p>
+                    )
                   )}
                 </div>
               )}
