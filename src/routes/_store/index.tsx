@@ -12,6 +12,7 @@ import {
 import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
+import { useAuth } from "@/hooks/use-auth";
 import { groupVariations, productFromPrice } from "@/lib/variants";
 
 export const Route = createFileRoute("/_store/")({
@@ -36,6 +37,7 @@ function Home() {
   const { data: promotions = [] } = usePromotions();
   const { data: settings } = useStoreSettings();
   const { data: variations = [] } = useAllVariations();
+  const { user } = useAuth();
   const { t } = useI18n();
   const variationsByProduct = groupVariations(variations);
   // Featured section is pinned to the Sashimi Sets' category (2 rows), so it
@@ -177,7 +179,7 @@ function Home() {
         </div>
       </section>
 
-      {/* CTA Banner — centered, soft fill */}
+      {/* CTA Banner — centered, soft fill. The Join button is hidden once logged in. */}
       <section className="mx-auto max-w-6xl px-6">
         <div className="rounded-3xl bg-muted px-6 py-20 md:py-28 text-center">
           <p className="text-sm font-medium uppercase tracking-widest text-brand mb-4">
@@ -187,12 +189,14 @@ function Home() {
             {t("cta.title")}
           </h3>
           <p className="text-lg text-muted-foreground mt-5 max-w-xl mx-auto">{t("cta.body")}</p>
-          <Link
-            to="/auth"
-            className="inline-flex mt-8 items-center gap-2 rounded-full bg-brand text-brand-foreground px-7 py-3 text-sm font-semibold hover:bg-secondary-accent transition-colors"
-          >
-            {t("cta.join")} <ArrowRight className="size-4" />
-          </Link>
+          {!user && (
+            <Link
+              to="/auth"
+              className="inline-flex mt-8 items-center gap-2 rounded-full bg-brand text-brand-foreground px-7 py-3 text-sm font-semibold hover:bg-secondary-accent transition-colors"
+            >
+              {t("cta.join")} <ArrowRight className="size-4" />
+            </Link>
+          )}
         </div>
       </section>
     </div>
