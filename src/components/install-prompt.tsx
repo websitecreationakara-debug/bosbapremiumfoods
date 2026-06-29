@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Download, X, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -11,6 +11,8 @@ type BeforeInstallPromptEvent = Event & {
 const DISMISS_KEY = "bosba:install-dismissed";
 // Re-offer after a while rather than never showing again.
 const DISMISS_DAYS = 14;
+// Small delay so the popup doesn't slam the customer the instant the page loads.
+const SHOW_DELAY_MS = 1500;
 
 const isStandalone = () =>
   window.matchMedia("(display-mode: standalone)").matches ||
@@ -26,9 +28,17 @@ export function InstallPrompt() {
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosHint, setIosHint] = useState(false);
   const [visible, setVisible] = useState(false);
+  const shownRef = useRef(false);
 
   useEffect(() => {
     if (isStandalone() || recentlyDismissed()) return;
+
+    // Reveal the popup once (after a short delay), whichever signal arrives first.
+    const reveal = () => {
+      if (shownRef.current) return;
+      shownRef.current = true;
+      setTimeout(() => setVisible(true), SHOW_DELAY_MS);
+    };
 
     const w = window as typeof window & { __bipEvent?: BeforeInstallPromptEvent | null };
 
@@ -37,7 +47,7 @@ export function InstallPrompt() {
     const adopt = () => {
       if (w.__bipEvent) {
         setDeferred(w.__bipEvent);
-        setVisible(true);
+        reveal();
       }
     };
     adopt();
@@ -47,7 +57,7 @@ export function InstallPrompt() {
     const onPrompt = (e: Event) => {
       e.preventDefault();
       setDeferred(e as BeforeInstallPromptEvent);
-      setVisible(true);
+      reveal();
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
 
@@ -65,7 +75,7 @@ export function InstallPrompt() {
     const isSafari = /safari/i.test(ua) && !/crios|fxios|edgios/i.test(ua);
     if (isIos && isSafari) {
       setIosHint(true);
-      setVisible(true);
+      reveal();
     }
 
     return () => {
@@ -92,37 +102,62 @@ export function InstallPrompt() {
   };
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-50 p-3 sm:p-4 pointer-events-none">
-      <div className="pointer-events-auto mx-auto flex max-w-md items-center gap-3 rounded-2xl border bg-card p-3 shadow-lg">
-        <img
-          src="/icons/icon-192.png"
-          alt=""
-          className="size-12 shrink-0 rounded-xl object-contain"
-        />
-        <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold leading-tight">Install the BOSBA app</p>
-          {iosHint ? (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Tap <Share className="inline size-3.5 -mt-0.5" /> Share, then “Add to Home Screen”.
-            </p>
-          ) : (
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Faster checkout, right from your home screen.
-            </p>
-          )}
-        </div>
-        {!iosHint && (
-          <Button size="sm" onClick={install} className="shrink-0 rounded-full gap-1.5">
-            <Download className="size-4" /> Install
-          </Button>
-        )}
+    <div
+      className="fixed inset-0 z-[60] grid place-items-center bg-black/50 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Install the BOSBA Premium Foods app"
+      onClick={dismiss}
+    >
+      <div
+        className="relative w-full max-w-sm rounded-3xl border bg-card p-6 text-center shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         <button
           onClick={dismiss}
-          aria-label="Dismiss"
-          className="shrink-0 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-muted"
+          aria-label="Close"
+          className="absolute right-3 top-3 grid size-8 place-items-center rounded-full text-muted-foreground hover:bg-muted"
         >
           <X className="size-4" />
         </button>
+
+        <img
+          src="/icons/icon-192.png"
+          alt="BOSBA Premium Foods"
+          className="mx-auto size-20 rounded-2xl object-contain shadow-sm"
+        />
+        <h2 className="mt-4 font-display text-xl font-semibold tracking-tight">
+          Install the BOSBA Premium Foods App
+        </h2>
+
+        {iosHint ? (
+          <>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Add us to your home screen for faster checkout and one-tap access.
+            </p>
+            <p className="mt-4 flex items-center justify-center gap-1.5 rounded-xl bg-muted px-3 py-2.5 text-sm font-medium">
+              Tap <Share className="inline size-4" /> Share, then “Add to Home Screen”
+            </p>
+            <Button onClick={dismiss} variant="outline" className="mt-4 w-full rounded-full">
+              Got it
+            </Button>
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Get faster checkout and one-tap access, right from your home screen.
+            </p>
+            <Button onClick={install} className="mt-5 w-full rounded-full gap-2">
+              <Download className="size-4" /> Install
+            </Button>
+            <button
+              onClick={dismiss}
+              className="mt-3 w-full text-sm text-muted-foreground hover:text-foreground"
+            >
+              Not now
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
