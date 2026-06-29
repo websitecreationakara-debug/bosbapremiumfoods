@@ -9,8 +9,8 @@ export function SiteFooter() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
-      <div className="mx-auto max-w-7xl px-6 py-16 grid grid-cols-1 md:grid-cols-4 gap-12">
-        <div className="space-y-4">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
+        <div className="col-span-2 md:col-span-1 space-y-4">
           <div className="flex items-center gap-2">
             <img
               src="/logo.png"
@@ -87,7 +87,7 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <div className="rounded-2xl bg-muted p-6">
             <h4 className="font-display font-semibold mb-2">{t("footer.followTitle")}</h4>
             <p className="text-xs text-muted-foreground">{t("footer.followSub")}</p>
@@ -138,9 +138,9 @@ export function SiteFooter() {
       </div>
 
       <div className="border-t border-border">
-        <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col md:flex-row justify-between gap-3 text-xs text-muted-foreground">
+        <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>© 2026 BOSBA Premium Foods</span>
-          <div className="flex gap-6">
+          <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
             <Link to="/privacy" className="hover:text-foreground transition-colors">
               {t("footer.privacy")}
             </Link>
