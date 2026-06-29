@@ -120,7 +120,7 @@ function AdminLayout() {
             className="size-9 rounded-lg object-contain shrink-0"
           />
           {!collapsed && (
-            <span className="font-display text-lg font-bold text-sidebar-foreground truncate">
+            <span className="font-display text-base font-bold leading-tight text-sidebar-foreground">
               BOSBA Premium Foods
             </span>
           )}

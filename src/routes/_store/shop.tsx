@@ -209,7 +209,9 @@ function Shop() {
       </div>
 
       <div className="grid lg:grid-cols-[240px_1fr] gap-8">
-        <aside className="hidden lg:block">{filterPanel}</aside>
+        <aside className="hidden lg:block self-start sticky top-24 max-h-[calc(100vh-7rem)] overflow-y-auto pr-1">
+          {filterPanel}
+        </aside>
 
         <div>
           <div className="flex items-center justify-between gap-2 mb-6">
