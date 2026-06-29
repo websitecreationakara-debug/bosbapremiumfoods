@@ -38,7 +38,17 @@ function Home() {
   const { data: variations = [] } = useAllVariations();
   const { t } = useI18n();
   const variationsByProduct = groupVariations(variations);
-  const featured = products.slice(0, 8);
+  // Featured section is pinned to the Sashimi Sets so it stays fixed as new
+  // products are added (rather than drifting to the newest items). Falls back to
+  // the newest products only if no sashimi sets are found.
+  const isSashimiSet = (title: string) => {
+    const t = title.toLowerCase();
+    return t.includes("sashimi set") || t.includes("sasimi set");
+  };
+  const sashimiSets = products
+    .filter((p) => isSashimiSet(p.title))
+    .sort((a, b) => a.title.localeCompare(b.title));
+  const featured = sashimiSets.length ? sashimiSets : products.slice(0, 8);
   const offerSections = promotions
     .map((promo) => ({ promo, items: products.filter((p) => p.promotion_id === promo.id) }))
     .filter((s) => s.items.length > 0);
