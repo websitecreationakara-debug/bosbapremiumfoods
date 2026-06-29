@@ -38,17 +38,25 @@ function Home() {
   const { data: variations = [] } = useAllVariations();
   const { t } = useI18n();
   const variationsByProduct = groupVariations(variations);
-  // Featured section is pinned to the Sashimi Sets so it stays fixed as new
-  // products are added (rather than drifting to the newest items). Falls back to
-  // the newest products only if no sashimi sets are found.
+  // Featured section is pinned to the Sashimi Sets' category (2 rows), so it
+  // stays fixed as new products are added rather than drifting to the newest
+  // items. The category is found dynamically from the Sashimi Set products, with
+  // those shown first. Falls back to the newest products if none are found.
   const isSashimiSet = (title: string) => {
     const t = title.toLowerCase();
     return t.includes("sashimi set") || t.includes("sasimi set");
   };
-  const sashimiSets = products
-    .filter((p) => isSashimiSet(p.title))
-    .sort((a, b) => a.title.localeCompare(b.title));
-  const featured = sashimiSets.length ? sashimiSets : products.slice(0, 8);
+  const sashimiCatId = products.find((p) => isSashimiSet(p.title))?.category_id ?? null;
+  const featuredPool = sashimiCatId
+    ? products.filter((p) => p.category_id === sashimiCatId)
+    : products;
+  const featured = [...featuredPool]
+    .sort(
+      (a, b) =>
+        Number(isSashimiSet(b.title)) - Number(isSashimiSet(a.title)) ||
+        a.title.localeCompare(b.title),
+    )
+    .slice(0, 8);
   const offerSections = promotions
     .map((promo) => ({ promo, items: products.filter((p) => p.promotion_id === promo.id) }))
     .filter((s) => s.items.length > 0);
