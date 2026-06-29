@@ -352,7 +352,15 @@ function Checkout() {
                       type="date"
                       min={localToday()}
                       value={schedDate}
-                      onChange={(e) => setSchedDate(e.target.value)}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        // Mobile pickers don't always enforce `min`; reject past dates here.
+                        if (v && v < localToday()) {
+                          toast.error("Please choose today or a later date.");
+                          return;
+                        }
+                        setSchedDate(v);
+                      }}
                       className="bg-background"
                     />
                   </div>
