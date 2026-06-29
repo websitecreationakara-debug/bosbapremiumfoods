@@ -141,9 +141,11 @@ export function SiteFooter() {
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col md:flex-row justify-between gap-3 text-xs text-muted-foreground">
           <span>© 2026 BOSBA Premium Foods</span>
           <div className="flex gap-6">
-            <a href="#">{t("footer.privacy")}</a>
+            <Link to="/privacy" className="hover:text-foreground transition-colors">
+              {t("footer.privacy")}
+            </Link>
             <a href="#">{t("footer.terms")}</a>
-            <a href="#">{t("footer.sitemap")}</a>
+            <a href="/sitemap.xml">{t("footer.sitemap")}</a>
           </div>
         </div>
       </div>

@@ -16,6 +16,7 @@ import { WishlistProvider } from "@/hooks/use-wishlist";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { LanguageProvider } from "@/lib/i18n";
 import { CartDrawer } from "@/components/cart-drawer";
+import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
@@ -105,7 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { title: "BOSBA Premium Foods" },
       { name: "description", content: "Provides High Premium Quality Foods From Japan" },
-      { name: "theme-color", content: "#000000" },
+      { name: "theme-color", content: "#28457a" },
       { name: "mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-status-bar-style", content: "default" },
@@ -220,6 +221,7 @@ function RootComponent() {
               <CartProvider>
                 <Outlet />
                 <CartDrawer />
+                <InstallPrompt />
                 <Toaster />
               </CartProvider>
             </WishlistProvider>

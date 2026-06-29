@@ -16,5 +16,8 @@ declare module "cloudflare:workers" {
     PPCBANK_BASE_URL?: string;
     PPCBANK_MERCHANT_ID?: string;
     PPCBANK_API_KEY?: string;
+    // Comma-separated SHA-256 signing fingerprints for the Play Store TWA app,
+    // served at /.well-known/assetlinks.json. From Play App Signing.
+    ANDROID_CERT_SHA256?: string;
   }
 }

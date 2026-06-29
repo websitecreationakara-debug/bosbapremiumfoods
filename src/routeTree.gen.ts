@@ -25,6 +25,7 @@ import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
+import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StoreOffersRouteImport } from './routes/_store/offers'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
@@ -110,6 +111,11 @@ const StoreShopRoute = StoreShopRouteImport.update({
   path: '/shop',
   getParentRoute: () => StoreRoute,
 } as any)
+const StorePrivacyRoute = StorePrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreOrdersRoute = StoreOrdersRouteImport.update({
   id: '/orders',
   path: '/orders',
@@ -143,6 +149,7 @@ export interface FileRoutesByFullPath {
   '/checkout': typeof StoreCheckoutRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
+  '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
@@ -163,6 +170,7 @@ export interface FileRoutesByTo {
   '/checkout': typeof StoreCheckoutRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
+  '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
@@ -187,6 +195,7 @@ export interface FileRoutesById {
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/offers': typeof StoreOffersRoute
   '/_store/orders': typeof StoreOrdersRoute
+  '/_store/privacy': typeof StorePrivacyRoute
   '/_store/shop': typeof StoreShopRoute
   '/_store/thank-you': typeof StoreThankYouRoute
   '/_store/wishlist': typeof StoreWishlistRoute
@@ -212,6 +221,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/offers'
     | '/orders'
+    | '/privacy'
     | '/shop'
     | '/thank-you'
     | '/wishlist'
@@ -232,6 +242,7 @@ export interface FileRouteTypes {
     | '/checkout'
     | '/offers'
     | '/orders'
+    | '/privacy'
     | '/shop'
     | '/thank-you'
     | '/wishlist'
@@ -255,6 +266,7 @@ export interface FileRouteTypes {
     | '/_store/checkout'
     | '/_store/offers'
     | '/_store/orders'
+    | '/_store/privacy'
     | '/_store/shop'
     | '/_store/thank-you'
     | '/_store/wishlist'
@@ -392,6 +404,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreShopRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/privacy': {
+      id: '/_store/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof StorePrivacyRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/orders': {
       id: '/_store/orders'
       path: '/orders'
@@ -434,6 +453,7 @@ interface StoreRouteChildren {
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreOffersRoute: typeof StoreOffersRoute
   StoreOrdersRoute: typeof StoreOrdersRoute
+  StorePrivacyRoute: typeof StorePrivacyRoute
   StoreShopRoute: typeof StoreShopRoute
   StoreThankYouRoute: typeof StoreThankYouRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
@@ -446,6 +466,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreOffersRoute: StoreOffersRoute,
   StoreOrdersRoute: StoreOrdersRoute,
+  StorePrivacyRoute: StorePrivacyRoute,
   StoreShopRoute: StoreShopRoute,
   StoreThankYouRoute: StoreThankYouRoute,
   StoreWishlistRoute: StoreWishlistRoute,

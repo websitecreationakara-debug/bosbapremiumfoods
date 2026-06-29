@@ -1,5 +1,6 @@
 import { createStart, createMiddleware, createCsrfMiddleware } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
+import { env } from "cloudflare:workers";
 import { eq } from "drizzle-orm";
 
 import { renderErrorPage } from "./lib/error-page";
@@ -82,6 +83,42 @@ const paymentMiddleware = createMiddleware().server(async ({ next }) => {
   return new Response("OK", { status: 200 });
 });
 
+// Digital Asset Links — proves the Play Store TWA app owns this domain so the
+// app runs fullscreen with no browser URL bar. The app's signing-key SHA-256
+// fingerprint(s) come from Play App Signing; set them as the comma-separated
+// ANDROID_CERT_SHA256 Worker var (no code change needed). Until set, this serves
+// an empty list, which is harmless.
+const ANDROID_PACKAGE = "com.bosbapremiumfoods.twa";
+const assetlinksMiddleware = createMiddleware().server(async ({ next }) => {
+  const request = getRequest();
+  if (new URL(request.url).pathname !== "/.well-known/assetlinks.json") return next();
+
+  const fingerprints = (env.ANDROID_CERT_SHA256 ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  const body = fingerprints.length
+    ? [
+        {
+          relation: ["delegate_permission/common.handle_all_urls"],
+          target: {
+            namespace: "android_app",
+            package_name: ANDROID_PACKAGE,
+            sha256_cert_fingerprints: fingerprints,
+          },
+        },
+      ]
+    : [];
+
+  return new Response(JSON.stringify(body), {
+    headers: {
+      "content-type": "application/json",
+      "cache-control": "public, max-age=3600",
+    },
+  });
+});
+
 // Dynamic sitemap built from published products + categories so search engines
 // always see current URLs. Cached for an hour at the edge.
 const sitemapMiddleware = createMiddleware().server(async ({ next }) => {
@@ -141,6 +178,7 @@ export const startInstance = createStart(() => ({
     authMiddleware,
     mediaMiddleware,
     paymentMiddleware,
+    assetlinksMiddleware,
     sitemapMiddleware,
   ],
 }));

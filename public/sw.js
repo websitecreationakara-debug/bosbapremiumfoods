@@ -1,4 +1,4 @@
-const CACHE = "bosba-v1";
+const CACHE = "bosba-v2";
 const ASSET_RE = /\/assets\//;
 
 self.addEventListener("install", () => self.skipWaiting());
