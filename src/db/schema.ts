@@ -143,6 +143,14 @@ export const orders = sqliteTable("orders", {
   discount: real("discount").notNull().default(0),
   // Optional customer-chosen delivery/pre-order time (datetime-local string). Null = ASAP.
   scheduled_at: text("scheduled_at"),
+  // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
+  payment_method: text("payment_method").notNull().default("cod"),
+  // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to
+  // paid only once the gateway confirms (webhook), which is when the store is notified.
+  payment_status: text("payment_status").notNull().default("unpaid"),
+  // Gateway transaction reference, used to match a payment callback to its order.
+  payment_ref: text("payment_ref"),
+  paid_at: text("paid_at"),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });

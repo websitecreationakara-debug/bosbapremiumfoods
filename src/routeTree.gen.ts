@@ -29,6 +29,7 @@ import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StoreOffersRouteImport } from './routes/_store/offers'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
+import { Route as StorePayIdRouteImport } from './routes/_store/pay.$id'
 
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
@@ -129,6 +130,11 @@ const StoreProductIdRoute = StoreProductIdRouteImport.update({
   path: '/product/$id',
   getParentRoute: () => StoreRoute,
 } as any)
+const StorePayIdRoute = StorePayIdRouteImport.update({
+  id: '/pay/$id',
+  path: '/pay/$id',
+  getParentRoute: () => StoreRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/pay/$id': typeof StorePayIdRoute
   '/product/$id': typeof StoreProductIdRoute
 }
 export interface FileRoutesByTo {
@@ -169,6 +176,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/pay/$id': typeof StorePayIdRoute
   '/product/$id': typeof StoreProductIdRoute
 }
 export interface FileRoutesById {
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_store/pay/$id': typeof StorePayIdRoute
   '/_store/product/$id': typeof StoreProductIdRoute
 }
 export interface FileRouteTypes {
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/'
+    | '/pay/$id'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/'
     | '/admin'
+    | '/pay/$id'
     | '/product/$id'
   id:
     | '__root__'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/_store/'
     | '/admin/'
+    | '/_store/pay/$id'
     | '/_store/product/$id'
   fileRoutesById: FileRoutesById
 }
@@ -408,6 +420,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreProductIdRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/pay/$id': {
+      id: '/_store/pay/$id'
+      path: '/pay/$id'
+      fullPath: '/pay/$id'
+      preLoaderRoute: typeof StorePayIdRouteImport
+      parentRoute: typeof StoreRoute
+    }
   }
 }
 
@@ -419,6 +438,7 @@ interface StoreRouteChildren {
   StoreThankYouRoute: typeof StoreThankYouRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  StorePayIdRoute: typeof StorePayIdRoute
   StoreProductIdRoute: typeof StoreProductIdRoute
 }
 
@@ -430,6 +450,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreThankYouRoute: StoreThankYouRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
+  StorePayIdRoute: StorePayIdRoute,
   StoreProductIdRoute: StoreProductIdRoute,
 }
 

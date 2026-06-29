@@ -34,6 +34,7 @@ type CreateOrderInput = {
   location_lng?: number | null;
   promo_code?: string | null;
   scheduled_at?: string | null;
+  payment_method?: string | null;
 };
 
 // Flat-rate shipping below the free-delivery threshold (kept in sync with the
@@ -44,6 +45,50 @@ const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,
   items: JSON.parse(row.items || "[]") as OrderItem[],
 });
+
+// Alert the store (Telegram + email) that a confirmed order is ready to fulfil.
+// Called immediately for COD, but deferred to the payment-confirmed path for
+// KHQR so the store is never pinged for an order that was never paid.
+async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderItem[]) {
+  await notifyNewOrder({
+    id: row.id,
+    total: row.total,
+    items,
+    customer_name: row.customer_name,
+    customer_email: row.customer_email,
+    customer_phone: row.customer_phone,
+    address: row.address,
+    city: row.city,
+    postal_code: row.postal_code,
+    location_lat: row.location_lat,
+    location_lng: row.location_lng,
+    scheduled_at: row.scheduled_at,
+  });
+}
+
+// Flip a KHQR order to paid and notify the store. Idempotent — a duplicate
+// webhook (or the mock confirm firing twice) is a no-op. Server-only; called
+// from the payment callback (src/start.ts) and the mock confirm (src/data/payments.ts).
+export async function markOrderPaid(orderId: string, ref?: string | null) {
+  const db = getDb();
+  const [row] = await db.select().from(orders).where(eq(orders.id, orderId));
+  if (!row) throw new Error("Order not found");
+  if (row.payment_status === "paid") return { ok: true, alreadyPaid: true };
+
+  await db
+    .update(orders)
+    .set({
+      payment_status: "paid",
+      paid_at: new Date().toISOString(),
+      payment_ref: ref ?? row.payment_ref,
+      // Awaiting-payment orders join the normal queue once paid.
+      status: row.status === "awaiting_payment" ? "pending" : row.status,
+    })
+    .where(eq(orders.id, orderId));
+
+  await notifyOrderPlaced(row, JSON.parse(row.items || "[]") as OrderItem[]);
+  return { ok: true, alreadyPaid: false };
+}
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireOrderViewer();
@@ -174,6 +219,10 @@ export const createOrder = createServerFn({ method: "POST" })
     const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
+    // KHQR orders wait in "awaiting_payment" until the gateway confirms; COD
+    // orders go straight into the fulfilment queue as "pending".
+    const method = data.payment_method === "khqr" ? "khqr" : "cod";
+
     const [row] = await db
       .insert(orders)
       .values({
@@ -181,7 +230,9 @@ export const createOrder = createServerFn({ method: "POST" })
         total,
         discount,
         promo_code: appliedCode,
-        status: "pending",
+        status: method === "khqr" ? "awaiting_payment" : "pending",
+        payment_method: method,
+        payment_status: "unpaid",
         items: JSON.stringify(items),
         customer_name: data.customer_name?.trim() || user?.name || null,
         customer_email: data.customer_email?.trim() || user?.email || null,
@@ -209,22 +260,11 @@ export const createOrder = createServerFn({ method: "POST" })
       }),
     );
 
-    await notifyNewOrder({
-      id: row.id,
-      total: row.total,
-      items,
-      customer_name: row.customer_name,
-      customer_email: row.customer_email,
-      customer_phone: row.customer_phone,
-      address: row.address,
-      city: row.city,
-      postal_code: row.postal_code,
-      location_lat: row.location_lat,
-      location_lng: row.location_lng,
-      scheduled_at: row.scheduled_at,
-    });
+    // COD: notify the store now. KHQR: hold the notification until payment is
+    // confirmed (markOrderPaid), so an unpaid online order never alerts the store.
+    if (method === "cod") await notifyOrderPlaced(row, items);
 
-    return { ok: true, id: row.id, total };
+    return { ok: true, id: row.id, total, payment_method: method };
   });
 
 export const listMyOrders = createServerFn({ method: "GET" }).handler(async () => {

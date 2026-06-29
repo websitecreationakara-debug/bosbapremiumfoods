@@ -5,8 +5,10 @@ import { eq } from "drizzle-orm";
 import { renderErrorPage } from "./lib/error-page";
 import { getAuth } from "./lib/auth";
 import { getDb } from "./db";
-import { media, products, categories } from "./db/schema";
+import { media, products, categories, orders } from "./db/schema";
 import { slugify } from "./lib/utils";
+import { verifyCallback } from "./lib/payment";
+import { markOrderPaid } from "./data/orders";
 
 const SITE = "https://bosbapremiumfoods.com";
 
@@ -50,6 +52,34 @@ const mediaMiddleware = createMiddleware().server(async ({ next }) => {
       "cache-control": "public, max-age=31536000, immutable",
     },
   });
+});
+
+// PPCBank posts here when a KHQR payment settles. We verify the signature, match
+// the gateway reference back to our order, and flip it to paid (which notifies the
+// store). In mock mode there is no real gateway, so this endpoint is inert — the
+// /pay screen confirms via the mockPay server fn instead.
+const paymentMiddleware = createMiddleware().server(async ({ next }) => {
+  const request = getRequest();
+  if (new URL(request.url).pathname !== "/api/payment/callback") return next();
+
+  if (!(await verifyCallback(request.clone()))) {
+    return new Response("Invalid signature", { status: 401 });
+  }
+
+  // TODO(PPCBank): map their callback payload's fields to ref + paid status per
+  // the integration guide. This assumes a JSON body { ref, status }.
+  const body = (await request.json().catch(() => null)) as {
+    ref?: string;
+    status?: string;
+  } | null;
+  if (!body?.ref || body.status !== "paid") {
+    return new Response("Ignored", { status: 200 });
+  }
+
+  const [order] = await getDb().select().from(orders).where(eq(orders.payment_ref, body.ref));
+  if (!order) return new Response("Order not found", { status: 404 });
+  await markOrderPaid(order.id, body.ref);
+  return new Response("OK", { status: 200 });
 });
 
 // Dynamic sitemap built from published products + categories so search engines
@@ -110,6 +140,7 @@ export const startInstance = createStart(() => ({
     csrfMiddleware,
     authMiddleware,
     mediaMiddleware,
+    paymentMiddleware,
     sitemapMiddleware,
   ],
 }));

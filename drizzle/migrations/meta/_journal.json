@@ -148,6 +148,13 @@
       "when": 1782471518045,
       "tag": "0020_easy_blackheart",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "6",
+      "when": 1782705315710,
+      "tag": "0021_living_fallen_one",
+      "breakpoints": true
     }
   ]
 }
