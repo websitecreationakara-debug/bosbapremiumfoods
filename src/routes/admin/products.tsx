@@ -58,7 +58,6 @@ const empty = {
   status: "published",
   image_url: "",
   badge: "",
-  rating: "4.5",
   weight: "",
   pcs: "",
   type: "simple",
@@ -193,7 +192,6 @@ function ProductsAdmin() {
       status: p.status,
       image_url: p.image_url ?? "",
       badge: p.badge ?? "",
-      rating: p.rating != null ? String(p.rating) : "",
       weight: p.weight ?? "",
       pcs: p.pcs != null ? String(p.pcs) : "",
       type: p.type,
@@ -244,7 +242,6 @@ function ProductsAdmin() {
       status: form.status,
       image_url: form.image_url || null,
       badge: form.badge || null,
-      rating: form.rating.trim() === "" ? null : Number(form.rating),
       weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
       pcs: variable || form.pcs.trim() === "" ? null : Number(form.pcs),
       type: form.type,
@@ -291,7 +288,6 @@ function ProductsAdmin() {
           status: "draft",
           image_url: p.image_url,
           badge: p.badge,
-          rating: p.rating,
           weight: p.weight,
           pcs: p.pcs,
           type: p.type,
@@ -737,18 +733,6 @@ function ProductsAdmin() {
                     <SelectItem value="ORGANIC">ORGANIC</SelectItem>
                   </SelectContent>
                 </Select>
-              </div>
-              <div>
-                <Label>Rating (0–5)</Label>
-                <Input
-                  type="number"
-                  step="0.1"
-                  min="0"
-                  max="5"
-                  placeholder="4.5"
-                  value={form.rating}
-                  onChange={(e) => setForm({ ...form, rating: e.target.value })}
-                />
               </div>
             </div>
 

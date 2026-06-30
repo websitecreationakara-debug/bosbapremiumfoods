@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate, Outlet, useRouterState } from "@tan
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/use-auth";
-import { usePendingOrderCount } from "@/hooks/use-products";
+import { usePendingOrderCount, usePendingReviewCount } from "@/hooks/use-products";
 import { playChime } from "@/lib/chime";
 import {
   LayoutDashboard,
@@ -14,6 +14,7 @@ import {
   Image,
   GalleryHorizontalEnd,
   Megaphone,
+  Star,
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
@@ -30,6 +31,7 @@ const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
   { to: "/admin/banners", label: "Hero Banner", icon: GalleryHorizontalEnd },
   { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/reviews", label: "Reviews", icon: Star },
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
@@ -44,6 +46,9 @@ function AdminLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isStaff);
+  const { data: pendingReviews = 0 } = usePendingReviewCount(
+    !loading && !!user && (isAdmin || isMarketing),
+  );
   const prevCount = useRef<number | null>(null);
 
   // Collapsed sidebar shows icons only. Persisted so it survives navigation/reload.
@@ -63,6 +68,7 @@ function AdminLayout() {
   // Marketing is scoped to the catalog/marketing sections.
   const marketingPaths = [
     "/admin/products",
+    "/admin/reviews",
     "/admin/marketing",
     "/admin/categories",
     "/admin/media",
@@ -128,7 +134,12 @@ function AdminLayout() {
         <nav className="flex-1 w-full space-y-1">
           {visibleNav.map((n) => {
             const active = "exact" in n && n.exact ? path === n.to : path.startsWith(n.to);
-            const badge = n.to === "/admin/orders" ? pendingCount : 0;
+            const badge =
+              n.to === "/admin/orders"
+                ? pendingCount
+                : n.to === "/admin/reviews"
+                  ? pendingReviews
+                  : 0;
             return (
               <Link
                 key={n.to}

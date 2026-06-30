@@ -1,19 +1,26 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import {
   useStoreSettings,
   useProductVariations,
   useProducts,
   useAllVariations,
+  useReviews,
+  useCanReview,
 } from "@/hooks/use-products";
 import { getProduct } from "@/data/products";
+import { createReview } from "@/data/reviews";
 import type { Product } from "@/lib/types";
+import { useAuth } from "@/hooks/use-auth";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
+import { Stars, StarInput } from "@/components/star-rating";
 import { productFromPrice, groupVariations } from "@/lib/variants";
-import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
+import { ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart, BadgeCheck } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
 
 const RELATED_COUNT = 4;
@@ -94,8 +101,183 @@ function ProductJsonLd({ product }: { product: Product }) {
       url: `${SITE}/product/${slugify(product.title) || product.id}`,
     };
   }
+  // Only emit aggregateRating once real reviews exist — never fabricate stars.
+  if (product.rating != null && product.review_count > 0) {
+    ld.aggregateRating = {
+      "@type": "AggregateRating",
+      ratingValue: product.rating,
+      reviewCount: product.review_count,
+    };
+  }
   return (
     <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }} />
+  );
+}
+
+function ReviewForm({ product }: { product: Product }) {
+  const qc = useQueryClient();
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (rating < 1) {
+      toast.error("Please pick a star rating.");
+      return;
+    }
+    if (!body.trim()) {
+      toast.error("Please write a few words about the product.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await createReview({
+        data: { productId: product.id, rating, title: title.trim() || null, body: body.trim() },
+      });
+      toast.success("Thanks! Your review is awaiting approval.");
+      await qc.invalidateQueries({ queryKey: ["can-review", product.id] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to submit review.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <form onSubmit={submit} className="rounded-2xl border bg-card p-5 md:p-6 space-y-4">
+      <div>
+        <span className="block text-sm font-semibold mb-2">Your rating</span>
+        <StarInput value={rating} onChange={setRating} />
+      </div>
+      <input
+        type="text"
+        value={title}
+        onChange={(e) => setTitle(e.target.value)}
+        maxLength={100}
+        placeholder="Add a headline (optional)"
+        className="w-full rounded-lg border bg-background px-3 py-2 text-sm"
+      />
+      <textarea
+        value={body}
+        onChange={(e) => setBody(e.target.value)}
+        maxLength={2000}
+        rows={4}
+        placeholder="What did you think? How was the quality, taste, and delivery?"
+        className="w-full rounded-lg border bg-background px-3 py-2 text-sm resize-y"
+      />
+      <Button type="submit" disabled={submitting} className="rounded-full font-bold">
+        {submitting ? "Submitting…" : "Submit review"}
+      </Button>
+    </form>
+  );
+}
+
+function ReviewFormArea({ product }: { product: Product }) {
+  const { user, loading: authLoading } = useAuth();
+  const { data: eligibility, isLoading } = useCanReview(product.id, !authLoading);
+
+  if (authLoading || isLoading) return null;
+
+  if (!user || eligibility?.reason === "not-logged-in") {
+    return (
+      <div className="rounded-2xl border bg-muted/40 p-5 text-sm text-muted-foreground">
+        <Link to="/auth" className="font-semibold text-brand hover:underline">
+          Sign in
+        </Link>{" "}
+        to leave a review. Only verified buyers can review.
+      </div>
+    );
+  }
+
+  if (eligibility?.reason === "already-reviewed") {
+    return (
+      <div className="rounded-2xl border bg-muted/40 p-5 text-sm text-muted-foreground">
+        {eligibility.existingStatus === "approved"
+          ? "Thanks — your review is published below."
+          : "Your review is awaiting approval. Thanks for your feedback!"}
+      </div>
+    );
+  }
+
+  if (eligibility?.reason === "not-purchased") {
+    return (
+      <div className="rounded-2xl border bg-muted/40 p-5 text-sm text-muted-foreground">
+        Only verified buyers can review this product. Once your order is placed, you can share your
+        experience here.
+      </div>
+    );
+  }
+
+  return <ReviewForm product={product} />;
+}
+
+function ReviewsSection({ product }: { product: Product }) {
+  const { data: reviews = [], isLoading } = useReviews(product.id);
+
+  return (
+    <section id="reviews" className="mt-16 md:mt-20 scroll-mt-24">
+      <h2 className="font-display font-semibold tracking-tight text-2xl md:text-3xl mb-6">
+        Customer Reviews
+      </h2>
+
+      <div className="grid md:grid-cols-[1fr_1.4fr] gap-6 md:gap-10 items-start">
+        <div className="space-y-4">
+          {product.review_count > 0 && product.rating != null ? (
+            <div className="rounded-2xl border bg-card p-5">
+              <div className="flex items-baseline gap-2">
+                <span className="font-display font-bold text-4xl">{product.rating.toFixed(1)}</span>
+                <span className="text-sm text-muted-foreground">out of 5</span>
+              </div>
+              <Stars value={product.rating} className="mt-2" />
+              <p className="text-sm text-muted-foreground mt-2">
+                Based on {product.review_count} review{product.review_count > 1 ? "s" : ""}
+              </p>
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No reviews yet. Be the first to share your experience.
+            </p>
+          )}
+          <ReviewFormArea product={product} />
+        </div>
+
+        <div className="space-y-4">
+          {isLoading ? (
+            <p className="text-sm text-muted-foreground">Loading reviews…</p>
+          ) : reviews.length === 0 ? (
+            <p className="text-sm text-muted-foreground">There are no published reviews yet.</p>
+          ) : (
+            reviews.map((r) => (
+              <article key={r.id} className="rounded-2xl border bg-card p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="font-semibold truncate">{r.author_name}</span>
+                    <span className="inline-flex items-center gap-1 text-xs text-success shrink-0">
+                      <BadgeCheck className="size-3.5" />
+                      Verified Purchase
+                    </span>
+                  </div>
+                  <time className="text-xs text-muted-foreground shrink-0">
+                    {new Date(r.created_at).toLocaleDateString(undefined, {
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                  </time>
+                </div>
+                <Stars value={r.rating} size="sm" className="mt-2" />
+                {r.title && <h3 className="font-semibold mt-2">{r.title}</h3>}
+                <p className="text-sm text-muted-foreground mt-1.5 leading-relaxed whitespace-pre-line">
+                  {r.body}
+                </p>
+              </article>
+            ))
+          )}
+        </div>
+      </div>
+    </section>
   );
 }
 
@@ -198,10 +380,19 @@ function ProductDetail() {
           </h1>
 
           <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Star className="size-4 fill-warning text-warning" />
-              {product.rating ?? 4.5}
-            </span>
+            {product.review_count > 0 && product.rating != null ? (
+              <a href="#reviews" className="inline-flex items-center gap-1.5 hover:text-foreground">
+                <Stars value={product.rating} size="sm" />
+                <span className="font-medium text-foreground">{product.rating.toFixed(1)}</span>
+                <span>
+                  ({product.review_count} review{product.review_count > 1 ? "s" : ""})
+                </span>
+              </a>
+            ) : (
+              <a href="#reviews" className="hover:text-foreground">
+                No reviews yet
+              </a>
+            )}
             <span className="opacity-50">·</span>
             {soldOut ? (
               <span className="text-destructive font-medium">Out of stock</span>
@@ -317,6 +508,8 @@ function ProductDetail() {
           </div>
         </div>
       </div>
+
+      <ReviewsSection product={product} />
 
       {related.length > 0 && (
         <section className="mt-16 md:mt-20">

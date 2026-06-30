@@ -5,6 +5,7 @@ import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
 import { getSettings } from "@/data/settings";
 import { countPendingOrders, listMyOrders } from "@/data/orders";
+import { listReviews, canReviewProduct, countPendingReviews } from "@/data/reviews";
 import type {
   Product,
   ProductVariation,
@@ -13,6 +14,7 @@ import type {
   Promotion,
   StoreSettings,
   Order,
+  Review,
 } from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
@@ -88,5 +90,30 @@ export function usePendingOrderCount(enabled: boolean) {
     enabled,
     refetchInterval: 30000,
     refetchIntervalInBackground: true,
+  });
+}
+
+export function useReviews(productId: string) {
+  return useQuery({
+    queryKey: ["reviews", productId],
+    queryFn: () => listReviews({ data: { productId } }) as Promise<Review[]>,
+    enabled: !!productId,
+  });
+}
+
+export function useCanReview(productId: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ["can-review", productId],
+    queryFn: () => canReviewProduct({ data: { productId } }),
+    enabled: enabled && !!productId,
+  });
+}
+
+export function usePendingReviewCount(enabled: boolean) {
+  return useQuery({
+    queryKey: ["reviews-pending-count"],
+    queryFn: () => countPendingReviews() as Promise<number>,
+    enabled,
+    refetchInterval: 60000,
   });
 }

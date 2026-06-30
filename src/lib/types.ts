@@ -9,7 +9,9 @@ export type Product = {
   status: string;
   image_url: string | null;
   badge: string | null;
+  // Cached average of approved reviews (null = none yet) and their count.
   rating: number | null;
+  review_count: number;
   weight: string | null;
   pcs: number | null;
   type: string;
@@ -119,6 +121,19 @@ export type Order = {
   payment_ref: string | null;
   paid_at: string | null;
   total: number;
+  created_at: string;
+};
+
+export type Review = {
+  id: string;
+  product_id: string;
+  user_id: string;
+  order_id: string | null;
+  author_name: string;
+  rating: number;
+  title: string | null;
+  body: string;
+  status: string;
   created_at: string;
 };
 

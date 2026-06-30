@@ -63,7 +63,11 @@ export const products = sqliteTable("products", {
   status: text("status").notNull().default("published"),
   image_url: text("image_url"),
   badge: text("badge"),
-  rating: real("rating").default(4.5),
+  // Cached average of approved reviews (null = no reviews yet) and their count.
+  // Denormalized so the shop grid + sort read ratings without aggregating per
+  // product; recomputed on review approve/reject/delete (see src/data/reviews.ts).
+  rating: real("rating"),
+  review_count: integer("review_count").notNull().default(0),
   weight: text("weight"),
   // Pieces per box/package, when the product is sold by count. Null = N/A.
   pcs: integer("pcs"),
@@ -161,6 +165,30 @@ export const store_settings = sqliteTable("store_settings", {
   global_discount_pct: real("global_discount_pct").default(0),
   free_shipping_threshold: real("free_shipping_threshold").default(30),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
+});
+
+// Customer product reviews. Only verified buyers can submit (enforced in
+// src/data/reviews.ts), and a review stays "pending" until a manager approves
+// it — only approved reviews are shown and counted toward products.rating.
+export const reviews = sqliteTable("reviews", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  user_id: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // The order that proves the purchase, kept for audit. Null if that order is
+  // later deleted (the review itself stays).
+  order_id: text("order_id"),
+  // Snapshot of the reviewer's name at submit time so rendering needs no join.
+  author_name: text("author_name").notNull(),
+  rating: integer("rating").notNull(),
+  title: text("title"),
+  body: text("body").notNull(),
+  // "pending" | "approved" | "rejected"
+  status: text("status").notNull().default("pending"),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
 // ---------- better-auth tables ----------
