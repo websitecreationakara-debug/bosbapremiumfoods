@@ -243,7 +243,7 @@ function Checkout() {
     // KHQR orders aren't confirmed yet — send the customer to pay first; the pay
     // screen advances to /thank-you once payment lands. COD is done immediately.
     if (res.payment_method === "khqr") {
-      navigate({ to: "/pay/$id", params: { id: res.id } });
+      navigate({ to: "/pay/$id", params: { id: res.id }, search: { ret: false, failed: false } });
     } else {
       navigate({ to: "/thank-you" });
     }
@@ -405,47 +405,47 @@ function Checkout() {
         </section>
 
         {PAYMENT_METHODS_ENABLED && (
-        <section className="space-y-4 bg-muted rounded-2xl p-6">
-          <h2 className="font-display font-semibold text-lg">Payment Method</h2>
-          <div className="grid sm:grid-cols-2 gap-3">
-            {(
-              [
-                {
-                  key: "cod",
-                  label: "Cash on Delivery",
-                  desc: "Pay with cash when your order arrives.",
-                  icon: Banknote,
-                },
-                {
-                  key: "khqr",
-                  label: "KHQR",
-                  desc: "Scan & pay now with any bank app.",
-                  icon: QrCode,
-                },
-              ] as const
-            ).map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setPayment(opt.key)}
-                className={cn(
-                  "flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
-                  payment === opt.key
-                    ? "border-brand bg-brand/10"
-                    : "border-border hover:bg-background",
-                )}
-              >
-                <opt.icon
-                  className={cn("size-5 mt-0.5 shrink-0", payment === opt.key && "text-brand")}
-                />
-                <span>
-                  <span className="block text-sm font-medium">{opt.label}</span>
-                  <span className="block text-xs text-muted-foreground mt-0.5">{opt.desc}</span>
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
+          <section className="space-y-4 bg-muted rounded-2xl p-6">
+            <h2 className="font-display font-semibold text-lg">Payment Method</h2>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {(
+                [
+                  {
+                    key: "cod",
+                    label: "Cash on Delivery",
+                    desc: "Pay with cash when your order arrives.",
+                    icon: Banknote,
+                  },
+                  {
+                    key: "khqr",
+                    label: "KHQR",
+                    desc: "Scan & pay now with any bank app.",
+                    icon: QrCode,
+                  },
+                ] as const
+              ).map((opt) => (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setPayment(opt.key)}
+                  className={cn(
+                    "flex items-start gap-3 rounded-xl border px-4 py-3 text-left transition-colors",
+                    payment === opt.key
+                      ? "border-brand bg-brand/10"
+                      : "border-border hover:bg-background",
+                  )}
+                >
+                  <opt.icon
+                    className={cn("size-5 mt-0.5 shrink-0", payment === opt.key && "text-brand")}
+                  />
+                  <span>
+                    <span className="block text-sm font-medium">{opt.label}</span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">{opt.desc}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </section>
         )}
 
         <Button type="submit" disabled={submitting} size="lg" className="w-full rounded-full">
