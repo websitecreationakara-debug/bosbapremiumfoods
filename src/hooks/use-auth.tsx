@@ -1,5 +1,6 @@
 import { createContext, useContext, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
+import { withCaptcha } from "@/lib/recaptcha";
 
 type AuthUser = {
   id: string;
@@ -44,12 +45,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     : null;
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const { error } = await authClient.signIn.email({ email, password });
+    const { error } = await authClient.signIn.email({
+      email,
+      password,
+      ...(await withCaptcha("sign_in")),
+    });
     return { error: error?.message ?? null };
   };
 
   const signUp: AuthCtx["signUp"] = async (email, password, fullName) => {
-    const { error } = await authClient.signUp.email({ email, password, name: fullName });
+    const { error } = await authClient.signUp.email({
+      email,
+      password,
+      name: fullName,
+      ...(await withCaptcha("sign_up")),
+    });
     return { error: error?.message ?? null };
   };
 
@@ -72,7 +82,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const requestPasswordReset: AuthCtx["requestPasswordReset"] = async (email) => {
-    const { error } = await authClient.emailOtp.requestPasswordReset({ email });
+    const { error } = await authClient.emailOtp.requestPasswordReset({
+      email,
+      ...(await withCaptcha("password_reset")),
+    });
     return { error: error?.message ?? null };
   };
 

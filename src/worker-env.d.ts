@@ -19,5 +19,13 @@ declare module "cloudflare:workers" {
     // Comma-separated SHA-256 signing fingerprints for the Play Store TWA app,
     // served at /.well-known/assetlinks.json. From Play App Signing.
     ANDROID_CERT_SHA256?: string;
+    // Google reCAPTCHA v3 server secret. When unset, the captcha plugin is not
+    // registered (see src/lib/auth.ts). Pair with VITE_RECAPTCHA_SITE_KEY.
+    RECAPTCHA_SECRET_KEY?: string;
   }
+}
+
+interface ImportMetaEnv {
+  // Public reCAPTCHA v3 site key, inlined into the client bundle at build time.
+  readonly VITE_RECAPTCHA_SITE_KEY?: string;
 }

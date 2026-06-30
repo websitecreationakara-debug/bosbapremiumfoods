@@ -1,6 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, emailOTP } from "better-auth/plugins";
+import { admin, captcha, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
@@ -79,6 +79,20 @@ export function getAuth() {
         : undefined,
     plugins: [
       admin(),
+      // Google reCAPTCHA v3 on sign-up, sign-in, and password-reset requests.
+      // Only active when the secret is configured — otherwise auth runs without
+      // a captcha (the client also skips the token when no site key is set).
+      // Default endpoints cover /sign-up/email, /sign-in/email, and (via substring
+      // match) /email-otp/request-password-reset.
+      ...(env.RECAPTCHA_SECRET_KEY
+        ? [
+            captcha({
+              provider: "google-recaptcha",
+              secretKey: env.RECAPTCHA_SECRET_KEY,
+              minScore: 0.5,
+            }),
+          ]
+        : []),
       emailOTP({
         otpLength: 6,
         expiresIn: 600,
