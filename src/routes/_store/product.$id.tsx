@@ -509,8 +509,6 @@ function ProductDetail() {
         </div>
       </div>
 
-      <ReviewsSection product={product} />
-
       {related.length > 0 && (
         <section className="mt-16 md:mt-20">
           <h2 className="font-display font-semibold tracking-tight text-2xl md:text-3xl mb-6">
@@ -527,6 +525,8 @@ function ProductDetail() {
           </div>
         </section>
       )}
+
+      <ReviewsSection product={product} />
     </div>
   );
 }
