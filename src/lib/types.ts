@@ -122,6 +122,20 @@ export type Order = {
   created_at: string;
 };
 
+export type Address = {
+  id: string;
+  user_id: string;
+  label: string | null;
+  recipient_name: string | null;
+  phone: string | null;
+  address: string;
+  city: string | null;
+  location_lat: number | null;
+  location_lng: number | null;
+  is_default: boolean;
+  created_at: string;
+};
+
 export type StoreSettings = {
   id: string;
   banner_text: string | null;

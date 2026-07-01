@@ -1,7 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useCart, itemKey, itemUnitPrice } from "@/hooks/use-cart";
 import { useAuth } from "@/hooks/use-auth";
-import { useStoreSettings } from "@/hooks/use-products";
+import { useStoreSettings, useMyAddresses } from "@/hooks/use-products";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Address } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
+import { saveAddress } from "@/data/addresses";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
@@ -69,6 +72,8 @@ export const Route = createFileRoute("/_store/checkout")({
 function Checkout() {
   const { items, subtotal, clear, setQty, remove } = useCart();
   const { user } = useAuth();
+  const { data: addresses = [] } = useMyAddresses(!!user);
+  const qc = useQueryClient();
   const { data: settings } = useStoreSettings();
   const navigate = useNavigate();
   const [submitting, setSubmitting] = useState(false);
@@ -88,6 +93,9 @@ function Checkout() {
   const [schedDate, setSchedDate] = useState("");
   const [schedTime, setSchedTime] = useState("");
   const [payment, setPayment] = useState<"cod" | "khqr">("cod");
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+  const [saveNewAddress, setSaveNewAddress] = useState(false);
+  const appliedDefault = useRef(false);
   const scheduledAt =
     schedMode === "schedule" && schedDate && schedTime ? `${schedDate}T${schedTime}` : null;
 
@@ -107,6 +115,38 @@ function Checkout() {
   useEffect(() => {
     if (schedTime && !availableSlots.includes(schedTime)) setSchedTime("");
   }, [schedTime, availableSlots]);
+
+  const applyAddress = (a: Address) => {
+    if (nameRef.current) nameRef.current.value = a.recipient_name || user?.name || "";
+    if (phoneRef.current) phoneRef.current.value = a.phone || "";
+    if (addressRef.current) addressRef.current.value = a.address || "";
+    if (cityRef.current) cityRef.current.value = a.city || "";
+    setCoords(
+      a.location_lat != null && a.location_lng != null
+        ? { lat: a.location_lat, lng: a.location_lng }
+        : null,
+    );
+  };
+  const clearAddressFields = () => {
+    if (phoneRef.current) phoneRef.current.value = "";
+    if (addressRef.current) addressRef.current.value = "";
+    if (cityRef.current) cityRef.current.value = "";
+    setCoords(null);
+  };
+
+  // Pre-fill the form once with the customer's default saved address on load.
+  useEffect(() => {
+    if (appliedDefault.current || !user || addresses.length === 0) return;
+    appliedDefault.current = true;
+    const a = addresses.find((x) => x.is_default) ?? addresses[0];
+    setSelectedAddressId(a.id);
+    if (nameRef.current) nameRef.current.value = a.recipient_name || user.name || "";
+    if (phoneRef.current) phoneRef.current.value = a.phone || "";
+    if (addressRef.current) addressRef.current.value = a.address || "";
+    if (cityRef.current) cityRef.current.value = a.city || "";
+    if (a.location_lat != null && a.location_lng != null)
+      setCoords({ lat: a.location_lat, lng: a.location_lng });
+  }, [user, addresses]);
 
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
@@ -218,6 +258,25 @@ function Checkout() {
       return;
     }
     setSubmitting(false);
+    // Persist a newly typed address to the customer's address book if they opted in.
+    if (user && selectedAddressId === null && saveNewAddress) {
+      try {
+        await saveAddress({
+          data: {
+            recipient_name: customerName,
+            phone: phoneRef.current?.value ?? "",
+            address: addressRef.current?.value ?? "",
+            city: cityRef.current?.value ?? "",
+            location_lat: coords?.lat ?? null,
+            location_lng: coords?.lng ?? null,
+            is_default: addresses.length === 0,
+          },
+        });
+        qc.invalidateQueries({ queryKey: ["my-addresses"] });
+      } catch {
+        // Non-fatal: the order is already placed; saving the address is a convenience.
+      }
+    }
     try {
       sessionStorage.setItem(
         "bosba:last-order",
@@ -267,6 +326,47 @@ function Checkout() {
 
         <section className="space-y-4 bg-muted rounded-2xl p-6">
           <h2 className="font-display font-semibold text-lg">Delivery Details</h2>
+          {user && addresses.length > 0 && (
+            <div className="space-y-2">
+              <Label>Saved addresses</Label>
+              <div className="flex flex-wrap gap-2">
+                {addresses.map((a) => (
+                  <button
+                    key={a.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedAddressId(a.id);
+                      applyAddress(a);
+                    }}
+                    className={cn(
+                      "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                      selectedAddressId === a.id
+                        ? "border-brand bg-brand/10 text-brand"
+                        : "border-border hover:bg-background",
+                    )}
+                  >
+                    {a.label || a.address.slice(0, 24)}
+                    {a.is_default ? " · Default" : ""}
+                  </button>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedAddressId(null);
+                    clearAddressFields();
+                  }}
+                  className={cn(
+                    "rounded-full border px-3 py-1.5 text-sm transition-colors",
+                    selectedAddressId === null
+                      ? "border-brand bg-brand/10 text-brand"
+                      : "border-border hover:bg-background",
+                  )}
+                >
+                  + New address
+                </button>
+              </div>
+            </div>
+          )}
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <Label>Full name</Label>
@@ -322,6 +422,17 @@ function Checkout() {
               <Label>City</Label>
               <Input ref={cityRef} required />
             </div>
+            {user && selectedAddressId === null && (
+              <label className="sm:col-span-2 flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={saveNewAddress}
+                  onChange={(e) => setSaveNewAddress(e.target.checked)}
+                  className="size-4 rounded border-border accent-brand"
+                />
+                Save this address to my address book
+              </label>
+            )}
             <div className="sm:col-span-2">
               <Label>Delivery time</Label>
               <div className="mt-1.5 grid grid-cols-2 gap-2">

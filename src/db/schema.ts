@@ -155,6 +155,27 @@ export const orders = sqliteTable("orders", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
+// Saved delivery addresses for logged-in customers (address book), so repeat
+// buyers don't re-type at checkout. Fields mirror the delivery block captured on
+// orders. Every row belongs to a user — guests never create these. Exactly one
+// address per user is the default (invariant maintained in src/data/addresses.ts).
+export const addresses = sqliteTable("addresses", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  user_id: text("user_id")
+    .notNull()
+    .references(() => user.id, { onDelete: "cascade" }),
+  // Optional short name for the address, e.g. "Home", "Office".
+  label: text("label"),
+  recipient_name: text("recipient_name"),
+  phone: text("phone"),
+  address: text("address").notNull(),
+  city: text("city"),
+  location_lat: real("location_lat"),
+  location_lng: real("location_lng"),
+  is_default: integer("is_default", { mode: "boolean" }).notNull().default(false),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const store_settings = sqliteTable("store_settings", {
   id: text("id").primaryKey().$defaultFn(uuid),
   banner_text: text("banner_text"),

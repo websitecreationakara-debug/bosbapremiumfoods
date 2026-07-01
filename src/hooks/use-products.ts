@@ -5,6 +5,7 @@ import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
 import { getSettings } from "@/data/settings";
 import { countPendingOrders, listMyOrders } from "@/data/orders";
+import { listMyAddresses } from "@/data/addresses";
 import type {
   Product,
   ProductVariation,
@@ -13,6 +14,7 @@ import type {
   Promotion,
   StoreSettings,
   Order,
+  Address,
 } from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
@@ -77,6 +79,14 @@ export function useMyOrders(enabled: boolean) {
   return useQuery({
     queryKey: ["my-orders"],
     queryFn: () => listMyOrders() as Promise<Order[]>,
+    enabled,
+  });
+}
+
+export function useMyAddresses(enabled: boolean) {
+  return useQuery({
+    queryKey: ["my-addresses"],
+    queryFn: () => listMyAddresses() as Promise<Address[]>,
     enabled,
   });
 }
