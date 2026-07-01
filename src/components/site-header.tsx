@@ -136,6 +136,11 @@ export function SiteHeader() {
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem asChild>
+                      <Link to="/account">
+                        <User className="size-4 mr-2" /> {t("nav.account")}
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
                       <Link to="/orders">
                         <Package className="size-4 mr-2" /> {t("nav.myOrders")}
                       </Link>
@@ -282,6 +287,14 @@ export function SiteHeader() {
               </SheetClose>
               {user ? (
                 <>
+                  <SheetClose asChild>
+                    <Link
+                      to="/account"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                      <User className="size-4" /> {t("nav.account")}
+                    </Link>
+                  </SheetClose>
                   <SheetClose asChild>
                     <Link
                       to="/orders"

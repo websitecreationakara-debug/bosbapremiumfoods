@@ -25,6 +25,7 @@ const en = {
   "nav.adminDashboard": "Admin Dashboard",
   "nav.myOrders": "My Orders",
   "nav.myAddresses": "My Addresses",
+  "nav.account": "Account",
   "nav.signOut": "Sign out",
   "nav.cart": "Cart",
   // home
@@ -118,6 +119,7 @@ const km: Dict = {
   "nav.adminDashboard": "ផ្ទាំងគ្រប់គ្រង",
   "nav.myOrders": "ការបញ្ជាទិញរបស់ខ្ញុំ",
   "nav.myAddresses": "អាសយដ្ឋានរបស់ខ្ញុំ",
+  "nav.account": "គណនី",
   "nav.signOut": "ចាកចេញ",
   "nav.cart": "កន្ត្រក",
   "home.premiumSelection": "ការជ្រើសរើសពិសេសរបស់យើង",
@@ -203,6 +205,7 @@ const ja: Dict = {
   "nav.adminDashboard": "管理ダッシュボード",
   "nav.myOrders": "注文履歴",
   "nav.myAddresses": "住所帳",
+  "nav.account": "アカウント",
   "nav.signOut": "ログアウト",
   "nav.cart": "カート",
   "home.premiumSelection": "プレミアムセレクション",
