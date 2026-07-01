@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { MapPin, Plus, Pencil, Trash2, Star, User } from "lucide-react";
+import { MapPin, Plus, Pencil, Trash2, Star, User, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,13 +21,26 @@ import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/addresses")({ component: MyAddresses });
 
-const emptyForm = {
+type AddressForm = {
+  label: string;
+  recipient_name: string;
+  phone: string;
+  address: string;
+  city: string;
+  is_default: boolean;
+  location_lat: number | null;
+  location_lng: number | null;
+};
+
+const emptyForm: AddressForm = {
   label: "",
   recipient_name: "",
   phone: "",
   address: "",
   city: "",
   is_default: false,
+  location_lat: null,
+  location_lng: null,
 };
 
 function MyAddresses() {
@@ -35,8 +48,9 @@ function MyAddresses() {
   const { user, loading: authLoading } = useAuth();
   const { data: addresses = [], isLoading } = useMyAddresses(!!user);
   const [editing, setEditing] = useState<Address | "new" | null>(null);
-  const [form, setForm] = useState(emptyForm);
+  const [form, setForm] = useState<AddressForm>(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   const invalidate = () => qc.invalidateQueries({ queryKey: ["my-addresses"] });
 
@@ -52,6 +66,8 @@ function MyAddresses() {
       address: a.address ?? "",
       city: a.city ?? "",
       is_default: a.is_default,
+      location_lat: a.location_lat,
+      location_lng: a.location_lng,
     });
     setEditing(a);
   };
@@ -96,6 +112,49 @@ function MyAddresses() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Couldn't remove address");
     }
+  };
+
+  const captureLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Location isn't supported on this device.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        try {
+          const res = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
+          );
+          const data = await res.json();
+          const addr = data?.address ?? {};
+          const city = addr.city || addr.town || addr.village || addr.suburb || addr.county;
+          setForm((f) => ({
+            ...f,
+            location_lat: lat,
+            location_lng: lng,
+            address: data?.display_name || f.address,
+            city: f.city || city || f.city,
+          }));
+        } catch {
+          // Geocoding failed — keep the coordinates; the typed address stands.
+          setForm((f) => ({ ...f, location_lat: lat, location_lng: lng }));
+        }
+        setLocating(false);
+        toast.success("Location pinned — address filled in!");
+      },
+      (err) => {
+        setLocating(false);
+        toast.error(
+          err.code === err.PERMISSION_DENIED
+            ? "Location permission denied — you can still type your address."
+            : "Couldn't get your location. Please try again.",
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000 },
+    );
   };
 
   if (authLoading) {
@@ -179,6 +238,16 @@ function MyAddresses() {
                   {a.phone && <p className="text-sm text-muted-foreground">{a.phone}</p>}
                   <p className="text-sm mt-2">{a.address}</p>
                   {a.city && <p className="text-sm text-muted-foreground">{a.city}</p>}
+                  {a.location_lat != null && a.location_lng != null && (
+                    <a
+                      href={`https://www.google.com/maps?q=${a.location_lat},${a.location_lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-brand hover:underline"
+                    >
+                      <MapPin className="size-3.5" /> View pinned location
+                    </a>
+                  )}
                 </div>
               </div>
               <div className="mt-4 border-t pt-4 flex items-center gap-2 flex-wrap">
@@ -249,12 +318,35 @@ function MyAddresses() {
               </div>
               <div className="sm:col-span-2">
                 <Label>Address</Label>
-                <Input
-                  required
-                  value={form.address}
-                  onChange={(e) => setForm({ ...form, address: e.target.value })}
-                  placeholder="123 Phnom Penh"
-                />
+                <div className="flex gap-2">
+                  <Input
+                    required
+                    value={form.address}
+                    onChange={(e) => setForm({ ...form, address: e.target.value })}
+                    placeholder="123 Phnom Penh"
+                    className="flex-1 min-w-0"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={captureLocation}
+                    disabled={locating}
+                    className="shrink-0 gap-2"
+                  >
+                    <MapPin className="size-4" />
+                    {locating ? "Locating…" : form.location_lat != null ? "Pinned" : "Pin location"}
+                  </Button>
+                </div>
+                {form.location_lat != null && (
+                  <a
+                    href={`https://www.google.com/maps?q=${form.location_lat},${form.location_lng}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                  >
+                    <Check className="size-4" /> Location pinned — view on map
+                  </a>
+                )}
               </div>
               <div className="sm:col-span-2">
                 <Label>City</Label>
