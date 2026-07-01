@@ -29,6 +29,7 @@ import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StoreOffersRouteImport } from './routes/_store/offers'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
+import { Route as StoreAddressesRouteImport } from './routes/_store/addresses'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
 import { Route as StorePayIdRouteImport } from './routes/_store/pay.$id'
 
@@ -131,6 +132,11 @@ const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
   path: '/checkout',
   getParentRoute: () => StoreRoute,
 } as any)
+const StoreAddressesRoute = StoreAddressesRouteImport.update({
+  id: '/addresses',
+  path: '/addresses',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StoreProductIdRoute = StoreProductIdRouteImport.update({
   id: '/product/$id',
   path: '/product/$id',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
@@ -192,6 +200,7 @@ export interface FileRoutesById {
   '/_store': typeof StoreRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/_store/addresses': typeof StoreAddressesRoute
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/offers': typeof StoreOffersRoute
   '/_store/orders': typeof StoreOrdersRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/addresses'
     | '/checkout'
     | '/offers'
     | '/orders'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/addresses'
     | '/checkout'
     | '/offers'
     | '/orders'
@@ -263,6 +274,7 @@ export interface FileRouteTypes {
     | '/_store'
     | '/admin'
     | '/auth'
+    | '/_store/addresses'
     | '/_store/checkout'
     | '/_store/offers'
     | '/_store/orders'
@@ -432,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreCheckoutRouteImport
       parentRoute: typeof StoreRoute
     }
+    '/_store/addresses': {
+      id: '/_store/addresses'
+      path: '/addresses'
+      fullPath: '/addresses'
+      preLoaderRoute: typeof StoreAddressesRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/product/$id': {
       id: '/_store/product/$id'
       path: '/product/$id'
@@ -450,6 +469,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface StoreRouteChildren {
+  StoreAddressesRoute: typeof StoreAddressesRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreOffersRoute: typeof StoreOffersRoute
   StoreOrdersRoute: typeof StoreOrdersRoute
@@ -463,6 +483,7 @@ interface StoreRouteChildren {
 }
 
 const StoreRouteChildren: StoreRouteChildren = {
+  StoreAddressesRoute: StoreAddressesRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreOffersRoute: StoreOffersRoute,
   StoreOrdersRoute: StoreOrdersRoute,

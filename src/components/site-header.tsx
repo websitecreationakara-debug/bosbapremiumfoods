@@ -140,6 +140,11 @@ export function SiteHeader() {
                         <Package className="size-4 mr-2" /> {t("nav.myOrders")}
                       </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/addresses">
+                        <MapPin className="size-4 mr-2" /> {t("nav.myAddresses")}
+                      </Link>
+                    </DropdownMenuItem>
                     {isAdmin && (
                       <DropdownMenuItem asChild>
                         <Link to="/admin">
@@ -283,6 +288,14 @@ export function SiteHeader() {
                       className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                     >
                       <Package className="size-4" /> {t("nav.myOrders")}
+                    </Link>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <Link
+                      to="/addresses"
+                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                    >
+                      <MapPin className="size-4" /> {t("nav.myAddresses")}
                     </Link>
                   </SheetClose>
                   {isAdmin && (
