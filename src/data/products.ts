@@ -73,6 +73,7 @@ async function applyVariationPromos(rows: VariationRow[]): Promise<VariationRow[
 type VariationInput = {
   id?: string;
   weight: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number | null;
@@ -159,6 +160,7 @@ export const saveVariations = createServerFn({ method: "POST" })
     for (const v of data.variations) {
       const fields = {
         weight: v.weight,
+        image_url: v.image_url,
         price: v.price,
         sale_price: v.sale_price,
         stock: v.stock,

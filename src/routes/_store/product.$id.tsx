@@ -12,7 +12,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
-import { productFromPrice, groupVariations } from "@/lib/variants";
+import { productFromPrice, groupVariations, variationPrice } from "@/lib/variants";
 import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
 
@@ -143,6 +143,8 @@ function ProductDetail() {
   const price = salePrice ?? basePrice;
   const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
   const addDisabled = (variable && !selected) || soldOut;
+  // Show the selected variation's own photo when it has one; otherwise the product photo.
+  const heroImage = (variable ? selected?.image_url : null) ?? product.image_url;
 
   const related = relatedProducts(product, allProducts);
   const variationsByProduct = groupVariations(allVariations);
@@ -159,12 +161,8 @@ function ProductDetail() {
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-10">
         <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
+          {heroImage ? (
+            <img src={heroImage} alt={product.title} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full grid place-items-center text-muted-foreground text-sm">
               No image
@@ -248,13 +246,21 @@ function ProductDetail() {
                       setQty(1);
                     }}
                     className={cn(
-                      "rounded-full border px-4 py-2 text-sm font-medium transition-colors",
+                      "flex flex-col items-center rounded-2xl border px-4 py-2 text-sm font-medium transition-colors",
                       v.id === selected?.id
                         ? "border-brand bg-brand text-brand-foreground"
                         : "hover:border-brand",
                     )}
                   >
-                    {v.weight}
+                    <span>{v.weight}</span>
+                    <span
+                      className={cn(
+                        "text-xs font-semibold",
+                        v.id === selected?.id ? "opacity-90" : "text-brand",
+                      )}
+                    >
+                      ${variationPrice(v).toFixed(2)}
+                    </span>
                   </button>
                 ))}
               </div>

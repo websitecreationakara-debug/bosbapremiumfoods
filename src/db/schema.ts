@@ -85,6 +85,8 @@ export const product_variations = sqliteTable("product_variations", {
     .references(() => products.id, { onDelete: "cascade" }),
   // Variation label — the weight, e.g. "250g", "1kg".
   weight: text("weight").notNull(),
+  // Optional image for this specific weight/variant; falls back to the product image.
+  image_url: text("image_url"),
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),
   // null = stock untracked (always available); a number = tracked count (0 = out of stock).

@@ -59,9 +59,9 @@ export function CartDrawer() {
                 return (
                   <div key={key} className="flex gap-3">
                     <div className="size-20 rounded-xl bg-muted overflow-hidden shrink-0">
-                      {product.image_url && (
+                      {(variation?.image_url ?? product.image_url) && (
                         <img
-                          src={product.image_url}
+                          src={variation?.image_url ?? product.image_url ?? undefined}
                           alt={product.title}
                           className="w-full h-full object-cover"
                           loading="lazy"

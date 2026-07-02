@@ -68,12 +68,20 @@ const empty = {
 type VarRow = {
   id?: string;
   weight: string;
+  image_url: string;
   price: string;
   sale_price: string;
   stock: string;
   pcs: string;
 };
-const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock: "", pcs: "" });
+const blankVar = (): VarRow => ({
+  weight: "",
+  image_url: "",
+  price: "0",
+  sale_price: "",
+  stock: "",
+  pcs: "",
+});
 
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
@@ -92,6 +100,7 @@ function ProductsAdmin() {
   const isVariable = form.type === "variable";
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [varUploadIdx, setVarUploadIdx] = useState<number | null>(null);
   const [picker, setPicker] = useState(false);
   const [query, setQuery] = useState("");
   const [catFilter, setCatFilter] = useState("all");
@@ -174,6 +183,24 @@ function ProductsAdmin() {
     }
   };
 
+  // Upload an image for one variation row (index i), leaving all other fields —
+  // crucially the prices — untouched via a functional state update.
+  const onVarUpload = async (file: File | undefined, i: number) => {
+    if (!file) return;
+    setVarUploadIdx(i);
+    try {
+      const fd = new FormData();
+      fd.append("file", await compressImage(file));
+      const { url } = await uploadMedia({ data: fd });
+      setVars((rows) => rows.map((r, j) => (j === i ? { ...r, image_url: url } : r)));
+      qc.invalidateQueries({ queryKey: ["media"] });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setVarUploadIdx(null);
+    }
+  };
+
   const openNew = () => {
     setForm(empty);
     setVars([]);
@@ -206,6 +233,7 @@ function ProductsAdmin() {
         rows.map((v) => ({
           id: v.id,
           weight: v.weight,
+          image_url: v.image_url ?? "",
           price: String(v.price),
           sale_price: v.sale_price != null ? String(v.sale_price) : "",
           stock: v.stock != null ? String(v.stock) : "",
@@ -223,6 +251,7 @@ function ProductsAdmin() {
       .map((v, i) => ({
         id: v.id,
         weight: v.weight.trim(),
+        image_url: v.image_url || null,
         price: Number(v.price) || 0,
         sale_price: v.sale_price.trim() === "" ? null : Number(v.sale_price),
         stock: v.stock.trim() === "" ? null : Number(v.stock),
@@ -305,6 +334,7 @@ function ProductsAdmin() {
             productId: id,
             variations: rows.map((v, i) => ({
               weight: v.weight,
+              image_url: v.image_url,
               price: v.price,
               sale_price: v.sale_price,
               stock: v.stock,
@@ -771,7 +801,8 @@ function ProductsAdmin() {
                   </p>
                 ) : (
                   <div className="space-y-2">
-                    <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <div className="grid grid-cols-[auto_1.3fr_1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <span>Image</span>
                       <span>Weight</span>
                       <span>Price</span>
                       <span>Sale</span>
@@ -780,7 +811,49 @@ function ProductsAdmin() {
                       <span></span>
                     </div>
                     {vars.map((v, i) => (
-                      <div key={i} className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2">
+                      <div
+                        key={i}
+                        className="grid grid-cols-[auto_1.3fr_1fr_1fr_1fr_1fr_auto] gap-2 items-center"
+                      >
+                        <div className="relative size-10 shrink-0">
+                          <label className="block size-10 rounded-md border bg-muted overflow-hidden cursor-pointer">
+                            {varUploadIdx === i ? (
+                              <span className="grid place-items-center w-full h-full text-muted-foreground">
+                                <Loader2 className="size-4 animate-spin" />
+                              </span>
+                            ) : v.image_url ? (
+                              <img
+                                src={v.image_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            ) : (
+                              <span className="grid place-items-center w-full h-full text-muted-foreground">
+                                <ImageIcon className="size-4" />
+                              </span>
+                            )}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              hidden
+                              onChange={(e) => onVarUpload(e.target.files?.[0], i)}
+                            />
+                          </label>
+                          {v.image_url && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setVars((rows) =>
+                                  rows.map((r, j) => (j === i ? { ...r, image_url: "" } : r)),
+                                )
+                              }
+                              className="absolute -top-1.5 -right-1.5 bg-background border rounded-full p-0.5"
+                              aria-label="Remove variation image"
+                            >
+                              <X className="size-3" />
+                            </button>
+                          )}
+                        </div>
                         <Input
                           placeholder="250g"
                           value={v.weight}

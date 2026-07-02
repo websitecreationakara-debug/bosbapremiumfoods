@@ -38,6 +38,7 @@ export type ProductVariation = {
   id: string;
   product_id: string;
   weight: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number | null;
