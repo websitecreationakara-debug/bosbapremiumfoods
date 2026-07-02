@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Stack
 
-E-commerce store (BOSBA Premium Foods, also served on camitc.com). Single app, not a monorepo. Scaffolded by Lovable, since migrated to Cloudflare D1.
+E-commerce store (BOSBA Premium Foods). Single app, not a monorepo. Scaffolded by Lovable, since migrated to Cloudflare D1.
 
 - TypeScript + React 19, ES modules
 - TanStack Start (server functions) + TanStack Router (file-based) + TanStack Query
