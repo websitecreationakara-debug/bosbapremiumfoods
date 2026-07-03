@@ -19,6 +19,7 @@ import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
+import { ItemImage } from "@/components/item-image";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -576,6 +577,11 @@ function Checkout() {
             const unit = itemUnitPrice(item);
             return (
               <div key={key} className="flex items-center gap-2 text-sm">
+                <ItemImage
+                  src={item.variation?.image_url ?? item.product.image_url}
+                  title={item.product.title + (item.variation ? ` (${item.variation.weight})` : "")}
+                  className="size-10"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-medium">
                     {item.product.title}

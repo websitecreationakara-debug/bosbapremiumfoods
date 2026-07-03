@@ -96,7 +96,13 @@ export type CartItem = {
   qty: number;
 };
 
-export type OrderItem = { id: string; title: string; qty: number; price: number };
+export type OrderItem = {
+  id: string;
+  title: string;
+  qty: number;
+  price: number;
+  image_url?: string | null;
+};
 
 export type Order = {
   id: string;

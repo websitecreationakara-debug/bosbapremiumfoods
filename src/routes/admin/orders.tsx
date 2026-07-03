@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { ItemImage } from "@/components/item-image";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { downloadInvoice } from "@/lib/invoice";
 
@@ -115,11 +116,18 @@ function OrdersAdmin() {
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">
                   {Array.isArray(o.items) && o.items.length > 0 ? (
-                    <ul className="space-y-0.5">
+                    <ul className="space-y-1">
                       {o.items.map((it, i) => (
-                        <li key={it.id ?? i}>
-                          <span className="font-medium">{it.title}</span>
-                          <span className="text-muted-foreground"> × {it.qty}</span>
+                        <li key={it.id ?? i} className="flex items-center gap-2">
+                          <ItemImage
+                            src={it.image_url}
+                            title={it.title}
+                            className="size-8 rounded-md"
+                          />
+                          <span>
+                            <span className="font-medium">{it.title}</span>
+                            <span className="text-muted-foreground"> × {it.qty}</span>
+                          </span>
                         </li>
                       ))}
                     </ul>

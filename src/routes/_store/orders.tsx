@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { Package, FileDown, User, Truck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ItemImage } from "@/components/item-image";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyOrders } from "@/hooks/use-products";
 import { downloadInvoice } from "@/lib/invoice";
@@ -118,14 +119,17 @@ function MyOrders() {
                 <StatusBadge status={o.status} />
               </div>
 
-              <ul className="mt-4 border-t pt-4 space-y-1.5">
+              <ul className="mt-4 border-t pt-4 space-y-2">
                 {o.items.map((it, i) => (
-                  <li key={it.id ?? i} className="flex justify-between text-sm">
-                    <span className="truncate pr-2">
+                  <li key={it.id ?? i} className="flex items-center gap-3 text-sm">
+                    <ItemImage src={it.image_url} title={it.title} className="size-10" />
+                    <span className="flex-1 min-w-0 truncate">
                       <span className="font-medium">{it.title}</span>
                       <span className="text-muted-foreground"> × {it.qty}</span>
                     </span>
-                    <span className="font-semibold">${(it.price * it.qty).toFixed(2)}</span>
+                    <span className="font-semibold shrink-0">
+                      ${(it.price * it.qty).toFixed(2)}
+                    </span>
                   </li>
                 ))}
               </ul>
