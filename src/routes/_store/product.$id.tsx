@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   useStoreSettings,
   useProductVariations,
@@ -7,14 +8,20 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct } from "@/data/products";
+import { getProductRating, rateProduct } from "@/data/ratings";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
+import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
+import { StarRating } from "@/components/star-rating";
 import { productFromPrice, groupVariations, variationPrice } from "@/lib/variants";
 import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
+import { toast } from "sonner";
+
+type RatingSummary = { average: number | null; count: number; myStars: number | null };
 
 const RELATED_COUNT = 4;
 
@@ -107,9 +114,39 @@ function ProductDetail() {
   const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
+  const { user } = useAuth();
+  const qc = useQueryClient();
   const [qty, setQty] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
+
+  const productId = product?.id ?? "";
+  const { data: rating } = useQuery({
+    queryKey: ["product-rating", productId, user?.id ?? "guest"],
+    queryFn: () => getProductRating({ data: { productId } }) as Promise<RatingSummary>,
+    enabled: !!productId,
+  });
+  const rate = useMutation({
+    mutationFn: (stars: number) =>
+      rateProduct({ data: { productId, stars } }) as Promise<RatingSummary>,
+    onSuccess: (res) => {
+      qc.setQueryData(["product-rating", productId, user?.id ?? "guest"], res);
+      qc.invalidateQueries({ queryKey: ["products"] });
+      qc.invalidateQueries({ queryKey: ["product", productId] });
+      toast.success("Thanks for rating!");
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Couldn't save your rating"),
+  });
+  const handleRate = (stars: number) => {
+    if (!user) {
+      toast.info("Please sign in to rate this product.");
+      return;
+    }
+    rate.mutate(stars);
+  };
+  // Prefer the live customer average; fall back to the stored/admin rating.
+  const avgRating = rating?.average ?? product?.rating ?? null;
+  const ratingCount = rating?.count ?? 0;
 
   const variable = product?.type === "variable";
   // Default to the first (cheapest) variation until the customer picks one.
@@ -198,7 +235,12 @@ function ProductDetail() {
           <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
             <span className="inline-flex items-center gap-1">
               <Star className="size-4 fill-warning text-warning" />
-              {product.rating ?? 4.5}
+              {avgRating != null ? avgRating.toFixed(1) : "—"}
+              {ratingCount > 0 && (
+                <span className="opacity-70">
+                  ({ratingCount} rating{ratingCount > 1 ? "s" : ""})
+                </span>
+              )}
             </span>
             <span className="opacity-50">·</span>
             {soldOut ? (
@@ -320,6 +362,34 @@ function ProductDetail() {
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
             <Truck className="size-4 text-brand" />
             {`Free chilled delivery on orders over $${shipThreshold}.`}
+          </div>
+
+          <div className="mt-4 rounded-2xl border p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-sm font-semibold">
+                {rating?.myStars ? "Your rating" : "Rate this product"}
+              </span>
+              <StarRating
+                value={rating?.myStars ?? 0}
+                onRate={handleRate}
+                disabled={rate.isPending}
+                size={24}
+              />
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {!user ? (
+                <>
+                  <Link to="/auth" className="font-medium text-brand hover:underline">
+                    Sign in
+                  </Link>{" "}
+                  to rate this product.
+                </>
+              ) : rating?.myStars ? (
+                "Tap a star to change your rating."
+              ) : (
+                "Tap a star to rate — no review needed."
+              )}
+            </p>
           </div>
         </div>
       </div>
