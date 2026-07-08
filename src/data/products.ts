@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, asc, inArray } from "drizzle-orm";
+import { eq, asc, inArray, sql } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products, product_variations, promotions } from "@/db/schema";
+import { products, product_variations, promotions, categories } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
 import { applyPromo } from "@/lib/promotions";
 import { requireManager } from "./_auth";
@@ -81,19 +81,37 @@ type VariationInput = {
   sort_order: number;
 };
 
+// Sashimi & Sushi Grade is the store's top seller, so it's pinned first in
+// every default product listing, ahead of the upload-order fallback.
+async function sashimiOrderPriority() {
+  const db = getDb();
+  const [sashimi] = await db
+    .select({ id: categories.id })
+    .from(categories)
+    .where(eq(categories.slug, "sashimi"))
+    .limit(1);
+  return sashimi
+    ? sql`case when ${products.category_id} = ${sashimi.id} then 0 else 1 end`
+    : sql`0`;
+}
+
 export const listProducts = createServerFn({ method: "GET" })
   .inputValidator((d: { all?: boolean } | undefined) => d ?? {})
   .handler(async ({ data }) => {
     const db = getDb();
+    const priority = await sashimiOrderPriority();
     if (data.all) {
       // Admin view: raw prices, no promotion discount applied.
-      return db.select().from(products).orderBy(asc(products.sort_order), asc(products.created_at));
+      return db
+        .select()
+        .from(products)
+        .orderBy(asc(products.sort_order), priority, asc(products.created_at));
     }
     const rows = await db
       .select()
       .from(products)
       .where(eq(products.status, "published"))
-      .orderBy(asc(products.sort_order), asc(products.created_at));
+      .orderBy(asc(products.sort_order), priority, asc(products.created_at));
     return applyProductPromos(rows);
   });
 

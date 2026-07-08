@@ -108,7 +108,7 @@ function Shop() {
       case "rating":
         return (b.rating ?? 0) - (a.rating ?? 0);
       default:
-        return 0; // "featured" — keep server order (newest first)
+        return 0; // "featured" — keep server order (Sashimi pinned first, then upload order)
     }
   });
 
