@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, asc, desc, inArray } from "drizzle-orm";
+import { eq, asc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, product_variations, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
@@ -87,16 +87,13 @@ export const listProducts = createServerFn({ method: "GET" })
     const db = getDb();
     if (data.all) {
       // Admin view: raw prices, no promotion discount applied.
-      return db
-        .select()
-        .from(products)
-        .orderBy(asc(products.sort_order), desc(products.created_at));
+      return db.select().from(products).orderBy(asc(products.sort_order), asc(products.created_at));
     }
     const rows = await db
       .select()
       .from(products)
       .where(eq(products.status, "published"))
-      .orderBy(asc(products.sort_order), desc(products.created_at));
+      .orderBy(asc(products.sort_order), asc(products.created_at));
     return applyProductPromos(rows);
   });
 
