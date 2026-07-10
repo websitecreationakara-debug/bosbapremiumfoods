@@ -55,7 +55,7 @@ const en = {
   "product.selectOptions": "Select options",
   // shop
   "shop.title": "BOSBA Premium Foods",
-  "shop.count": "{n} fresh products",
+  "shop.count": "{n} products",
   "shop.filters": "Filters",
   "shop.clearAll": "Clear all",
   "shop.search": "Search",
