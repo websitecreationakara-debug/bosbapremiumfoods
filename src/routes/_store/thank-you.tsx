@@ -1,16 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { CheckCircle2, FileDown } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { CheckCircle2, ChefHat, FileDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
+import { checkPayment } from "@/data/payments";
 import { downloadInvoice } from "@/lib/invoice";
 import { toast } from "sonner";
 
 type LastOrder = {
   id: string;
   total: number;
+  payment_method?: string;
   items: { id: string; title: string; qty: number; price: number }[];
   customer_name: string;
   customer_email?: string;
@@ -46,6 +49,8 @@ function ThankYou() {
           ? " We’ll send a confirmation to your email shortly."
           : " We’ll be in touch shortly to confirm."}
       </p>
+
+      {order?.payment_method === "khqr" && <PaymentProgress orderId={order.id} />}
 
       {order && (
         <div className="mt-8 bg-muted rounded-2xl p-6 text-left space-y-4">
@@ -96,6 +101,44 @@ function ThankYou() {
       <Button asChild size="lg" variant="outline" className="mt-8 rounded-full">
         <Link to="/shop">Continue shopping</Link>
       </Button>
+    </div>
+  );
+}
+
+// Live status for manual-KHQR orders: polls until the sales team verifies the
+// transfer and accepts, then flips to "preparing" — no reload needed.
+function PaymentProgress({ orderId }: { orderId: string }) {
+  const { data } = useQuery({
+    queryKey: ["payment-progress", orderId],
+    queryFn: () => checkPayment({ data: { orderId } }),
+    refetchInterval: (q) => (q.state.data?.payment_status === "paid" ? false : 6000),
+  });
+
+  if (!data) return null;
+
+  if (data.payment_status === "paid") {
+    return (
+      <div className="mt-8 rounded-2xl border border-brand/40 bg-brand/10 p-5 text-left">
+        <p className="flex items-center gap-2 font-display font-semibold">
+          <ChefHat className="size-5 text-brand" /> Payment confirmed — we&rsquo;re preparing your
+          order!
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Our team has verified your payment and started preparing your products.
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 rounded-2xl border bg-muted p-5 text-left">
+      <p className="flex items-center gap-2 font-display font-semibold">
+        <Loader2 className="size-5 animate-spin text-muted-foreground" /> Verifying your payment…
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Our sales team is checking the transfer. This page updates automatically — usually just a
+        few minutes during opening hours.
+      </p>
     </div>
   );
 }

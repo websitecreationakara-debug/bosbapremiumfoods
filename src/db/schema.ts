@@ -147,10 +147,13 @@ export const orders = sqliteTable("orders", {
   scheduled_at: text("scheduled_at"),
   // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
   payment_method: text("payment_method").notNull().default("cod"),
-  // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to
-  // paid only once the gateway confirms (webhook), which is when the store is notified.
+  // "unpaid" | "claimed" | "paid". COD orders stay unpaid until delivery. KHQR is
+  // manual: the customer taps "I have paid" (→ claimed, sales team notified), then
+  // staff verifies the transfer in the bank app and accepts (→ paid).
   payment_status: text("payment_status").notNull().default("unpaid"),
-  // Gateway transaction reference, used to match a payment callback to its order.
+  // Legacy gateway transaction reference from the abandoned PPCBank integration.
+  // Unused by the manual KHQR flow; kept because dropping a column needs a
+  // destructive prod migration for no gain.
   payment_ref: text("payment_ref"),
   paid_at: text("paid_at"),
   total: real("total").notNull(),
@@ -183,6 +186,9 @@ export const store_settings = sqliteTable("store_settings", {
   banner_text: text("banner_text"),
   global_discount_pct: real("global_discount_pct").default(0),
   free_shipping_threshold: real("free_shipping_threshold").default(30),
+  // Static KHQR image shown on the manual /pay screen (a /media/* URL uploaded
+  // by the admin). Null = online payment not configured; checkout still offers COD.
+  khqr_image_url: text("khqr_image_url"),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 

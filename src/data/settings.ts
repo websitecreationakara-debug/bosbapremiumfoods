@@ -16,6 +16,7 @@ export const updateSettings = createServerFn({ method: "POST" })
       banner_text: string | null;
       global_discount_pct: number;
       free_shipping_threshold: number;
+      khqr_image_url: string | null;
     }) => d,
   )
   .handler(async ({ data }) => {

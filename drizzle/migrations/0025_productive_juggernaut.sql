@@ -1,0 +1,1 @@
+ALTER TABLE `store_settings` ADD `khqr_image_url` text;

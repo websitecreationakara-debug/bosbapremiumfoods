@@ -148,5 +148,6 @@ export type StoreSettings = {
   banner_text: string | null;
   global_discount_pct: number | null;
   free_shipping_threshold: number | null;
+  khqr_image_url: string | null;
   updated_at: string;
 };

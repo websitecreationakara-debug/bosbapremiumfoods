@@ -12,10 +12,9 @@ declare module "cloudflare:workers" {
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     TELEGRAM_TOPIC_ID?: string;
-    // KHQR payment gateway (PPCBank). Absent in mock mode — see src/lib/payment.ts.
-    PPCBANK_BASE_URL?: string;
-    PPCBANK_MERCHANT_CODE?: string;
-    PPCBANK_PASSWORD?: string;
+    // Labels which site a Telegram/email alert came from, so one bot/inbox can
+    // serve multiple stores. Defaults to the BOSBA name — see src/lib/notify.ts.
+    SITE_NAME?: string;
     // Comma-separated SHA-256 signing fingerprints for the Play Store TWA app,
     // served at /.well-known/assetlinks.json. From Play App Signing.
     ANDROID_CERT_SHA256?: string;

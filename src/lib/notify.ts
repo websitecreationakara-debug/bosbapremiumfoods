@@ -84,7 +84,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
 
   // Fan out to every configured channel; one failing must not block the others or the order.
   const results = await Promise.allSettled([
-    sendTelegram(textSummary),
+    sendTelegram(`🛎️ New order\n\n${textSummary}`),
     sendEmail(order, short, shipTo),
     sendCustomerEmail(order, short, shipTo),
   ]);
@@ -94,6 +94,38 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   }
 }
 
+// Manual-KHQR step 1: the customer tapped "I have paid" — ping the sales team so
+// they verify the transfer in the bank app and click Accept in the admin. The
+// customer isn't emailed yet; their confirmation goes out on acceptance.
+export async function notifyPaymentClaimed(order: OrderNotification): Promise<void> {
+  const short = order.id.slice(0, 8);
+  const textSummary = [
+    `Order #${short}`,
+    `Customer: ${order.customer_name ?? "—"} (${order.customer_phone ?? "—"})`,
+    `Items: ${order.items.reduce((n, i) => n + i.qty, 0)}`,
+    ...order.items.map((i) => `  ${i.qty}× ${i.title} — $${(i.price * i.qty).toFixed(2)}`),
+    `💵 Amount to verify: $${order.total.toFixed(2)}`,
+    ``,
+    `Check the bank app for this amount, then Accept the order in the admin.`,
+  ].join("\n");
+  const results = await Promise.allSettled([
+    sendTelegram(`💰 KHQR payment claimed\n\n${textSummary}`),
+  ]);
+  if (results.every((r) => r.status === "fulfilled" && r.value === "skipped")) {
+    console.log(`[payment-claimed]\n${textSummary}`);
+  }
+}
+
+// Manual-KHQR step 2: staff verified the money and accepted — now send the
+// customer their order confirmation (the store itself needs no alert; accepting
+// IS the store acting).
+export async function notifyOrderAccepted(order: OrderNotification): Promise<void> {
+  const short = order.id.slice(0, 8);
+  const shipTo = [order.address, order.city, order.postal_code].filter(Boolean).join(", ");
+  const result = await sendCustomerEmail(order, short, shipTo);
+  if (result === "skipped") console.log(`[order-accepted] order #${short} (no email configured)`);
+}
+
 async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
   const token = env.TELEGRAM_BOT_TOKEN;
   const chatId = env.TELEGRAM_CHAT_ID;
@@ -101,7 +133,7 @@ async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
   try {
     const payload: Record<string, unknown> = {
       chat_id: chatId,
-      text: `🌐 Website: ${siteName()}\n🛎️ New order\n\n${text}`,
+      text: `🌐 Website: ${siteName()}\n${text}`,
       disable_web_page_preview: true,
     };
     // Forum supergroups route messages into a specific topic by thread id.

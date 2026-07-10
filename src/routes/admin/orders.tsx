@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
+import {
+  listOrders,
+  updateOrderStatus,
+  updateOrderTracking,
+  deleteOrder,
+  acceptPayment,
+} from "@/data/orders";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -51,6 +58,17 @@ function OrdersAdmin() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
     }
+  };
+
+  const accept = async (id: string) => {
+    try {
+      await acceptPayment({ data: { id } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to accept payment");
+    }
+    qc.invalidateQueries({ queryKey: ["orders-admin"] });
+    qc.invalidateQueries({ queryKey: ["orders-pending-count"] });
+    toast.success("Payment accepted — customer notified");
   };
 
   const removeOrder = async (id: string) => {
@@ -142,14 +160,38 @@ function OrdersAdmin() {
                       {o.promo_code ? `${o.promo_code}: ` : ""}−${Number(o.discount).toFixed(2)}
                     </span>
                   )}
+                  <span
+                    className={`mt-1 block text-[11px] font-medium ${
+                      o.payment_method !== "khqr"
+                        ? "text-muted-foreground"
+                        : o.payment_status === "paid"
+                          ? "text-brand"
+                          : o.payment_status === "claimed"
+                            ? "text-warning"
+                            : "text-destructive"
+                    }`}
+                  >
+                    {o.payment_method === "khqr" ? `KHQR · ${o.payment_status}` : "COD"}
+                  </span>
                 </td>
                 <td className="px-6 py-3">
+                  {o.payment_method === "khqr" && o.payment_status !== "paid" && (
+                    <Button
+                      size="sm"
+                      onClick={() => accept(o.id)}
+                      title="Confirm the transfer arrived in the bank account, mark the order paid, and start preparing"
+                      className="mb-2 h-8 rounded-full"
+                    >
+                      Accept payment
+                    </Button>
+                  )}
                   <div className="flex items-center gap-2">
                     <Select value={o.status} onValueChange={(v) => setStatus(o.id, v)}>
                       <SelectTrigger className="w-36 h-8">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="awaiting_payment">Awaiting payment</SelectItem>
                         <SelectItem value="pending">Pending</SelectItem>
                         <SelectItem value="processing">Processing</SelectItem>
                         <SelectItem value="shipped">Shipped</SelectItem>

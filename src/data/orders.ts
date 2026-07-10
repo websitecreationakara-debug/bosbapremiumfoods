@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { count, desc, eq, inArray } from "drizzle-orm";
+import { and, count, desc, eq, inArray, or } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
   orders,
@@ -11,7 +11,7 @@ import {
 } from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
-import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
+import { notifyNewOrder, notifyOrderAccepted, notifyOrderShipped } from "@/lib/notify";
 import {
   getSessionUser,
   requireAdmin,
@@ -105,8 +105,8 @@ async function attachItemImages<T extends { items: OrderItem[] }>(list: T[]) {
 }
 
 // Alert the store (Telegram + email) that a confirmed order is ready to fulfil.
-// Called immediately for COD, but deferred to the payment-confirmed path for
-// KHQR so the store is never pinged for an order that was never paid.
+// COD only — for manual KHQR the store is instead pinged when the customer
+// claims payment (notifyPaymentClaimed in src/data/payments.ts).
 async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderItem[]) {
   await notifyNewOrder({
     id: row.id,
@@ -124,29 +124,42 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
   });
 }
 
-// Flip a KHQR order to paid and notify the store. Idempotent — a duplicate
-// webhook (or the mock confirm firing twice) is a no-op. Server-only; called
-// from the payment callback (src/start.ts) and the mock confirm (src/data/payments.ts).
-export async function markOrderPaid(orderId: string, ref?: string | null) {
-  const db = getDb();
-  const [row] = await db.select().from(orders).where(eq(orders.id, orderId));
-  if (!row) throw new Error("Order not found");
-  if (row.payment_status === "paid") return { ok: true, alreadyPaid: true };
+// Staff verified the KHQR transfer in the bank app and accepted the order.
+// Idempotent — accepting twice is a no-op. Flips payment to paid and moves the
+// order into "processing" so the customer sees it's being prepared; the
+// confirmation email goes out here (the store was already pinged at claim time).
+export const acceptPayment = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    await requireStaff();
+    const db = getDb();
+    const [row] = await db.select().from(orders).where(eq(orders.id, data.id));
+    if (!row) throw new Error("Order not found");
+    if (row.payment_status === "paid") return { ok: true, alreadyPaid: true };
 
-  await db
-    .update(orders)
-    .set({
-      payment_status: "paid",
-      paid_at: new Date().toISOString(),
-      payment_ref: ref ?? row.payment_ref,
-      // Awaiting-payment orders join the normal queue once paid.
-      status: row.status === "awaiting_payment" ? "pending" : row.status,
-    })
-    .where(eq(orders.id, orderId));
+    await db
+      .update(orders)
+      .set({
+        payment_status: "paid",
+        paid_at: new Date().toISOString(),
+        status: row.status === "awaiting_payment" ? "processing" : row.status,
+      })
+      .where(eq(orders.id, data.id));
 
-  await notifyOrderPlaced(row, JSON.parse(row.items || "[]") as OrderItem[]);
-  return { ok: true, alreadyPaid: false };
-}
+    await notifyOrderAccepted({
+      id: row.id,
+      total: row.total,
+      items: JSON.parse(row.items || "[]") as OrderItem[],
+      customer_name: row.customer_name,
+      customer_email: row.customer_email,
+      customer_phone: row.customer_phone,
+      address: row.address,
+      city: row.city,
+      postal_code: row.postal_code,
+      scheduled_at: row.scheduled_at,
+    });
+    return { ok: true, alreadyPaid: false };
+  });
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireOrderViewer();
@@ -277,8 +290,8 @@ export const createOrder = createServerFn({ method: "POST" })
     const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
-    // KHQR orders wait in "awaiting_payment" until the gateway confirms; COD
-    // orders go straight into the fulfilment queue as "pending".
+    // KHQR orders wait in "awaiting_payment" until staff verifies the manual
+    // transfer; COD orders go straight into the fulfilment queue as "pending".
     const method = data.payment_method === "khqr" ? "khqr" : "cod";
 
     const [row] = await db
@@ -318,8 +331,8 @@ export const createOrder = createServerFn({ method: "POST" })
       }),
     );
 
-    // COD: notify the store now. KHQR: hold the notification until payment is
-    // confirmed (markOrderPaid), so an unpaid online order never alerts the store.
+    // COD: notify the store now. KHQR: the store hears about it when the
+    // customer claims payment, so an abandoned order never alerts anyone.
     if (method === "cod") await notifyOrderPlaced(row, items);
 
     return { ok: true, id: row.id, total, payment_method: method };
@@ -335,9 +348,19 @@ export const listMyOrders = createServerFn({ method: "GET" }).handler(async () =
   return attachItemImages(rows.map(parseItems));
 });
 
+// Admin badge: orders needing action — new COD orders plus KHQR orders whose
+// payment the customer claims to have sent (waiting for staff to verify+accept).
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireStaff();
-  const [r] = await getDb().select({ n: count() }).from(orders).where(eq(orders.status, "pending"));
+  const [r] = await getDb()
+    .select({ n: count() })
+    .from(orders)
+    .where(
+      or(
+        eq(orders.status, "pending"),
+        and(eq(orders.status, "awaiting_payment"), eq(orders.payment_status, "claimed")),
+      ),
+    );
   return r?.n ?? 0;
 });
 

@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useStoreSettings } from "@/hooks/use-products";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { updateSettings } from "@/data/settings";
+import { uploadMedia } from "@/data/media";
 import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,10 +14,13 @@ export const Route = createFileRoute("/admin/settings")({ component: SettingsAdm
 function SettingsAdmin() {
   const { data } = useStoreSettings();
   const qc = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     banner_text: "",
     global_discount_pct: "0",
     free_shipping_threshold: "50",
+    khqr_image_url: "",
   });
 
   useEffect(() => {
@@ -25,6 +29,7 @@ function SettingsAdmin() {
         banner_text: data.banner_text ?? "",
         global_discount_pct: String(data.global_discount_pct ?? 0),
         free_shipping_threshold: String(data.free_shipping_threshold ?? 50),
+        khqr_image_url: data.khqr_image_url ?? "",
       });
   }, [data]);
 
@@ -38,6 +43,7 @@ function SettingsAdmin() {
           banner_text: form.banner_text,
           global_discount_pct: Number(form.global_discount_pct),
           free_shipping_threshold: Number(form.free_shipping_threshold),
+          khqr_image_url: form.khqr_image_url || null,
         },
       });
     } catch (err) {
@@ -45,6 +51,26 @@ function SettingsAdmin() {
     }
     toast.success("Settings saved");
     qc.invalidateQueries({ queryKey: ["store_settings"] });
+  };
+
+  // The bank's KHQR is a photo/scan — upload as-is, no compression that could
+  // break QR readability.
+  const onUploadQr = async (file: File | undefined) => {
+    if (!file) return;
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const { url } = await uploadMedia({ data: fd });
+      setForm((f) => ({ ...f, khqr_image_url: url }));
+      qc.invalidateQueries({ queryKey: ["media"] });
+      toast.success("QR image uploaded — remember to save settings");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploading(false);
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   return (
@@ -80,6 +106,46 @@ function SettingsAdmin() {
             value={form.free_shipping_threshold}
             onChange={(e) => setForm({ ...form, free_shipping_threshold: e.target.value })}
           />
+        </div>
+        <div>
+          <Label>KHQR Payment Code</Label>
+          <div className="mt-1 flex items-start gap-4">
+            {form.khqr_image_url ? (
+              <img
+                src={form.khqr_image_url}
+                alt="KHQR code"
+                className="size-28 rounded-lg border object-contain bg-white"
+              />
+            ) : (
+              <div className="size-28 rounded-lg border border-dashed flex items-center justify-center text-xs text-muted-foreground text-center px-2">
+                No QR uploaded
+              </div>
+            )}
+            <div className="space-y-2">
+              <Input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                disabled={uploading}
+                onChange={(e) => onUploadQr(e.target.files?.[0])}
+                className="max-w-xs"
+              />
+              {form.khqr_image_url && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setForm((f) => ({ ...f, khqr_image_url: "" }))}
+                >
+                  Remove QR
+                </Button>
+              )}
+              <p className="text-xs text-muted-foreground">
+                Your bank&rsquo;s static KHQR code, shown to customers who choose to pay online.
+                Remove it to disable KHQR checkout screens.
+              </p>
+            </div>
+          </div>
         </div>
         <Button type="submit" className="w-full">
           Save settings

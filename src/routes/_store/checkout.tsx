@@ -284,6 +284,7 @@ function Checkout() {
         JSON.stringify({
           id: res.id,
           total: res.total,
+          payment_method: res.payment_method,
           discount,
           promo_code: applied?.code ?? null,
           scheduled_at: scheduledAt,
@@ -303,7 +304,7 @@ function Checkout() {
     // KHQR orders aren't confirmed yet — send the customer to pay first; the pay
     // screen advances to /thank-you once payment lands. COD is done immediately.
     if (res.payment_method === "khqr") {
-      navigate({ to: "/pay/$id", params: { id: res.id }, search: { ret: false, failed: false } });
+      navigate({ to: "/pay/$id", params: { id: res.id } });
     } else {
       navigate({ to: "/thank-you" });
     }
