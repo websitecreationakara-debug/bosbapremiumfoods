@@ -88,11 +88,12 @@ async function sashimiOrderPriority() {
   const [sashimi] = await db
     .select({ id: categories.id })
     .from(categories)
-    .where(eq(categories.slug, "sashimi"))
+    .where(eq(categories.slug, "sashimi-set"))
     .limit(1);
-  return sashimi
-    ? sql`case when ${products.category_id} = ${sashimi.id} then 0 else 1 end`
-    : sql`0`;
+  // No constant fallback: a bare number in ORDER BY is a 1-based column index
+  // in SQLite (ORDER BY 0 is an error that broke the whole listing) — if the
+  // category is missing, drop the pinning term entirely.
+  return sashimi ? sql`case when ${products.category_id} = ${sashimi.id} then 0 else 1 end` : null;
 }
 
 export const listProducts = createServerFn({ method: "GET" })
@@ -100,18 +101,21 @@ export const listProducts = createServerFn({ method: "GET" })
   .handler(async ({ data }) => {
     const db = getDb();
     const priority = await sashimiOrderPriority();
+    const order = priority
+      ? [priority, asc(products.sort_order), asc(products.created_at)]
+      : [asc(products.sort_order), asc(products.created_at)];
     if (data.all) {
       // Admin view: raw prices, no promotion discount applied.
       return db
         .select()
         .from(products)
-        .orderBy(priority, asc(products.sort_order), asc(products.created_at));
+        .orderBy(...order);
     }
     const rows = await db
       .select()
       .from(products)
       .where(eq(products.status, "published"))
-      .orderBy(priority, asc(products.sort_order), asc(products.created_at));
+      .orderBy(...order);
     return applyProductPromos(rows);
   });
 
