@@ -108,8 +108,13 @@ export async function notifyPaymentClaimed(order: OrderNotification): Promise<vo
     ``,
     `Check the bank app for this amount, then Accept the order in the admin.`,
   ].join("\n");
+  // Payment pings go to their own forum topic when configured, so the
+  // fulfilment topic stays orders-only.
   const results = await Promise.allSettled([
-    sendTelegram(`💰 KHQR payment claimed\n\n${textSummary}`),
+    sendTelegram(
+      `💰 KHQR payment claimed\n\n${textSummary}`,
+      env.TELEGRAM_PAYMENT_TOPIC_ID ?? env.TELEGRAM_TOPIC_ID,
+    ),
   ]);
   if (results.every((r) => r.status === "fulfilled" && r.value === "skipped")) {
     console.log(`[payment-claimed]\n${textSummary}`);
@@ -126,7 +131,10 @@ export async function notifyOrderAccepted(order: OrderNotification): Promise<voi
   if (result === "skipped") console.log(`[order-accepted] order #${short} (no email configured)`);
 }
 
-async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
+async function sendTelegram(
+  text: string,
+  topicId: string | undefined = env.TELEGRAM_TOPIC_ID,
+): Promise<"sent" | "skipped"> {
   const token = env.TELEGRAM_BOT_TOKEN;
   const chatId = env.TELEGRAM_CHAT_ID;
   if (!token || !chatId) return "skipped";
@@ -137,7 +145,7 @@ async function sendTelegram(text: string): Promise<"sent" | "skipped"> {
       disable_web_page_preview: true,
     };
     // Forum supergroups route messages into a specific topic by thread id.
-    if (env.TELEGRAM_TOPIC_ID) payload.message_thread_id = Number(env.TELEGRAM_TOPIC_ID);
+    if (topicId) payload.message_thread_id = Number(topicId);
     const res = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
       method: "POST",
       headers: { "content-type": "application/json" },

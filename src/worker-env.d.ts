@@ -12,6 +12,9 @@ declare module "cloudflare:workers" {
     TELEGRAM_BOT_TOKEN?: string;
     TELEGRAM_CHAT_ID?: string;
     TELEGRAM_TOPIC_ID?: string;
+    // Separate forum topic for "payment claimed" pings; falls back to
+    // TELEGRAM_TOPIC_ID when unset so payments still land somewhere.
+    TELEGRAM_PAYMENT_TOPIC_ID?: string;
     // Labels which site a Telegram/email alert came from, so one bot/inbox can
     // serve multiple stores. Defaults to the BOSBA name — see src/lib/notify.ts.
     SITE_NAME?: string;
