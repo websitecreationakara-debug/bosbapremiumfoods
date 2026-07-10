@@ -105,13 +105,13 @@ export const listProducts = createServerFn({ method: "GET" })
       return db
         .select()
         .from(products)
-        .orderBy(asc(products.sort_order), priority, asc(products.created_at));
+        .orderBy(priority, asc(products.sort_order), asc(products.created_at));
     }
     const rows = await db
       .select()
       .from(products)
       .where(eq(products.status, "published"))
-      .orderBy(asc(products.sort_order), priority, asc(products.created_at));
+      .orderBy(priority, asc(products.sort_order), asc(products.created_at));
     return applyProductPromos(rows);
   });
 
