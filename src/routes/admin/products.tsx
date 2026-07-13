@@ -4,6 +4,7 @@ import { useProducts, useCategories, useAllVariations, usePromotions } from "@/h
 import {
   createProduct,
   updateProduct,
+  setProductStatus,
   deleteProduct,
   reorderProducts,
   getVariations,
@@ -38,6 +39,8 @@ import {
   ChevronLeft,
   ChevronRight,
   GripVertical,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -263,6 +266,18 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["products"] });
     qc.invalidateQueries({ queryKey: ["variations"] });
     setOpen(false);
+  };
+
+  const toggleStatus = async (p: Product) => {
+    const nextStatus = p.status === "published" ? "draft" : "published";
+    try {
+      await setProductStatus({ data: { id: p.id, status: nextStatus } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update status");
+      return;
+    }
+    toast.success(nextStatus === "published" ? "Product published" : "Product hidden");
+    qc.invalidateQueries({ queryKey: ["products"] });
   };
 
   const del = async (id: string) => {
@@ -502,6 +517,19 @@ function ProductsAdmin() {
                 </td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => toggleStatus(p)}
+                      aria-label={p.status === "published" ? "Hide product" : "Publish product"}
+                      title={p.status === "published" ? "Hide from store" : "Publish to store"}
+                    >
+                      {p.status === "published" ? (
+                        <Eye className="size-4" />
+                      ) : (
+                        <EyeOff className="size-4 text-muted-foreground" />
+                      )}
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"

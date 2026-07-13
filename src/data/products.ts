@@ -180,6 +180,19 @@ export const createProduct = createServerFn({ method: "POST" })
     return { id: row.id };
   });
 
+// Quick publish/hide toggle from the admin list — doesn't require the full
+// product payload the way updateProduct does.
+export const setProductStatus = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; status: string }) => d)
+  .handler(async ({ data }) => {
+    await requireManager();
+    await getDb()
+      .update(products)
+      .set({ status: data.status, updated_at: new Date().toISOString() })
+      .where(eq(products.id, data.id));
+    return { ok: true };
+  });
+
 export const updateProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput & { id: string }) => d)
   .handler(async ({ data }) => {
