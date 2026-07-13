@@ -14,23 +14,23 @@ type ServerEntry = {
 // scripts/connect/frame, and frame-ancestors/base-uri/object-src close the
 // clickjacking and base-tag vectors. Origins map to real usage: google/gstatic
 // = reCAPTCHA, analytics.tiktok = pixel, cloudflareinsights = CF Web Analytics
-// (edge-injected), planifyx = webchat widget (also loads its own CSS),
-// salesmartly = live chat widget — plugin-code/client serve script+CSS+media,
-// widget.salesmartly/srz.salesmartly are its config-fetch and telemetry APIs —
-// nominatim = checkout address lookup, fonts.* = Google Fonts.
+// (edge-injected), salesmartly = live chat widget — plugin-code/client serve
+// script+CSS+media, widget.salesmartly/srz.salesmartly are its config-fetch
+// and telemetry APIs — nominatim = checkout address lookup, fonts.* = Google
+// Fonts. (planifyx was a legacy webchat widget, removed in favor of salesmartly.)
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://analytics.tiktok.com https://static.cloudflareinsights.com https://botcommerce.planifyx.com https://plugin-code.salesmartly.com https://client.salesmartly.com",
-  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://botcommerce.planifyx.com https://plugin-code.salesmartly.com",
+  "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://analytics.tiktok.com https://static.cloudflareinsights.com https://plugin-code.salesmartly.com https://client.salesmartly.com",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://plugin-code.salesmartly.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "media-src 'self' https://client.salesmartly.com",
   "connect-src 'self' https://nominatim.openstreetmap.org https://www.google.com https://analytics.tiktok.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://plugin-code.salesmartly.com wss://plugin-code.salesmartly.com https://client.salesmartly.com wss://client.salesmartly.com https://widget.salesmartly.com https://srz.salesmartly.com https://api.salesmartly.com https://msg.salesmartly.com wss://msg.salesmartly.com",
-  "frame-src 'self' https://www.google.com https://botcommerce.planifyx.com https://plugin-code.salesmartly.com https://client.salesmartly.com",
+  "frame-src 'self' https://www.google.com https://plugin-code.salesmartly.com https://client.salesmartly.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
