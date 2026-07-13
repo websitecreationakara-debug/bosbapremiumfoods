@@ -38,6 +38,7 @@ export type ProductVariation = {
   id: string;
   product_id: string;
   weight: string;
+  image_url: string | null;
   price: number;
   sale_price: number | null;
   stock: number | null;
@@ -95,7 +96,13 @@ export type CartItem = {
   qty: number;
 };
 
-export type OrderItem = { id: string; title: string; qty: number; price: number };
+export type OrderItem = {
+  id: string;
+  title: string;
+  qty: number;
+  price: number;
+  image_url?: string | null;
+};
 
 export type Order = {
   id: string;

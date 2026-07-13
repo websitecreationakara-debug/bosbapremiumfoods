@@ -1,9 +1,9 @@
 // On-demand product/category sync between the local D1 (vite dev) and the remote
-// D1 (camitc.com). The two databases are otherwise independent — run this when you
+// D1 (prod). The two databases are otherwise independent — run this when you
 // want one to match the other.
 //
-//   npm run db:pull            remote (camitc.com) -> local        (overwrites local)
-//   npm run db:push -- --yes   local -> remote (camitc.com)        (overwrites PROD)
+//   npm run db:pull            remote (prod) -> local        (overwrites local)
+//   npm run db:push -- --yes   local -> remote (prod)        (overwrites PROD)
 //
 // Only `categories` and `products` are synced. Media image blobs, users, sessions,
 // and orders are intentionally left alone. The destination is backed up to a SQL
@@ -26,12 +26,12 @@ if (dir !== "push" && dir !== "pull") {
 
 const srcFlag = dir === "push" ? "--local" : "--remote";
 const dstFlag = dir === "push" ? "--remote" : "--local";
-const srcName = dir === "push" ? "LOCAL" : "REMOTE (camitc.com)";
-const dstName = dir === "push" ? "REMOTE (camitc.com)" : "LOCAL";
+const srcName = dir === "push" ? "LOCAL" : "REMOTE (prod)";
+const dstName = dir === "push" ? "REMOTE (prod)" : "LOCAL";
 
 if (dir === "push" && !confirmed) {
   console.error(
-    `\n⚠️  This OVERWRITES production (camitc.com) products & categories with your LOCAL data.\n` +
+    `\n⚠️  This OVERWRITES production products & categories with your LOCAL data.\n` +
       `   There is no undo for live customers. If you're sure, run:\n\n` +
       `     npm run db:push -- --yes\n`,
   );
@@ -39,10 +39,13 @@ if (dir === "push" && !confirmed) {
 }
 
 const readRows = (flag, table) => {
-  const out = execSync(`npx wrangler d1 execute ${DB} ${flag} --json --command "SELECT * FROM ${table}"`, {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "ignore"],
-  });
+  const out = execSync(
+    `npx wrangler d1 execute ${DB} ${flag} --json --command "SELECT * FROM ${table}"`,
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"],
+    },
+  );
   try {
     return JSON.parse(out)[0].results;
   } catch {
@@ -51,7 +54,11 @@ const readRows = (flag, table) => {
 };
 
 const esc = (v) =>
-  v === null || v === undefined ? "NULL" : typeof v === "number" ? String(v) : `'${String(v).replace(/'/g, "''")}'`;
+  v === null || v === undefined
+    ? "NULL"
+    : typeof v === "number"
+      ? String(v)
+      : `'${String(v).replace(/'/g, "''")}'`;
 
 const insertsFor = (table, rows) =>
   rows
@@ -90,5 +97,7 @@ const applyPath = path.join(os.tmpdir(), `dbsync-apply-${stamp}.sql`);
 fs.writeFileSync(applyPath, buildReplaceSql(src));
 execSync(`npx wrangler d1 execute ${DB} ${dstFlag} --file "${applyPath}"`, { stdio: "inherit" });
 
-console.log(`\n✓ ${dstName} now matches ${srcName} (${TABLES.map((t) => `${t}:${src[t].length}`).join(", ")}).`);
+console.log(
+  `\n✓ ${dstName} now matches ${srcName} (${TABLES.map((t) => `${t}:${src[t].length}`).join(", ")}).`,
+);
 if (dir === "pull") console.log("  Refresh your browser — React Query may still show cached data.");

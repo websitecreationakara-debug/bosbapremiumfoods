@@ -20,7 +20,13 @@ import {
   requireUser,
 } from "./_auth";
 
-type OrderItem = { id: string; title: string; qty: number; price: number };
+type OrderItem = {
+  id: string;
+  title: string;
+  qty: number;
+  price: number;
+  image_url?: string | null;
+};
 
 // Order line ids are either a simple product id or a product_variation id.
 type CreateOrderInput = {
@@ -45,6 +51,58 @@ const parseItems = (row: typeof orders.$inferSelect) => ({
   ...row,
   items: JSON.parse(row.items || "[]") as OrderItem[],
 });
+
+// D1 caps bound parameters per query at 100, so inArray lookups are batched.
+const chunked = <T>(arr: T[], size = 90) =>
+  Array.from({ length: Math.ceil(arr.length / size) }, (_, i) =>
+    arr.slice(i * size, (i + 1) * size),
+  );
+
+// Order item snapshots don't store images — resolve them from the live catalog
+// at read time so all orders (old and new) show what was bought. Variation lines
+// fall back to the parent product's image; deleted items resolve to null.
+async function attachItemImages<T extends { items: OrderItem[] }>(list: T[]) {
+  const ids = [...new Set(list.flatMap((o) => o.items.map((i) => i.id)).filter(Boolean))];
+  if (ids.length === 0) return list;
+  const db = getDb();
+
+  const imgById = new Map<string, string | null>();
+  const allVarRows: { id: string; image_url: string | null; product_id: string }[] = [];
+  for (const part of chunked(ids)) {
+    const [prodRows, varRows] = await Promise.all([
+      db
+        .select({ id: products.id, image_url: products.image_url })
+        .from(products)
+        .where(inArray(products.id, part)),
+      db
+        .select({
+          id: product_variations.id,
+          image_url: product_variations.image_url,
+          product_id: product_variations.product_id,
+        })
+        .from(product_variations)
+        .where(inArray(product_variations.id, part)),
+    ]);
+    for (const p of prodRows) imgById.set(p.id, p.image_url);
+    allVarRows.push(...varRows);
+  }
+
+  const parentIds = [...new Set(allVarRows.filter((v) => !v.image_url).map((v) => v.product_id))];
+  const parentImg = new Map<string, string | null>();
+  for (const part of chunked(parentIds)) {
+    const rows = await db
+      .select({ id: products.id, image_url: products.image_url })
+      .from(products)
+      .where(inArray(products.id, part));
+    for (const r of rows) parentImg.set(r.id, r.image_url);
+  }
+  for (const v of allVarRows) imgById.set(v.id, v.image_url ?? parentImg.get(v.product_id) ?? null);
+
+  return list.map((o) => ({
+    ...o,
+    items: o.items.map((i) => ({ ...i, image_url: imgById.get(i.id) ?? null })),
+  }));
+}
 
 // Alert the store (Telegram + email) that a confirmed order is ready to fulfil.
 // Called immediately for COD, but deferred to the payment-confirmed path for
@@ -93,7 +151,7 @@ export async function markOrderPaid(orderId: string, ref?: string | null) {
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireOrderViewer();
   const rows = await getDb().select().from(orders).orderBy(desc(orders.created_at));
-  return rows.map(parseItems);
+  return attachItemImages(rows.map(parseItems));
 });
 
 export const createOrder = createServerFn({ method: "POST" })
@@ -274,7 +332,7 @@ export const listMyOrders = createServerFn({ method: "GET" }).handler(async () =
     .from(orders)
     .where(eq(orders.user_id, user.id))
     .orderBy(desc(orders.created_at));
-  return rows.map(parseItems);
+  return attachItemImages(rows.map(parseItems));
 });
 
 export const countPendingOrders = createServerFn({ method: "GET" }).handler(async () => {

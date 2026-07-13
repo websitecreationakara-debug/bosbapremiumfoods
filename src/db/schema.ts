@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, blob, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 const uuid = () => crypto.randomUUID();
 const nowIso = () => new Date().toISOString();
@@ -85,6 +85,8 @@ export const product_variations = sqliteTable("product_variations", {
     .references(() => products.id, { onDelete: "cascade" }),
   // Variation label — the weight, e.g. "250g", "1kg".
   weight: text("weight").notNull(),
+  // Optional image for this specific weight/variant; falls back to the product image.
+  image_url: text("image_url"),
   price: real("price").notNull().default(0),
   sale_price: real("sale_price"),
   // null = stock untracked (always available); a number = tracked count (0 = out of stock).
@@ -183,6 +185,28 @@ export const store_settings = sqliteTable("store_settings", {
   free_shipping_threshold: real("free_shipping_threshold").default(30),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
+
+// Customer star ratings (1–5), one per user per product. Text reviews aren't
+// captured yet — this is stars only. The product's shown rating (products.rating)
+// is denormalized from the average here on each submit so storefront reads are
+// unchanged. A logged-in user re-rating updates their existing row (upsert on the
+// unique index below).
+export const product_ratings = sqliteTable(
+  "product_ratings",
+  {
+    id: text("id").primaryKey().$defaultFn(uuid),
+    product_id: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    user_id: text("user_id")
+      .notNull()
+      .references(() => user.id, { onDelete: "cascade" }),
+    stars: integer("stars").notNull(),
+    created_at: text("created_at").notNull().$defaultFn(nowIso),
+    updated_at: text("updated_at").notNull().$defaultFn(nowIso),
+  },
+  (t) => [uniqueIndex("product_ratings_user_product").on(t.product_id, t.user_id)],
+);
 
 // ---------- better-auth tables ----------
 // Shapes follow better-auth's drizzle (sqlite) conventions, including the

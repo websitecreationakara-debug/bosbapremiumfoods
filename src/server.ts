@@ -120,15 +120,6 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
-    // Canonical host: redirect www → apex so the auth session cookie lives on a
-    // single host (BETTER_AUTH_URL is the non-www origin). Without this, signing in
-    // on www sets the cookie on the apex and the user appears logged out on www.
-    const url = new URL(request.url);
-    if (url.hostname === "www.camitc.com") {
-      url.hostname = "camitc.com";
-      return withSecurityHeaders(Response.redirect(url.toString(), 301));
-    }
-
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
