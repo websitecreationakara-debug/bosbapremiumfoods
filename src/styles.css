@@ -152,14 +152,24 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html { font-family: var(--font-sans); }
+  * {
+    border-color: var(--color-border);
+  }
+  html {
+    font-family: var(--font-sans);
+  }
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-feature-settings: "ss01", "cv11";
   }
-  h1, h2, h3, h4 { font-family: var(--font-display); letter-spacing: -0.02em; }
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
 }
 
 @layer utilities {
@@ -167,5 +177,18 @@
     background-image: radial-gradient(rgba(201, 168, 76, 0.06) 1px, transparent 1px);
     background-size: 24px 24px;
   }
-  .text-balance { text-wrap: balance; }
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* Third-party widget scripts (e.g. SalesMartly's chat bundle) ship an unscoped
+   `* { margin: 0; padding: 0 }` reset. Because it's unlayered, it beats every
+   @layer-wrapped Tailwind utility (mx-auto, px-4, gap-*, ...) regardless of
+   specificity, nullifying spacing site-wide a few hundred ms after page load.
+   This rule is deliberately outside any @layer so it outranks that leak, and
+   revert-layer restores whatever value our own utilities layer computed. */
+* {
+  margin: revert-layer !important;
+  padding: revert-layer !important;
 }
