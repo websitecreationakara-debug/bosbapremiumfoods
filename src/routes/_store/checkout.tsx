@@ -35,12 +35,14 @@ import {
   QrCode,
 } from "lucide-react";
 
-// Half-hour delivery slots, 8:00 AM – 8:00 PM.
+// Half-hour delivery slots, 9:30 AM – 9:30 PM. Customers can only pre-order
+// within this window.
+const SLOT_START_MINUTES = 9 * 60 + 30;
+const SLOT_END_MINUTES = 21 * 60 + 30;
 const TIME_SLOTS = (() => {
   const out: string[] = [];
-  for (let h = 8; h <= 20; h++) {
-    out.push(`${String(h).padStart(2, "0")}:00`);
-    if (h < 20) out.push(`${String(h).padStart(2, "0")}:30`);
+  for (let m = SLOT_START_MINUTES; m <= SLOT_END_MINUTES; m += 30) {
+    out.push(`${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`);
   }
   return out;
 })();
