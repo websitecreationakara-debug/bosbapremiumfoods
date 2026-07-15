@@ -46,6 +46,11 @@ const env: Record<string, string | undefined> = (() => {
 // Each deployment overrides this via the SITE_NAME env var.
 const siteName = () => env.SITE_NAME?.trim() || "BOSBA Premium Foods";
 
+// Email clients need an absolute URL for images — matches the canonical logo
+// used in __root.tsx's Organization JSON-LD.
+const logoHtml = () =>
+  `<img src="https://bosbapremiumfoods.com/logo.png" alt="${escapeHtml(siteName())}" width="48" height="48" style="display:block;margin:0 0 16px;border-radius:9999px" />`;
+
 const escapeHtml = (s: string) =>
   s.replace(
     /[&<>"']/g,
@@ -180,6 +185,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
     const track = order.tracking_url?.trim();
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
+        ${logoHtml()}
         <h2 style="margin:0 0 4px">Your order is on the way! 🛵</h2>
         <p style="margin:0 0 16px;color:#555">Hi ${escapeHtml(name)}, your order #${short} has been shipped and is out for delivery.</p>
         ${
@@ -215,6 +221,7 @@ async function sendCustomerEmail(
     const name = order.customer_name?.trim() || "there";
     const html = `
       <div style="font-family:system-ui,sans-serif;max-width:560px">
+        ${logoHtml()}
         <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
         <p style="margin:0 0 16px;color:#555">We've received your order and will start preparing it for you shortly. Thank you for shopping with us!</p>
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
