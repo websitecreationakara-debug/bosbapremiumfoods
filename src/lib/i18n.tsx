@@ -54,8 +54,8 @@ const en = {
   "product.from": "from",
   "product.selectOptions": "Select options",
   // shop
-  "shop.title": "Shop the Marketplace",
-  "shop.count": "{n} fresh products",
+  "shop.title": "Bosba Premium Foods",
+  "shop.count": "{n} products",
   "shop.filters": "Filters",
   "shop.clearAll": "Clear all",
   "shop.search": "Search",
