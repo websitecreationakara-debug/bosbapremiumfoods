@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
@@ -112,6 +113,7 @@ function Checkout() {
   const [schedTime, setSchedTime] = useState("");
   const [payment, setPayment] = useState<"cod" | "khqr">("cod");
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery");
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const appliedDefault = useRef(false);
@@ -679,7 +681,16 @@ function Checkout() {
             const unit = itemUnitPrice(item);
             return (
               <div key={key} className="flex items-center gap-2 text-sm">
-                <div className="size-10 rounded-lg bg-background overflow-hidden shrink-0">
+                <button
+                  type="button"
+                  onClick={() =>
+                    item.product.image_url &&
+                    setPreview({ url: item.product.image_url, title: item.product.title })
+                  }
+                  disabled={!item.product.image_url}
+                  title={item.product.image_url ? `View ${item.product.title} image` : undefined}
+                  className="size-10 rounded-lg bg-background overflow-hidden shrink-0 hover:ring-2 hover:ring-brand transition-shadow disabled:cursor-default"
+                >
                   {item.product.image_url && (
                     <img
                       src={item.product.image_url}
@@ -688,7 +699,7 @@ function Checkout() {
                       loading="lazy"
                     />
                   )}
-                </div>
+                </button>
                 <div className="flex-1 min-w-0">
                   <p className="truncate font-medium">
                     {item.product.title}
@@ -791,6 +802,21 @@ function Checkout() {
           </div>
         </div>
       </aside>
+
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{preview?.title}</DialogTitle>
+          </DialogHeader>
+          {preview && (
+            <img
+              src={preview.url}
+              alt={preview.title}
+              className="w-full max-h-[70vh] rounded-lg object-contain bg-muted"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

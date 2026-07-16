@@ -23,6 +23,12 @@ import {
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
+// listOrders decorates each stored line item with the product's thumbnail and
+// canonical product id (variation lines resolve to their parent product), so
+// the admin table can show a clickable image without denormalizing images
+// into the order JSON.
+type OrderItemWithImage = OrderItem & { product_id: string; image_url: string | null };
+
 // Order line ids are either a simple product id or a product_variation id.
 type CreateOrderInput = {
   items: { id: string; title: string; qty: number }[];
@@ -95,8 +101,28 @@ export async function markOrderPaid(orderId: string, ref?: string | null) {
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireOrderViewer();
-  const rows = await getDb().select().from(orders).orderBy(desc(orders.created_at));
-  return rows.map(parseItems);
+  const db = getDb();
+  const rows = await db.select().from(orders).orderBy(desc(orders.created_at));
+  const parsed = rows.map(parseItems);
+
+  // Full catalog scans (small tables) rather than inArray over every item id
+  // accumulated across all orders — D1 caps bound parameters per query.
+  const [prods, vars] = await Promise.all([
+    db.select({ id: products.id, image_url: products.image_url }).from(products),
+    db
+      .select({ id: product_variations.id, product_id: product_variations.product_id })
+      .from(product_variations),
+  ]);
+  const imageByProduct = new Map(prods.map((p) => [p.id, p.image_url]));
+  const parentByVariation = new Map(vars.map((v) => [v.id, v.product_id]));
+
+  return parsed.map((o) => ({
+    ...o,
+    items: o.items.map((it): OrderItemWithImage => {
+      const product_id = parentByVariation.get(it.id) ?? it.id;
+      return { ...it, product_id, image_url: imageByProduct.get(product_id) ?? null };
+    }),
+  }));
 });
 
 export const createOrder = createServerFn({ method: "POST" })

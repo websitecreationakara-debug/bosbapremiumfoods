@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { downloadInvoice } from "@/lib/invoice";
@@ -17,6 +19,7 @@ export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin }
 
 function OrdersAdmin() {
   const qc = useQueryClient();
+  const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
   const { data: orders = [] } = useQuery({
     queryKey: ["orders-admin"],
     queryFn: () => listOrders(),
@@ -119,11 +122,33 @@ function OrdersAdmin() {
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">
                   {Array.isArray(o.items) && o.items.length > 0 ? (
-                    <ul className="space-y-0.5">
+                    <ul className="space-y-1">
                       {o.items.map((it, i) => (
-                        <li key={it.id ?? i}>
-                          <span className="font-medium">{it.title}</span>
-                          <span className="text-muted-foreground"> × {it.qty}</span>
+                        <li key={it.id ?? i} className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              it.image_url && setPreview({ url: it.image_url, title: it.title })
+                            }
+                            title={it.image_url ? `View ${it.title} image` : undefined}
+                            disabled={!it.image_url}
+                            className="shrink-0 disabled:cursor-default"
+                          >
+                            <span className="block size-8 rounded-md overflow-hidden bg-muted border hover:ring-2 hover:ring-brand transition-shadow">
+                              {it.image_url && (
+                                <img
+                                  src={it.image_url}
+                                  alt={it.title}
+                                  className="w-full h-full object-cover"
+                                  loading="lazy"
+                                />
+                              )}
+                            </span>
+                          </button>
+                          <span>
+                            <span className="font-medium">{it.title}</span>
+                            <span className="text-muted-foreground"> × {it.qty}</span>
+                          </span>
                         </li>
                       ))}
                     </ul>
@@ -192,6 +217,21 @@ function OrdersAdmin() {
           </tbody>
         </table>
       </div>
+
+      <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{preview?.title}</DialogTitle>
+          </DialogHeader>
+          {preview && (
+            <img
+              src={preview.url}
+              alt={preview.title}
+              className="w-full max-h-[70vh] rounded-lg object-contain bg-muted"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
