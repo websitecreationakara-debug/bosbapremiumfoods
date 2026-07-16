@@ -143,6 +143,8 @@ export const orders = sqliteTable("orders", {
   discount: real("discount").notNull().default(0),
   // Optional customer-chosen delivery/pre-order time (datetime-local string). Null = ASAP.
   scheduled_at: text("scheduled_at"),
+  // "delivery" | "pickup" (customer collects in-store — no delivery fee, no address needed).
+  delivery_method: text("delivery_method").notNull().default("delivery"),
   // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
   payment_method: text("payment_method").notNull().default("cod"),
   // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to
@@ -194,6 +196,7 @@ export const user = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
+  phone: text("phone"),
   role: text("role"),
   banned: integer("banned", { mode: "boolean" }),
   banReason: text("ban_reason"),

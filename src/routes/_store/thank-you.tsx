@@ -17,6 +17,7 @@ type LastOrder = {
   customer_phone?: string;
   address?: string;
   city?: string;
+  delivery_method?: string;
   created_at?: string;
 };
 
@@ -41,7 +42,9 @@ function ThankYou() {
         Thank you{order?.customer_name ? `, ${order.customer_name}` : ""}!
       </h1>
       <p className="mt-3 text-muted-foreground">
-        Your order has been placed.
+        {order?.delivery_method === "pickup"
+          ? "Your order has been placed and will be ready for pickup at our store."
+          : "Your order has been placed."}
         {order?.customer_email
           ? " We’ll send a confirmation to your email shortly."
           : " We’ll be in touch shortly to confirm."}
@@ -91,6 +94,7 @@ function ThankYou() {
       <CreateAccountPrompt
         defaultName={order?.customer_name ?? ""}
         defaultEmail={order?.customer_email ?? ""}
+        defaultPhone={order?.customer_phone ?? ""}
       />
 
       <Button asChild size="lg" variant="outline" className="mt-8 rounded-full">
@@ -103,9 +107,11 @@ function ThankYou() {
 function CreateAccountPrompt({
   defaultName,
   defaultEmail,
+  defaultPhone,
 }: {
   defaultName: string;
   defaultEmail: string;
+  defaultPhone: string;
 }) {
   const { user, loading, signUp } = useAuth();
   const [open, setOpen] = useState(false);
@@ -134,7 +140,12 @@ function CreateAccountPrompt({
       return;
     }
     setSubmitting(true);
-    const { error } = await signUp(defaultEmail, password, defaultName || defaultEmail);
+    const { error } = await signUp(
+      defaultEmail,
+      password,
+      defaultName || defaultEmail,
+      defaultPhone,
+    );
     setSubmitting(false);
     if (error) {
       toast.error(error);

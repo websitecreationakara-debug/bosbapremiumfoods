@@ -162,6 +162,20 @@
       "when": 1782887920816,
       "tag": "0022_needy_human_torch",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "6",
+      "when": 1784181169427,
+      "tag": "0023_fancy_wonder_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "6",
+      "when": 1784188473201,
+      "tag": "0024_hot_hiroim",
+      "breakpoints": true
     }
   ]
 }

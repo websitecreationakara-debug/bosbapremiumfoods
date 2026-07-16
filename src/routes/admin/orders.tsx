@@ -91,10 +91,14 @@ function OrdersAdmin() {
                   {o.customer_phone && (
                     <div className="text-xs text-muted-foreground">{o.customer_phone}</div>
                   )}
-                  {(o.address || o.city || o.postal_code) && (
-                    <div className="text-xs text-muted-foreground">
-                      {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
-                    </div>
+                  {o.delivery_method === "pickup" ? (
+                    <div className="text-xs font-medium text-brand">🏪 Pickup at store</div>
+                  ) : (
+                    (o.address || o.city || o.postal_code) && (
+                      <div className="text-xs text-muted-foreground">
+                        {[o.address, o.city, o.postal_code].filter(Boolean).join(", ")}
+                      </div>
+                    )
                   )}
                   {o.location_lat != null && o.location_lng != null && (
                     <a

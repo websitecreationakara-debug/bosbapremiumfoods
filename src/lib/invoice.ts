@@ -13,6 +13,7 @@ export type InvoiceOrder = {
   address?: string | null;
   city?: string | null;
   postal_code?: string | null;
+  delivery_method?: string | null;
   items: InvoiceItem[];
   total: number;
   status?: string | null;
@@ -103,7 +104,9 @@ export async function downloadInvoice(order: InvoiceOrder) {
     order.customer_name,
     order.customer_email,
     order.customer_phone,
-    [order.address, order.city, order.postal_code].filter(Boolean).join(", ") || null,
+    order.delivery_method === "pickup"
+      ? "Pickup at store"
+      : [order.address, order.city, order.postal_code].filter(Boolean).join(", ") || null,
   ].filter((l): l is string => Boolean(l));
   let y = 56;
   for (const line of billLines) {

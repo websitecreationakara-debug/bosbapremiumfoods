@@ -21,6 +21,7 @@ import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { LocationMap } from "@/components/checkout/location-map";
 import {
   MapPin,
   Check,
@@ -33,7 +34,16 @@ import {
   Trash2,
   Banknote,
   QrCode,
+  Truck,
+  Store,
+  Phone,
 } from "lucide-react";
+
+// Kept in sync with the address shown in the site footer/header.
+const STORE_ADDRESS = "Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh";
+const STORE_PHONE = "+855 99 361 350";
+const STORE_COORDS = { lat: 11.5487448, lng: 104.9069336 };
+const STORE_MAPS_LINK = "https://maps.app.goo.gl/bApHjzPGv86ScdqN9";
 
 // Half-hour delivery slots, 9:30 AM – 9:30 PM. Customers can only pre-order
 // within this window.
@@ -91,10 +101,17 @@ function Checkout() {
   const phoneRef = useRef<HTMLInputElement>(null);
   const addressRef = useRef<HTMLInputElement>(null);
   const cityRef = useRef<HTMLInputElement>(null);
+  // Once the customer types into Address/City themselves, stop letting the
+  // pin (drag, tap, or GPS) clobber it — only auto-fill fields they haven't
+  // touched yet, so refining the pin never wipes out typed details like an
+  // apartment number or landmark note.
+  const addressDirty = useRef(false);
+  const cityDirty = useRef(false);
   const [schedMode, setSchedMode] = useState<"asap" | "schedule">("asap");
   const [schedDate, setSchedDate] = useState("");
   const [schedTime, setSchedTime] = useState("");
   const [payment, setPayment] = useState<"cod" | "khqr">("cod");
+  const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const appliedDefault = useRef(false);
@@ -123,6 +140,10 @@ function Checkout() {
     if (phoneRef.current) phoneRef.current.value = a.phone || "";
     if (addressRef.current) addressRef.current.value = a.address || "";
     if (cityRef.current) cityRef.current.value = a.city || "";
+    // A saved address is a deliberate, complete choice — treat it like manual
+    // input so a follow-up pin drag refines the pin without rewriting it.
+    addressDirty.current = true;
+    cityDirty.current = true;
     setCoords(
       a.location_lat != null && a.location_lng != null
         ? { lat: a.location_lat, lng: a.location_lng }
@@ -133,6 +154,8 @@ function Checkout() {
     if (phoneRef.current) phoneRef.current.value = "";
     if (addressRef.current) addressRef.current.value = "";
     if (cityRef.current) cityRef.current.value = "";
+    addressDirty.current = false;
+    cityDirty.current = false;
     setCoords(null);
   };
 
@@ -146,6 +169,8 @@ function Checkout() {
     if (phoneRef.current) phoneRef.current.value = a.phone || "";
     if (addressRef.current) addressRef.current.value = a.address || "";
     if (cityRef.current) cityRef.current.value = a.city || "";
+    addressDirty.current = true;
+    cityDirty.current = true;
     if (a.location_lat != null && a.location_lng != null)
       setCoords({ lat: a.location_lat, lng: a.location_lng });
   }, [user, addresses]);
@@ -153,7 +178,10 @@ function Checkout() {
   const discount = applied ? promoCodeDiscount(applied.type, applied.value, subtotal) : 0;
   const discountedSubtotal = Math.max(0, subtotal - discount);
   const threshold = Number(settings?.free_shipping_threshold ?? 50);
-  const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : 2.5;
+  const shipping =
+    deliveryMethod === "pickup" || discountedSubtotal >= threshold || discountedSubtotal === 0
+      ? 0
+      : 2.5;
   const total = discountedSubtotal + shipping;
 
   const applyCode = async () => {
@@ -179,6 +207,25 @@ function Checkout() {
     }
   };
 
+  // Reverse-geocodes a pin (free, no API key) and fills the address/city
+  // fields. Shared by the GPS button and by dragging/clicking the map.
+  const applyCoords = async (lat: number, lng: number) => {
+    setCoords({ lat, lng });
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
+      );
+      const data = await res.json();
+      if (data?.display_name && addressRef.current && !addressDirty.current)
+        addressRef.current.value = data.display_name;
+      const a = data?.address ?? {};
+      const city = a.city || a.town || a.village || a.suburb || a.county;
+      if (city && cityRef.current && !cityDirty.current) cityRef.current.value = city;
+    } catch {
+      // Geocoding failed — coordinates are still saved; customer can type the address.
+    }
+  };
+
   const captureLocation = () => {
     if (!navigator.geolocation) {
       toast.error("Location isn't supported on this device.");
@@ -187,23 +234,7 @@ function Checkout() {
     setLocating(true);
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        setCoords({ lat, lng });
-        // Reverse-geocode the pin to auto-fill the address (free, no API key).
-        try {
-          const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&accept-language=en`,
-          );
-          const data = await res.json();
-          if (data?.display_name && addressRef.current)
-            addressRef.current.value = data.display_name;
-          const a = data?.address ?? {};
-          const city = a.city || a.town || a.village || a.suburb || a.county;
-          if (city && cityRef.current && !cityRef.current.value) cityRef.current.value = city;
-        } catch {
-          // Geocoding failed — coordinates are still saved; customer can type the address.
-        }
+        await applyCoords(pos.coords.latitude, pos.coords.longitude);
         setLocating(false);
         toast.success("Location pinned — address filled in!");
       },
@@ -245,12 +276,13 @@ function Checkout() {
           customer_name: customerName,
           customer_email: customerEmail,
           customer_phone: phoneRef.current?.value ?? "",
-          address: addressRef.current?.value ?? "",
-          city: cityRef.current?.value ?? "",
-          location_lat: coords?.lat ?? null,
-          location_lng: coords?.lng ?? null,
+          address: deliveryMethod === "pickup" ? "" : (addressRef.current?.value ?? ""),
+          city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
+          location_lat: deliveryMethod === "pickup" ? null : (coords?.lat ?? null),
+          location_lng: deliveryMethod === "pickup" ? null : (coords?.lng ?? null),
           promo_code: applied?.code ?? null,
           scheduled_at: scheduledAt,
+          delivery_method: deliveryMethod,
           payment_method: payment,
         },
       });
@@ -261,7 +293,7 @@ function Checkout() {
     }
     setSubmitting(false);
     // Persist a newly typed address to the customer's address book if they opted in.
-    if (user && selectedAddressId === null && saveNewAddress) {
+    if (deliveryMethod === "delivery" && user && selectedAddressId === null && saveNewAddress) {
       try {
         await saveAddress({
           data: {
@@ -292,8 +324,9 @@ function Checkout() {
           customer_name: customerName,
           customer_email: customerEmail,
           customer_phone: phoneRef.current?.value ?? "",
-          address: addressRef.current?.value ?? "",
-          city: cityRef.current?.value ?? "",
+          address: deliveryMethod === "pickup" ? "" : (addressRef.current?.value ?? ""),
+          city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
+          delivery_method: deliveryMethod,
           created_at: new Date().toISOString(),
         }),
       );
@@ -328,7 +361,58 @@ function Checkout() {
 
         <section className="space-y-4 bg-muted rounded-2xl p-6">
           <h2 className="font-display font-semibold text-lg">Delivery Details</h2>
-          {user && addresses.length > 0 && (
+
+          <div className="grid grid-cols-2 gap-2">
+            {(
+              [
+                { key: "delivery", label: "Delivery", icon: Truck },
+                { key: "pickup", label: "Pickup at store", icon: Store },
+              ] as const
+            ).map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setDeliveryMethod(opt.key)}
+                className={cn(
+                  "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
+                  deliveryMethod === opt.key
+                    ? "border-brand bg-brand/10 text-brand"
+                    : "border-border hover:bg-background",
+                )}
+              >
+                <opt.icon className="size-4" />
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {deliveryMethod === "pickup" && (
+            <div className="rounded-xl border bg-background p-4 space-y-3 text-sm">
+              <div className="space-y-1.5">
+                <p className="font-medium">Collect your order from our store</p>
+                <p className="flex items-center gap-2 text-muted-foreground">
+                  <MapPin className="size-4 shrink-0" /> {STORE_ADDRESS}
+                </p>
+                <a
+                  href={`tel:${STORE_PHONE.replace(/\s+/g, "")}`}
+                  className="flex items-center gap-2 text-muted-foreground hover:text-foreground w-fit"
+                >
+                  <Phone className="size-4 shrink-0" /> {STORE_PHONE}
+                </a>
+              </div>
+              <LocationMap coords={STORE_COORDS} readOnly />
+              <a
+                href={STORE_MAPS_LINK}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+              >
+                <MapPin className="size-4" /> Open in Google Maps for directions
+              </a>
+            </div>
+          )}
+
+          {deliveryMethod === "delivery" && user && addresses.length > 0 && (
             <div className="space-y-2">
               <Label>Saved addresses</Label>
               <div className="flex flex-wrap gap-2">
@@ -389,51 +473,68 @@ function Checkout() {
               <Label>Phone</Label>
               <Input ref={phoneRef} required type="tel" placeholder="+855 12 345 678" />
             </div>
-            <div className="sm:col-span-2">
-              <Label>Address</Label>
-              <div className="flex gap-2">
-                <Input
-                  ref={addressRef}
-                  required
-                  placeholder="123 Phnom Penh"
-                  className="flex-1 min-w-0"
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={captureLocation}
-                  disabled={locating}
-                  className="shrink-0 gap-2"
-                >
-                  <MapPin className="size-4" />
-                  {locating ? "Locating…" : coords ? "Pinned" : "Pin location"}
-                </Button>
-              </div>
-              {coords && (
-                <a
-                  href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-                >
-                  <Check className="size-4" /> Location pinned — view on map
-                </a>
-              )}
-            </div>
-            <div className="sm:col-span-2">
-              <Label>City</Label>
-              <Input ref={cityRef} required />
-            </div>
-            {user && selectedAddressId === null && (
-              <label className="sm:col-span-2 flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={saveNewAddress}
-                  onChange={(e) => setSaveNewAddress(e.target.checked)}
-                  className="size-4 rounded border-border accent-brand"
-                />
-                Save this address to my address book
-              </label>
+            {deliveryMethod === "delivery" && (
+              <>
+                <div className="sm:col-span-2">
+                  <Label>Address</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      ref={addressRef}
+                      required
+                      placeholder="123 Phnom Penh"
+                      className="flex-1 min-w-0"
+                      onChange={() => {
+                        addressDirty.current = true;
+                      }}
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={captureLocation}
+                      disabled={locating}
+                      className="shrink-0 gap-2"
+                    >
+                      <MapPin className="size-4" />
+                      {locating ? "Locating…" : coords ? "Pinned" : "Pin location"}
+                    </Button>
+                  </div>
+                  {coords && (
+                    <a
+                      href={`https://www.google.com/maps?q=${coords.lat},${coords.lng}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+                    >
+                      <Check className="size-4" /> Location pinned — view on map
+                    </a>
+                  )}
+                </div>
+                <div className="sm:col-span-2 space-y-1.5">
+                  <Label>Or drag the pin to your exact location</Label>
+                  <LocationMap coords={coords} onChange={(c) => applyCoords(c.lat, c.lng)} />
+                </div>
+                <div className="sm:col-span-2">
+                  <Label>City</Label>
+                  <Input
+                    ref={cityRef}
+                    required
+                    onChange={() => {
+                      cityDirty.current = true;
+                    }}
+                  />
+                </div>
+                {user && selectedAddressId === null && (
+                  <label className="sm:col-span-2 flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={saveNewAddress}
+                      onChange={(e) => setSaveNewAddress(e.target.checked)}
+                      className="size-4 rounded border-border accent-brand"
+                    />
+                    Save this address to my address book
+                  </label>
+                )}
+              </>
             )}
             <div className="sm:col-span-2">
               <Label>Delivery time</Label>
