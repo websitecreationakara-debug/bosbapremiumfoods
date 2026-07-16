@@ -4,10 +4,13 @@
 //   npm run backup
 //
 // Exports the ENTIRE remote D1 (schema + all rows, incl. media image BLOBs, users,
-// orders) to a timestamped .sql file under backups/, and archives the current git
-// HEAD to a matching .zip. These dumps contain OAuth tokens and password hashes,
-// so backups/ is gitignored — never commit or share them. Restore the database
-// with:  wrangler d1 execute bosbapremiumfoods --remote --file backups/<that-file>.sql
+// orders) to a timestamped .sql file under D:\Backups\bosba\, and archives the
+// current git HEAD to a matching .zip there too. Lives outside the project
+// folder (as a sibling of D:\Backups\phsar-ichiba\) so backups for the two
+// sites never mix, and so it's not tied to this repo's gitignore. These dumps
+// contain OAuth tokens and password hashes — never commit or share them.
+// Restore the database with:
+//   wrangler d1 execute bosbapremiumfoods --remote --file <that-file>.sql
 //
 // Old dumps/snapshots are pruned automatically, keeping the most recent KEEP of each.
 
@@ -20,7 +23,7 @@ const DB = "bosbapremiumfoods";
 const KEEP = 8; // how many dumps to retain (weekly cadence -> ~2 months of history)
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const dir = path.join(root, "backups");
+const dir = "D:\\Backups\\bosba";
 fs.mkdirSync(dir, { recursive: true });
 
 const existing = (pattern) =>
@@ -49,12 +52,12 @@ const stamp = new Date().toISOString().replace(/[:.]/g, "-");
 const dbOut = path.join(dir, `d1-backup-${stamp}.sql`);
 const srcOut = path.join(dir, `source-${stamp}.zip`);
 
-console.log(`\nExporting remote D1 "${DB}" -> ${path.relative(root, dbOut)}\n`);
+console.log(`\nExporting remote D1 "${DB}" -> ${dbOut}\n`);
 execSync(`npx wrangler d1 export ${DB} --remote --output "${dbOut}"`, { stdio: "inherit", cwd: root });
 const dbBytes = fs.statSync(dbOut).size;
 console.log(`\n✓ Database backup written (${(dbBytes / 1024 / 1024).toFixed(2)} MB)`);
 
-console.log(`\nArchiving source tree (git HEAD) -> ${path.relative(root, srcOut)}\n`);
+console.log(`\nArchiving source tree (git HEAD) -> ${srcOut}\n`);
 execSync(`git archive --format=zip -o "${srcOut}" HEAD`, { stdio: "inherit", cwd: root });
 const srcBytes = fs.statSync(srcOut).size;
 console.log(`✓ Source snapshot written (${(srcBytes / 1024 / 1024).toFixed(2)} MB)`);
@@ -67,4 +70,4 @@ for (const pattern of [DB_PATTERN, SRC_PATTERN]) {
     console.log(`  pruned old backup: ${f}`);
   }
 }
-console.log(`  up to ${KEEP} of each (database, source) retained in backups/\n`);
+console.log(`  up to ${KEEP} of each (database, source) retained in ${dir}\n`);
