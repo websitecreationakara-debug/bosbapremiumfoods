@@ -103,7 +103,10 @@ export function LocationMap({
       // after Tailwind's utilities and its own `.leaflet-container { touch-action:
       // none }` would otherwise win the cascade and trap the page scroll.
       style={{ touchAction: "pan-y" }}
-      className="h-56 sm:h-64 w-full rounded-xl overflow-hidden border"
+      // `isolate` walls off Leaflet's internal z-indexes (panes 200-400,
+      // controls 1000) in their own stacking context; without it they beat the
+      // sticky header (z-40) and the map paints over the nav when scrolling.
+      className="isolate h-56 sm:h-64 w-full rounded-xl overflow-hidden border"
       role={readOnly ? "img" : "application"}
       aria-label={
         readOnly ? "Store location on the map" : "Drag the pin to set your delivery location"
