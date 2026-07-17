@@ -1,7 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products, product_variations, promotions } from "@/db/schema";
+import { products, product_variations, product_images, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
 import { applyPromo } from "@/lib/promotions";
 import { requireManager } from "./_auth";
@@ -172,6 +172,33 @@ export const saveVariations = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Gallery photos for one product (the cover image lives on products.image_url).
+export const getProductImages = createServerFn({ method: "GET" })
+  .inputValidator((d: { productId: string }) => d)
+  .handler(async ({ data }) => {
+    return getDb()
+      .select()
+      .from(product_images)
+      .where(eq(product_images.product_id, data.productId))
+      .orderBy(asc(product_images.sort_order), asc(product_images.created_at));
+  });
+
+// Replace a product's gallery with the supplied URLs, in order.
+export const saveProductImages = createServerFn({ method: "POST" })
+  .inputValidator((d: { productId: string; urls: string[] }) => d)
+  .handler(async ({ data }) => {
+    await requireManager();
+    const db = getDb();
+    await db.delete(product_images).where(eq(product_images.product_id, data.productId));
+    const urls = data.urls.filter((u) => u.trim() !== "");
+    if (urls.length) {
+      await db
+        .insert(product_images)
+        .values(urls.map((url, i) => ({ product_id: data.productId, url, sort_order: i })));
+    }
+    return { ok: true };
+  });
+
 export const createProduct = createServerFn({ method: "POST" })
   .inputValidator((d: ProductInput) => d)
   .handler(async ({ data }) => {
@@ -213,6 +240,7 @@ export const deleteProduct = createServerFn({ method: "POST" })
     await requireManager();
     const db = getDb();
     await db.delete(product_variations).where(eq(product_variations.product_id, data.id));
+    await db.delete(product_images).where(eq(product_images.product_id, data.id));
     await db.delete(products).where(eq(products.id, data.id));
     return { ok: true };
   });

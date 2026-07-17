@@ -8,6 +8,7 @@ import {
   promotions,
   promo_codes,
   store_settings,
+  user as userTable,
 } from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
@@ -22,6 +23,12 @@ import {
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
+// listOrders decorates each stored line item with the product's thumbnail and
+// canonical product id (variation lines resolve to their parent product), so
+// the admin table can show a clickable image without denormalizing images
+// into the order JSON.
+type OrderItemWithImage = OrderItem & { product_id: string; image_url: string | null };
+
 // Order line ids are either a simple product id or a product_variation id.
 type CreateOrderInput = {
   items: { id: string; title: string; qty: number }[];
@@ -34,6 +41,7 @@ type CreateOrderInput = {
   location_lng?: number | null;
   promo_code?: string | null;
   scheduled_at?: string | null;
+  delivery_method?: string | null;
   payment_method?: string | null;
 };
 
@@ -63,6 +71,7 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
     location_lat: row.location_lat,
     location_lng: row.location_lng,
     scheduled_at: row.scheduled_at,
+    delivery_method: row.delivery_method,
   });
 }
 
@@ -92,8 +101,28 @@ export async function markOrderPaid(orderId: string, ref?: string | null) {
 
 export const listOrders = createServerFn({ method: "GET" }).handler(async () => {
   await requireOrderViewer();
-  const rows = await getDb().select().from(orders).orderBy(desc(orders.created_at));
-  return rows.map(parseItems);
+  const db = getDb();
+  const rows = await db.select().from(orders).orderBy(desc(orders.created_at));
+  const parsed = rows.map(parseItems);
+
+  // Full catalog scans (small tables) rather than inArray over every item id
+  // accumulated across all orders — D1 caps bound parameters per query.
+  const [prods, vars] = await Promise.all([
+    db.select({ id: products.id, image_url: products.image_url }).from(products),
+    db
+      .select({ id: product_variations.id, product_id: product_variations.product_id })
+      .from(product_variations),
+  ]);
+  const imageByProduct = new Map(prods.map((p) => [p.id, p.image_url]));
+  const parentByVariation = new Map(vars.map((v) => [v.id, v.product_id]));
+
+  return parsed.map((o) => ({
+    ...o,
+    items: o.items.map((it): OrderItemWithImage => {
+      const product_id = parentByVariation.get(it.id) ?? it.id;
+      return { ...it, product_id, image_url: imageByProduct.get(product_id) ?? null };
+    }),
+  }));
 });
 
 export const createOrder = createServerFn({ method: "POST" })
@@ -215,8 +244,13 @@ export const createOrder = createServerFn({ method: "POST" })
     }
     const discountedSubtotal = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
 
+    // Pickup skips delivery entirely — no fee regardless of order size.
+    const deliveryMethod = data.delivery_method === "pickup" ? "pickup" : "delivery";
     const threshold = Number(settingsRows[0]?.free_shipping_threshold ?? 50);
-    const shipping = discountedSubtotal >= threshold || discountedSubtotal === 0 ? 0 : SHIPPING_FEE;
+    const shipping =
+      deliveryMethod === "pickup" || discountedSubtotal >= threshold || discountedSubtotal === 0
+        ? 0
+        : SHIPPING_FEE;
     const total = Math.round((discountedSubtotal + shipping) * 100) / 100;
 
     // KHQR orders wait in "awaiting_payment" until the gateway confirms; COD
@@ -237,13 +271,21 @@ export const createOrder = createServerFn({ method: "POST" })
         customer_name: data.customer_name?.trim() || user?.name || null,
         customer_email: data.customer_email?.trim() || user?.email || null,
         customer_phone: data.customer_phone?.trim() || null,
-        address: data.address?.trim() || null,
-        city: data.city?.trim() || null,
-        location_lat: data.location_lat ?? null,
-        location_lng: data.location_lng ?? null,
+        address: deliveryMethod === "pickup" ? null : data.address?.trim() || null,
+        city: deliveryMethod === "pickup" ? null : data.city?.trim() || null,
+        location_lat: deliveryMethod === "pickup" ? null : (data.location_lat ?? null),
+        location_lng: deliveryMethod === "pickup" ? null : (data.location_lng ?? null),
         scheduled_at: data.scheduled_at?.trim() || null,
+        delivery_method: deliveryMethod,
       })
       .returning();
+
+    // Keep the account's phone in sync with what the customer types at
+    // checkout, so it ends up on the user record even without a profile edit.
+    const phone = data.customer_phone?.trim();
+    if (user?.id && phone) {
+      await db.update(userTable).set({ phone }).where(eq(userTable.id, user.id));
+    }
 
     // Deduct tracked inventory now that the order is committed. Untracked
     // (null) lines are skipped; counts are clamped at 0 as a belt-and-braces

@@ -34,6 +34,14 @@ export type Promotion = {
   created_at: string;
 };
 
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  url: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type ProductVariation = {
   id: string;
   product_id: string;
@@ -114,6 +122,7 @@ export type Order = {
   promo_code: string | null;
   discount: number;
   scheduled_at: string | null;
+  delivery_method: string;
   payment_method: string;
   payment_status: string;
   payment_ref: string | null;

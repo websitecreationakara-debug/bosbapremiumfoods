@@ -18,6 +18,7 @@ export type OrderNotification = {
   city?: string | null;
   postal_code?: string | null;
   scheduled_at?: string | null;
+  delivery_method?: string | null;
 };
 
 // datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
@@ -67,14 +68,17 @@ const itemRowsHtml = (items: OrderItem[]): string =>
 
 export async function notifyNewOrder(order: OrderNotification): Promise<void> {
   const short = order.id.slice(0, 8);
-  const shipTo = [order.address, order.city, order.postal_code].filter(Boolean).join(", ");
-  const mapLink = mapsUrl(order);
+  const isPickup = order.delivery_method === "pickup";
+  const shipTo = isPickup
+    ? "Pickup at store"
+    : [order.address, order.city, order.postal_code].filter(Boolean).join(", ");
+  const mapLink = isPickup ? null : mapsUrl(order);
   const schedule = formatSchedule(order.scheduled_at);
   const textSummary = [
     `Order #${short}`,
     `Customer: ${order.customer_name ?? "—"} (${order.customer_email ?? "—"})`,
     `Phone: ${order.customer_phone ?? "—"}`,
-    `Deliver to: ${shipTo || "—"}`,
+    `${isPickup ? "🏪" : "Deliver to:"} ${shipTo || "—"}`,
     ...(schedule ? [`🗓️ Scheduled: ${schedule}`] : []),
     ...(mapLink ? [`📍 Map: ${mapLink}`] : []),
     "Items:",
@@ -140,9 +144,9 @@ async function sendEmail(
         <p style="margin:0 0 2px"><strong>Customer:</strong> ${escapeHtml(order.customer_name ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Email:</strong> ${escapeHtml(order.customer_email ?? "—")}</p>
         <p style="margin:0 0 2px"><strong>Phone:</strong> ${escapeHtml(order.customer_phone ?? "—")}</p>
-        <p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo || "—")}</p>
+        <p style="margin:0 0 2px"><strong>${order.delivery_method === "pickup" ? "🏪" : "Deliver to:"}</strong> ${escapeHtml(shipTo || "—")}</p>
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ Scheduled:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
-        ${mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
+        ${order.delivery_method !== "pickup" && mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${rows}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
       </div>`;
@@ -218,7 +222,13 @@ async function sendCustomerEmail(
         <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
         <p style="margin:0 0 16px;color:#555">We've received your order and will start preparing it for you shortly. Thank you for shopping with us!</p>
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
-        ${shipTo ? `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>` : ""}
+        ${
+          order.delivery_method === "pickup"
+            ? `<p style="margin:0 0 2px"><strong>🏪 Pickup at store</strong></p>`
+            : shipTo
+              ? `<p style="margin:0 0 2px"><strong>Deliver to:</strong> ${escapeHtml(shipTo)}</p>`
+              : ""
+        }
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 16px"><strong>🗓️ Scheduled for:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
         <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>

@@ -19,7 +19,12 @@ type AuthCtx = {
   // Anyone allowed into the /admin area: admin, sales, or marketing.
   canAccessAdmin: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  signUp: (
+    email: string,
+    password: string,
+    fullName: string,
+    phone?: string,
+  ) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   verifyEmailOtp: (email: string, otp: string) => Promise<{ error: string | null }>;
   resendOtp: (email: string) => Promise<{ error: string | null }>;
@@ -53,11 +58,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   };
 
-  const signUp: AuthCtx["signUp"] = async (email, password, fullName) => {
+  const signUp: AuthCtx["signUp"] = async (email, password, fullName, phone) => {
     const { error } = await authClient.signUp.email({
       email,
       password,
       name: fullName,
+      ...(phone?.trim() ? { phone: phone.trim() } : {}),
       ...(await withCaptcha("sign_up")),
     });
     return { error: error?.message ?? null };

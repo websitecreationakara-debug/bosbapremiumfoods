@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
-import { listProducts, getProduct, listVariations, getVariations } from "@/data/products";
+import {
+  listProducts,
+  getProduct,
+  listVariations,
+  getVariations,
+  getProductImages,
+} from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
@@ -8,6 +14,7 @@ import { countPendingOrders, listMyOrders } from "@/data/orders";
 import { listMyAddresses } from "@/data/addresses";
 import type {
   Product,
+  ProductImage,
   ProductVariation,
   Category,
   HeroSlide,
@@ -43,6 +50,14 @@ export function useProductVariations(productId: string) {
   return useQuery({
     queryKey: ["variations", productId],
     queryFn: () => getVariations({ data: { productId } }) as Promise<ProductVariation[]>,
+    enabled: !!productId,
+  });
+}
+
+export function useProductImages(productId: string) {
+  return useQuery({
+    queryKey: ["product_images", productId],
+    queryFn: () => getProductImages({ data: { productId } }) as Promise<ProductImage[]>,
     enabled: !!productId,
   });
 }

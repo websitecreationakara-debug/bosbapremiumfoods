@@ -78,6 +78,18 @@ export const products = sqliteTable("products", {
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 
+// Extra gallery photos shown under the main image on the product page. The
+// cover image stays on products.image_url; these are the additional angles.
+export const product_images = sqliteTable("product_images", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const product_variations = sqliteTable("product_variations", {
   id: text("id").primaryKey().$defaultFn(uuid),
   product_id: text("product_id")
@@ -143,6 +155,8 @@ export const orders = sqliteTable("orders", {
   discount: real("discount").notNull().default(0),
   // Optional customer-chosen delivery/pre-order time (datetime-local string). Null = ASAP.
   scheduled_at: text("scheduled_at"),
+  // "delivery" | "pickup" (customer collects in-store — no delivery fee, no address needed).
+  delivery_method: text("delivery_method").notNull().default("delivery"),
   // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
   payment_method: text("payment_method").notNull().default("cod"),
   // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to
@@ -194,6 +208,7 @@ export const user = sqliteTable("user", {
   email: text("email").notNull().unique(),
   emailVerified: integer("email_verified", { mode: "boolean" }).notNull().default(false),
   image: text("image"),
+  phone: text("phone"),
   role: text("role"),
   banned: integer("banned", { mode: "boolean" }),
   banReason: text("ban_reason"),
