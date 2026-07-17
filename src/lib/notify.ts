@@ -159,8 +159,7 @@ async function sendEmail(
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
     const rows = itemRowsHtml(order.items);
-    const html = `
-      <div style="font-family:system-ui,sans-serif;max-width:560px">
+    const html = emailShell(`
         <p style="margin:0 0 8px;font-size:13px;color:#888">🌐 ${escapeHtml(siteName())}</p>
         <h2 style="margin:0 0 4px">🛎️ New order #${short}</h2>
         <p style="margin:0 0 16px;color:#555">A new order was just placed.</p>
@@ -171,8 +170,7 @@ async function sendEmail(
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ Scheduled:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         ${order.delivery_method !== "pickup" && mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${rows}</table>
-        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
-      </div>`;
+        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>`);
     await resend.emails.send({
       from,
       to,
@@ -205,8 +203,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
     const name = order.customer_name?.trim() || "there";
     const track = order.tracking_url?.trim();
-    const html = `
-      <div style="font-family:system-ui,sans-serif;max-width:560px">${logoHeader}
+    const html = emailShell(`
         <h2 style="margin:0 0 4px">Your order is on the way! 🛵</h2>
         <p style="margin:0 0 16px;color:#555">Hi ${escapeHtml(name)}, your order #${short} has been shipped and is out for delivery.</p>
         ${
@@ -215,9 +212,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
             : ""
         }
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
-        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
-        <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>
-      </div>`;
+        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>`);
     await resend.emails.send({
       from,
       to,
@@ -240,8 +235,7 @@ async function sendCustomerEmail(
     const resend = new Resend(env.RESEND_API_KEY);
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
     const name = order.customer_name?.trim() || "there";
-    const html = `
-      <div style="font-family:system-ui,sans-serif;max-width:560px">${logoHeader}
+    const html = emailShell(`
         <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
         <p style="margin:0 0 16px;color:#555">We've received your order and will start preparing it for you shortly. Thank you for shopping with us!</p>
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
@@ -254,9 +248,7 @@ async function sendCustomerEmail(
         }
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 16px"><strong>🗓️ Scheduled for:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${itemRowsHtml(order.items)}</table>
-        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>
-        <p style="margin:24px 0 0;font-size:13px;color:#888">${escapeHtml(siteName())}</p>
-      </div>`;
+        <p style="margin:16px 0 0;font-size:18px"><strong>Total: $${order.total.toFixed(2)}</strong></p>`);
     await resend.emails.send({
       from,
       to,
