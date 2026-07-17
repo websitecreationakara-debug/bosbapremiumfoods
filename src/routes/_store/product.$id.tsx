@@ -3,6 +3,7 @@ import { useState } from "react";
 import {
   useStoreSettings,
   useProductVariations,
+  useProductImages,
   useProducts,
   useAllVariations,
 } from "@/hooks/use-products";
@@ -102,6 +103,7 @@ function ProductJsonLd({ product }: { product: Product }) {
 function ProductDetail() {
   const product = Route.useLoaderData();
   const { data: variations = [] } = useProductVariations(product?.id ?? "");
+  const { data: galleryImages = [] } = useProductImages(product?.id ?? "");
   const { data: allProducts = [] } = useProducts();
   const { data: allVariations = [] } = useAllVariations();
   const { data: settings } = useStoreSettings();
@@ -109,6 +111,8 @@ function ProductDetail() {
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  // Which gallery photo is enlarged; null = the cover image.
+  const [activeImage, setActiveImage] = useState<string | null>(null);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const variable = product?.type === "variable";
@@ -147,6 +151,12 @@ function ProductDetail() {
   const related = relatedProducts(product, allProducts);
   const variationsByProduct = groupVariations(allVariations);
 
+  // Cover first, then gallery photos; clicking a thumbnail swaps the big image.
+  const images = [product.image_url, ...galleryImages.map((g) => g.url)].filter(
+    (u): u is string => !!u,
+  );
+  const mainImage = activeImage && images.includes(activeImage) ? activeImage : images[0];
+
   return (
     <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
       <ProductJsonLd product={product} />
@@ -158,38 +168,55 @@ function ProductDetail() {
       </Link>
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-10">
-        <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt={product.title}
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="w-full h-full grid place-items-center text-muted-foreground text-sm">
-              No image
+        <div>
+          <div className="relative aspect-square rounded-3xl overflow-hidden bg-muted">
+            {mainImage ? (
+              <img src={mainImage} alt={product.title} className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full grid place-items-center text-muted-foreground text-sm">
+                No image
+              </div>
+            )}
+            <div className="absolute top-4 left-4 flex flex-col gap-1.5">
+              {hasSale && (
+                <span className="px-2.5 py-1 bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider rounded-md">
+                  -{discount}%
+                </span>
+              )}
+              {product.badge && (
+                <span
+                  className={cn(
+                    "px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md",
+                    product.badge === "HOT" && "bg-warning text-foreground",
+                    product.badge === "NEW" && "bg-accent text-accent-foreground",
+                    product.badge === "ORGANIC" && "bg-brand text-brand-foreground",
+                    product.badge === "SALE" && "bg-destructive text-destructive-foreground",
+                  )}
+                >
+                  {product.badge}
+                </span>
+              )}
+            </div>
+          </div>
+          {images.length > 1 && (
+            <div className="mt-3 grid grid-cols-4 gap-3">
+              {images.map((url) => (
+                <button
+                  key={url}
+                  type="button"
+                  onClick={() => setActiveImage(url)}
+                  aria-label="View product photo"
+                  aria-pressed={url === mainImage}
+                  className={cn(
+                    "aspect-square rounded-xl overflow-hidden bg-muted border-2 transition-colors",
+                    url === mainImage ? "border-brand" : "border-transparent hover:border-brand/50",
+                  )}
+                >
+                  <img src={url} alt="" className="w-full h-full object-cover" />
+                </button>
+              ))}
             </div>
           )}
-          <div className="absolute top-4 left-4 flex flex-col gap-1.5">
-            {hasSale && (
-              <span className="px-2.5 py-1 bg-destructive text-destructive-foreground text-[10px] font-bold uppercase tracking-wider rounded-md">
-                -{discount}%
-              </span>
-            )}
-            {product.badge && (
-              <span
-                className={cn(
-                  "px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md",
-                  product.badge === "HOT" && "bg-warning text-foreground",
-                  product.badge === "NEW" && "bg-accent text-accent-foreground",
-                  product.badge === "ORGANIC" && "bg-brand text-brand-foreground",
-                  product.badge === "SALE" && "bg-destructive text-destructive-foreground",
-                )}
-              >
-                {product.badge}
-              </span>
-            )}
-          </div>
         </div>
 
         <div className="flex flex-col">

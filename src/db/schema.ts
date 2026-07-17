@@ -78,6 +78,18 @@ export const products = sqliteTable("products", {
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 
+// Extra gallery photos shown under the main image on the product page. The
+// cover image stays on products.image_url; these are the additional angles.
+export const product_images = sqliteTable("product_images", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  url: text("url").notNull(),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const product_variations = sqliteTable("product_variations", {
   id: text("id").primaryKey().$defaultFn(uuid),
   product_id: text("product_id")

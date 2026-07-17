@@ -8,6 +8,8 @@ import {
   reorderProducts,
   getVariations,
   saveVariations,
+  getProductImages,
+  saveProductImages,
 } from "@/data/products";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
@@ -93,6 +95,11 @@ function ProductsAdmin() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [picker, setPicker] = useState(false);
+  // Extra gallery photos (beyond the cover image), edited as an ordered URL list.
+  const galleryRef = useRef<HTMLInputElement>(null);
+  const [gallery, setGallery] = useState<string[]>([]);
+  const [galleryUploading, setGalleryUploading] = useState(false);
+  const [galleryPicker, setGalleryPicker] = useState(false);
   const [query, setQuery] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -174,14 +181,41 @@ function ProductsAdmin() {
     }
   };
 
+  const onGalleryUpload = async (files: FileList | null) => {
+    if (!files?.length) return;
+    setGalleryUploading(true);
+    try {
+      for (const file of Array.from(files)) {
+        const fd = new FormData();
+        fd.append("file", await compressImage(file));
+        const { url } = await uploadMedia({ data: fd });
+        setGallery((g) => [...g, url]);
+      }
+      qc.invalidateQueries({ queryKey: ["media"] });
+      toast.success(files.length > 1 ? "Images uploaded" : "Image uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setGalleryUploading(false);
+      if (galleryRef.current) galleryRef.current.value = "";
+    }
+  };
+
   const openNew = () => {
     setForm(empty);
     setVars([]);
+    setGallery([]);
     setPicker(false);
+    setGalleryPicker(false);
     setOpen(true);
   };
   const openEdit = async (p: Product) => {
     setPicker(false);
+    setGalleryPicker(false);
+    setGallery([]);
+    getProductImages({ data: { productId: p.id } }).then((rows) =>
+      setGallery(rows.map((r) => r.url)),
+    );
     setForm({
       id: p.id,
       title: p.title,
@@ -255,6 +289,7 @@ function ProductsAdmin() {
       if (editing) await updateProduct({ data: { id: form.id, ...payload } });
       else productId = (await createProduct({ data: payload })).id;
       if (variable) await saveVariations({ data: { productId, variations: variationPayload() } });
+      await saveProductImages({ data: { productId, urls: gallery } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save product");
       return;
@@ -262,6 +297,7 @@ function ProductsAdmin() {
     toast.success(editing ? "Product updated" : "Product created");
     qc.invalidateQueries({ queryKey: ["products"] });
     qc.invalidateQueries({ queryKey: ["variations"] });
+    qc.invalidateQueries({ queryKey: ["product_images"] });
     setOpen(false);
   };
 
@@ -313,6 +349,10 @@ function ProductsAdmin() {
             })),
           },
         });
+      }
+      const images = await getProductImages({ data: { productId: p.id } });
+      if (images.length) {
+        await saveProductImages({ data: { productId: id, urls: images.map((im) => im.url) } });
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to duplicate");
@@ -928,6 +968,89 @@ function ProductsAdmin() {
                             setForm((f) => ({ ...f, image_url: m.url }));
                             setPicker(false);
                           }}
+                          className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
+                        >
+                          <img
+                            src={m.url}
+                            alt={m.filename}
+                            className="w-full h-full object-cover"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label>Gallery images</Label>
+              <p className="text-xs text-muted-foreground">
+                Extra photos shown under the main image on the product page (3–4 recommended).
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {gallery.map((url, i) => (
+                  <div
+                    key={`${url}-${i}`}
+                    className="size-20 rounded-lg border bg-muted overflow-hidden shrink-0 relative"
+                  >
+                    <img src={url} alt="" className="w-full h-full object-cover" />
+                    <button
+                      type="button"
+                      onClick={() => setGallery((g) => g.filter((_, j) => j !== i))}
+                      className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5"
+                      aria-label="Remove gallery image"
+                    >
+                      <X className="size-3.5" />
+                    </button>
+                  </div>
+                ))}
+                <div className="flex flex-col gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={galleryUploading}
+                    onClick={() => galleryRef.current?.click()}
+                  >
+                    {galleryUploading ? (
+                      <Loader2 className="size-4 mr-1.5 animate-spin" />
+                    ) : (
+                      <Upload className="size-4 mr-1.5" />
+                    )}
+                    Upload
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setGalleryPicker((v) => !v)}
+                  >
+                    <ImageIcon className="size-4 mr-1.5" /> Media library
+                  </Button>
+                </div>
+              </div>
+              <input
+                ref={galleryRef}
+                type="file"
+                accept="image/*"
+                multiple
+                hidden
+                onChange={(e) => onGalleryUpload(e.target.files)}
+              />
+              {galleryPicker && (
+                <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
+                  {mediaItems.length === 0 ? (
+                    <p className="text-xs text-muted-foreground p-2">
+                      No media yet — upload an image first.
+                    </p>
+                  ) : (
+                    <div className="grid grid-cols-5 gap-2">
+                      {mediaItems.map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          onClick={() => setGallery((g) => [...g, m.url])}
                           className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
                         >
                           <img

@@ -34,6 +34,14 @@ export type Promotion = {
   created_at: string;
 };
 
+export type ProductImage = {
+  id: string;
+  product_id: string;
+  url: string;
+  sort_order: number;
+  created_at: string;
+};
+
 export type ProductVariation = {
   id: string;
   product_id: string;
