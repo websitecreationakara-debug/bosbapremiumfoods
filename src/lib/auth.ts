@@ -4,6 +4,7 @@ import { admin, captcha, emailOTP } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
+import { emailShell } from "@/lib/notify";
 
 const env: Record<string, string | undefined> = (() => {
   if (typeof process !== "undefined" && typeof process.env !== "undefined") {
@@ -39,7 +40,7 @@ export function getAuth() {
       return;
     }
     try {
-      await resend.emails.send({ from, to, subject, html });
+      await resend.emails.send({ from, to, subject, html: emailShell(html) });
     } catch (e) {
       console.error("[auth-email] send failed", e);
     }
@@ -60,6 +61,11 @@ export function getAuth() {
         phone: { type: "string", required: false, input: true },
       },
     },
+    // Local dev only: keep sessions alive for a year so one login lasts.
+    // Production keeps better-auth defaults (7-day expiry, 1-day refresh).
+    ...(import.meta.env.DEV
+      ? { session: { expiresIn: 60 * 60 * 24 * 365, updateAge: 60 * 60 * 24 } }
+      : {}),
     emailAndPassword: {
       enabled: true,
       // Gate sign-in until the email is verified via the OTP code (emailOTP plugin below).
