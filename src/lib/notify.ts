@@ -53,6 +53,29 @@ const escapeHtml = (s: string) =>
     (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] ?? c,
   );
 
+// Email branding. The logo is served from the live site (email clients can't
+// bundle assets); overridable per deployment via SITE_LOGO_URL / SITE_URL.
+const logoUrl = () => env.SITE_LOGO_URL?.trim() || "https://bosbapremiumfoods.com/invoice-logo.png";
+const siteUrl = () => env.SITE_URL?.trim() || "https://bosbapremiumfoods.com";
+
+// Shared shell for every outgoing email: white card on a warm cream page with
+// a logo banner on top and a footer strip — receipt-like, consistent branding.
+// The light band keeps the black wordmark readable in dark-mode inboxes too.
+export const emailShell = (content: string): string => `
+  <div style="margin:0;padding:0;background:#f6f4ee">
+    <div style="max-width:560px;margin:0 auto;padding:24px 16px">
+      <div style="background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #eae4d4">
+        <div style="background:#faf7ef;padding:22px 0;text-align:center;border-bottom:1px solid #eae4d4">
+          <img src="${logoUrl()}" alt="${escapeHtml(siteName())}" width="220" style="display:inline-block;max-width:220px;height:auto;border:0" />
+        </div>
+        <div style="font-family:system-ui,sans-serif;padding:28px 28px 24px">${content}</div>
+        <div style="background:#faf8f2;border-top:1px solid #eae4d4;padding:14px 28px;font-family:system-ui,sans-serif">
+          <p style="margin:0;font-size:12px;color:#8a8272">${escapeHtml(siteName())} · <a href="${siteUrl()}" style="color:#a5843a">${siteUrl().replace(/^https?:\/\//, "")}</a></p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
 const mapsUrl = (o: OrderNotification): string | null =>
   o.location_lat != null && o.location_lng != null
     ? `https://www.google.com/maps?q=${o.location_lat},${o.location_lng}`
@@ -183,7 +206,7 @@ export async function notifyOrderShipped(order: ShippedNotification): Promise<vo
     const name = order.customer_name?.trim() || "there";
     const track = order.tracking_url?.trim();
     const html = `
-      <div style="font-family:system-ui,sans-serif;max-width:560px">
+      <div style="font-family:system-ui,sans-serif;max-width:560px">${logoHeader}
         <h2 style="margin:0 0 4px">Your order is on the way! 🛵</h2>
         <p style="margin:0 0 16px;color:#555">Hi ${escapeHtml(name)}, your order #${short} has been shipped and is out for delivery.</p>
         ${
@@ -218,7 +241,7 @@ async function sendCustomerEmail(
     const from = env.RESEND_FROM ?? "BOSBA Premium Foods <onboarding@resend.dev>";
     const name = order.customer_name?.trim() || "there";
     const html = `
-      <div style="font-family:system-ui,sans-serif;max-width:560px">
+      <div style="font-family:system-ui,sans-serif;max-width:560px">${logoHeader}
         <h2 style="margin:0 0 4px">Thank you for your order, ${escapeHtml(name)}! 🙏</h2>
         <p style="margin:0 0 16px;color:#555">We've received your order and will start preparing it for you shortly. Thank you for shopping with us!</p>
         <p style="margin:0 0 2px"><strong>Order #:</strong> ${short}</p>
