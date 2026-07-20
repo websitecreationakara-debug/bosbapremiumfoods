@@ -11,6 +11,26 @@ import { slugify } from "./lib/utils";
 
 const SITE = "https://bosbapremiumfoods.com";
 
+// Security response headers on every response. Outermost in the chain so it
+// stamps SSR pages, API, media, sitemap — whatever flows back through next().
+//   HSTS         — force HTTPS for a year (Cloudflare already serves HTTPS).
+//   nosniff      — stop browsers MIME-sniffing responses into executable types.
+//   frame SAMEORIGIN — block other sites from iframing us (clickjacking).
+//   Referrer-Policy — don't leak full URLs to other origins.
+const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+  const result = await next();
+  try {
+    const h = result.response.headers;
+    h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    h.set("X-Content-Type-Options", "nosniff");
+    h.set("X-Frame-Options", "SAMEORIGIN");
+    h.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  } catch {
+    // A few responses carry immutable headers — skip them rather than 500.
+  }
+  return result;
+});
+
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
@@ -143,6 +163,7 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   requestMiddleware: [
+    securityHeadersMiddleware,
     errorMiddleware,
     csrfMiddleware,
     authMiddleware,
