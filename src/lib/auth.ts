@@ -1,6 +1,6 @@
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, captcha, emailOTP } from "better-auth/plugins";
+import { admin, captcha, emailOTP, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { Resend } from "resend";
 import { getDb, schema } from "@/db";
@@ -90,6 +90,10 @@ export function getAuth() {
         : undefined,
     plugins: [
       admin(),
+      // TOTP authenticator-app 2FA. When a user has it enabled, sign-in returns
+      // a twoFactorRedirect instead of a session until they enter a valid code.
+      // "issuer" is the label shown in Google Authenticator etc.
+      twoFactor({ issuer: "BOSBA Premium Foods" }),
       // Google reCAPTCHA v3 on sign-up, sign-in, and password-reset requests.
       // Only active when the secret is configured — otherwise auth runs without
       // a captcha (the client also skips the token when no site key is set).

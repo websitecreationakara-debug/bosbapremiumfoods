@@ -16,6 +16,7 @@ function AuthPage() {
   const {
     user,
     signIn,
+    verifyTotp,
     signUp,
     signInWithGoogle,
     verifyEmailOtp,
@@ -25,7 +26,7 @@ function AuthPage() {
   } = useAuth();
   const navigate = useNavigate();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [step, setStep] = useState<"form" | "verify" | "reset-request" | "reset-verify">("form");
+  const [step, setStep] = useState<"form" | "verify" | "reset-request" | "reset-verify" | "totp">("form");
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ email: "", password: "", fullName: "", agree: false });
   const [code, setCode] = useState("");
@@ -50,8 +51,12 @@ function AuthPage() {
     e.preventDefault();
     setLoading(true);
     if (mode === "signin") {
-      const { error } = await signIn(form.email, form.password);
-      if (error) {
+      const { error, twoFactorRequired } = await signIn(form.email, form.password);
+      if (twoFactorRequired) {
+        // Password was correct; a TOTP code is still needed to finish.
+        setCode("");
+        setStep("totp");
+      } else if (error) {
         // Unverified accounts can't sign in yet — generate a fresh code, then go verify.
         if (/verif/i.test(error)) {
           setPendingEmail(form.email);
@@ -96,7 +101,10 @@ function AuthPage() {
     }
     // verify-email confirms the address but doesn't create a session — sign in to land them in.
     const signInRes = await signIn(pendingEmail, form.password);
-    if (signInRes.error) {
+    if (signInRes.twoFactorRequired) {
+      setCode("");
+      setStep("totp");
+    } else if (signInRes.error) {
       toast.success("Email verified! Please sign in.");
       setStep("form");
       setMode("signin");
@@ -104,6 +112,19 @@ function AuthPage() {
       toast.success("Email verified!");
     }
     setLoading(false);
+  };
+
+  const submitTotp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await verifyTotp(code.trim());
+    setLoading(false);
+    if (error) {
+      toast.error(error);
+      return;
+    }
+    // Session is now established; the user-redirect effect takes over.
+    toast.success("Welcome back!");
   };
 
   const requestReset = async (e: React.FormEvent) => {
@@ -186,7 +207,50 @@ function AuthPage() {
             <ArrowLeft className="size-4" /> Back to shop
           </Link>
 
-          {step === "verify" ? (
+          {step === "totp" ? (
+            <div className="space-y-6">
+              <div>
+                <h1 className="font-display font-bold text-3xl">Two-factor authentication</h1>
+                <p className="text-muted-foreground mt-2 text-sm">
+                  Enter the 6-digit code from your authenticator app.
+                </p>
+              </div>
+              <form onSubmit={submitTotp} className="space-y-4">
+                <div>
+                  <Label htmlFor="totp-code">Authenticator code</Label>
+                  <Input
+                    id="totp-code"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    required
+                    autoFocus
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                    className="text-center text-2xl tracking-[0.5em] font-bold"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || code.length < 6}
+                  size="lg"
+                  className="w-full rounded-full font-bold"
+                >
+                  {loading ? "Verifying..." : "Verify & continue"}
+                </Button>
+              </form>
+              <button
+                type="button"
+                onClick={() => {
+                  setStep("form");
+                  setCode("");
+                }}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                Back to sign in
+              </button>
+            </div>
+          ) : step === "verify" ? (
             <div className="space-y-6">
               <div>
                 <h1 className="font-display font-bold text-3xl">Verify your email</h1>

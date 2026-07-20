@@ -7,6 +7,7 @@ type AuthUser = {
   email: string;
   name: string | null;
   role: string | null;
+  twoFactorEnabled: boolean;
 } | null;
 
 type AuthCtx = {
@@ -18,7 +19,10 @@ type AuthCtx = {
   isStaff: boolean;
   // Anyone allowed into the /admin area: admin, sales, or marketing.
   canAccessAdmin: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  // `twoFactorRequired` is true when the password was correct but a TOTP code is
+  // still needed — the caller should prompt for it and call verifyTotp.
+  signIn: (email: string, password: string) => Promise<{ error: string | null; twoFactorRequired?: boolean }>;
+  verifyTotp: (code: string) => Promise<{ error: string | null }>;
   signUp: (
     email: string,
     password: string,
@@ -43,18 +47,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const { data, isPending } = authClient.useSession();
 
   const u = data?.user as
-    | { id: string; email: string; name?: string | null; role?: string | null }
+    | { id: string; email: string; name?: string | null; role?: string | null; twoFactorEnabled?: boolean | null }
     | undefined;
   const user: AuthUser = u
-    ? { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? null }
+    ? { id: u.id, email: u.email, name: u.name ?? null, role: u.role ?? null, twoFactorEnabled: !!u.twoFactorEnabled }
     : null;
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
-    const { error } = await authClient.signIn.email({
+    const res = await authClient.signIn.email({
       email,
       password,
       ...(await withCaptcha("sign_in")),
     });
+    // With 2FA enabled, better-auth returns twoFactorRedirect and withholds the
+    // session until a valid TOTP code is supplied via verifyTotp.
+    const twoFactorRequired = !!(res.data as { twoFactorRedirect?: boolean } | null)?.twoFactorRedirect;
+    return { error: res.error?.message ?? null, twoFactorRequired };
+  };
+
+  const verifyTotp: AuthCtx["verifyTotp"] = async (code) => {
+    const { error } = await authClient.twoFactor.verifyTotp({ code: code.trim() });
     return { error: error?.message ?? null };
   };
 
@@ -116,6 +128,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         canAccessAdmin:
           user?.role === "admin" || user?.role === "sales" || user?.role === "marketing",
         signIn,
+        verifyTotp,
         signUp,
         signInWithGoogle,
         verifyEmailOtp,

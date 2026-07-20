@@ -1,18 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { User, Mail, KeyRound, Lock } from "lucide-react";
+import { User, Mail, KeyRound, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { authClient } from "@/lib/auth-client";
+import { TwoFactorSetup } from "@/components/two-factor-setup";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/account")({ component: Account });
 
 function Account() {
   const { user, loading: authLoading, requestPasswordReset, resetPasswordWithOtp } = useAuth();
+  const twoFactorEnabled = !!user?.twoFactorEnabled;
 
   const [name, setName] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
@@ -318,6 +320,20 @@ function Account() {
           </div>
         )}
       </div>
+
+      {/* Two-factor authentication */}
+      {hasPassword && (
+        <div className="bg-card border rounded-2xl p-5 md:p-6 space-y-4">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-5 text-muted-foreground" />
+            <h2 className="font-display font-semibold text-lg">Security</h2>
+          </div>
+          <TwoFactorSetup
+            enabled={twoFactorEnabled}
+            onChanged={() => toast.success("Two-factor settings updated")}
+          />
+        </div>
+      )}
     </div>
   );
 }

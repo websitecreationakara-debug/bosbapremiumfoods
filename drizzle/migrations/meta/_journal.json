@@ -183,6 +183,13 @@
       "when": 1784257767578,
       "tag": "0025_odd_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "6",
+      "when": 1784526535834,
+      "tag": "0026_material_firebird",
+      "breakpoints": true
     }
   ]
 }

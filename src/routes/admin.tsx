@@ -17,8 +17,12 @@ import {
   ArrowLeft,
   PanelLeftClose,
   PanelLeftOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { authClient } from "@/lib/auth-client";
+import { Button } from "@/components/ui/button";
+import { TwoFactorSetup } from "@/components/two-factor-setup";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -39,12 +43,32 @@ const nav = [
 ] as const;
 
 function AdminLayout() {
-  const { user, isAdmin, isSales, isMarketing, isStaff, canAccessAdmin, loading } = useAuth();
+  const { user, isAdmin, isSales, isMarketing, isStaff, canAccessAdmin, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
   const { data: pendingCount = 0 } = usePendingOrderCount(!loading && !!user && isStaff);
   const prevCount = useRef<number | null>(null);
+
+  // Whether this account has a password (credential provider). TOTP setup needs
+  // one, so Google-only admins can't be forced through the 2FA gate — they rely
+  // on Google's own 2FA instead. null = still loading.
+  const [hasPassword, setHasPassword] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    authClient
+      .listAccounts()
+      .then((res) => {
+        if (active) setHasPassword((res.data ?? []).some((a) => a.providerId === "credential"));
+      })
+      .catch(() => {
+        if (active) setHasPassword(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [user]);
 
   // Collapsed sidebar shows icons only. Persisted so it survives navigation/reload.
   const [collapsed, setCollapsed] = useState(false);
@@ -97,6 +121,35 @@ function AdminLayout() {
     return (
       <div className="min-h-screen grid place-items-center text-muted-foreground">
         Checking access...
+      </div>
+    );
+  }
+
+  // Admins hold the keys to the whole store — require 2FA before they can use
+  // the dashboard. Google-only accounts (no password) can't set up TOTP here, so
+  // they're exempt; assign such staff a password-based account. While hasPassword
+  // is still loading (null), don't gate yet.
+  const mustSetUp2fa = isAdmin && hasPassword === true && !user.twoFactorEnabled;
+  if (mustSetUp2fa) {
+    return (
+      <div className="min-h-screen grid place-items-center bg-background p-4">
+        <div className="w-full max-w-lg space-y-5 rounded-2xl border bg-card p-6 md:p-8">
+          <div className="flex items-center gap-2">
+            <ShieldCheck className="size-6 text-brand" />
+            <h1 className="font-display font-bold text-xl">Secure your admin account</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Two-factor authentication is required for admin accounts. Set it up once to continue —
+            you'll enter a code from your authenticator app each time you sign in.
+          </p>
+          <TwoFactorSetup enabled={false} onChanged={() => window.location.reload()} />
+          <button
+            onClick={() => signOut().then(() => navigate({ to: "/" }))}
+            className="text-sm text-muted-foreground hover:text-foreground"
+          >
+            Sign out instead
+          </button>
+        </div>
       </div>
     );
   }
