@@ -12,7 +12,8 @@
 // Restore the database with:
 //   wrangler d1 execute bosbapremiumfoods --remote --file <that-file>.sql
 //
-// Old dumps/snapshots are pruned automatically, keeping the most recent KEEP of each.
+// Old dumps/snapshots are pruned automatically, keeping the most recent KEEP of each,
+// both locally and in the Google Drive mirror (gdrive:Bosba Premium Foods).
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -21,6 +22,8 @@ import { fileURLToPath } from "node:url";
 
 const DB = "bosbapremiumfoods";
 const KEEP = 8; // how many dumps to retain (weekly cadence -> ~2 months of history)
+const RCLONE = "C:\\Users\\Demo\\.project-tracker\\bin\\rclone.exe";
+const DRIVE_REMOTE = "gdrive:Bosba Premium Foods";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = "D:\\Backups\\bosba";
@@ -62,12 +65,30 @@ execSync(`git archive --format=zip -o "${srcOut}" HEAD`, { stdio: "inherit", cwd
 const srcBytes = fs.statSync(srcOut).size;
 console.log(`✓ Source snapshot written (${(srcBytes / 1024 / 1024).toFixed(2)} MB)`);
 
-// prune: keep the newest KEEP of each kind
+console.log(`\nUploading to Google Drive (${DRIVE_REMOTE})\n`);
+execSync(`"${RCLONE}" copy "${dbOut}" "${DRIVE_REMOTE}" -q`, { stdio: "inherit" });
+execSync(`"${RCLONE}" copy "${srcOut}" "${DRIVE_REMOTE}" -q`, { stdio: "inherit" });
+console.log("✓ Google Drive upload complete");
+
+// prune: keep the newest KEEP of each kind, locally and on Drive
 for (const pattern of [DB_PATTERN, SRC_PATTERN]) {
   const files = existing(pattern);
   for (const { f } of files.slice(KEEP)) {
     fs.unlinkSync(path.join(dir, f));
-    console.log(`  pruned old backup: ${f}`);
+    console.log(`  pruned old local backup: ${f}`);
   }
 }
-console.log(`  up to ${KEEP} of each (database, source) retained in ${dir}\n`);
+
+const driveListing = execSync(`"${RCLONE}" lsjson "${DRIVE_REMOTE}" -q`, { encoding: "utf-8" });
+const driveFiles = JSON.parse(driveListing);
+for (const pattern of [DB_PATTERN, SRC_PATTERN]) {
+  const matches = driveFiles
+    .filter((f) => pattern.test(f.Name))
+    .sort((a, b) => new Date(b.ModTime) - new Date(a.ModTime));
+  for (const f of matches.slice(KEEP)) {
+    execSync(`"${RCLONE}" deletefile "${DRIVE_REMOTE}/${f.Name}" -q`);
+    console.log(`  pruned old Drive backup: ${f.Name}`);
+  }
+}
+
+console.log(`  up to ${KEEP} of each (database, source) retained locally and on Drive\n`);
