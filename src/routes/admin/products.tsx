@@ -142,9 +142,13 @@ function ProductsAdmin() {
     setPage(1);
   };
 
-  // Drag-reorder only makes sense against the full, unfiltered list — that's the
-  // global order the storefront reads. With filters on, positions are ambiguous.
-  const canReorder = !filtersActive;
+  // Drag-reorder acts on the full, unfiltered list — that's the global order the
+  // storefront reads. Search/status/type filters make on-screen position ambiguous
+  // (a drop could land far from where it visually appears), so those still block it.
+  // A category filter doesn't have that problem: every visible row keeps its real
+  // neighbors from the full list, so dragging within the filtered view still reorders
+  // the underlying global list correctly.
+  const canReorder = query.trim() === "" && statusFilter === "all" && typeFilter === "all";
   const reorder = async (fromId: string, toId: string) => {
     if (fromId === toId) return;
     const ids = products.map((p) => p.id);
