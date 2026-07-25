@@ -18,6 +18,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
@@ -64,6 +65,7 @@ const empty = {
   weight: "",
   pcs: "",
   type: "simple",
+  featured: false,
   promotion_id: "",
 };
 
@@ -235,6 +237,7 @@ function ProductsAdmin() {
       weight: p.weight ?? "",
       pcs: p.pcs != null ? String(p.pcs) : "",
       type: p.type,
+      featured: p.featured,
       promotion_id: p.promotion_id ?? "",
     });
     setOpen(true);
@@ -286,6 +289,7 @@ function ProductsAdmin() {
       weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
       pcs: variable || form.pcs.trim() === "" ? null : Number(form.pcs),
       type: form.type,
+      featured: form.featured,
       promotion_id: form.promotion_id || null,
     };
     try {
@@ -335,6 +339,7 @@ function ProductsAdmin() {
           weight: p.weight,
           pcs: p.pcs,
           type: p.type,
+          featured: p.featured,
           promotion_id: p.promotion_id,
         },
       });
@@ -763,6 +768,16 @@ function ProductsAdmin() {
                     <SelectItem value="draft">Draft</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="flex items-center gap-2 pt-6">
+                <Checkbox
+                  id="featured"
+                  checked={form.featured}
+                  onCheckedChange={(v) => setForm({ ...form, featured: v === true })}
+                />
+                <Label htmlFor="featured" className="cursor-pointer">
+                  Show in homepage "Featured" section
+                </Label>
               </div>
               <div>
                 <Label>Badge</Label>
