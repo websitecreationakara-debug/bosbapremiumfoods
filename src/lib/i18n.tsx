@@ -99,6 +99,7 @@ const en = {
   "footer.privacy": "Privacy",
   "footer.terms": "Terms",
   "footer.sitemap": "Sitemap",
+  "nav.sisterSiteHint": "Shop our Japanese drinks & snacks store",
 } as const;
 
 export type I18nKey = keyof typeof en;
@@ -188,6 +189,7 @@ const km: Dict = {
   "footer.privacy": "ឯកជនភាព",
   "footer.terms": "លក្ខខណ្ឌ",
   "footer.sitemap": "ផែនទីគេហទំព័រ",
+  "nav.sisterSiteHint": "ទស្សនាហាងភេសជ្ជៈ និងអាហារសម្រន់ជប៉ុនបងប្អូនរបស់យើង",
 };
 
 const ja: Dict = {
@@ -274,6 +276,7 @@ const ja: Dict = {
   "footer.privacy": "プライバシー",
   "footer.terms": "利用規約",
   "footer.sitemap": "サイトマップ",
+  "nav.sisterSiteHint": "姉妹店（日本の飲料・お菓子店）もチェック",
 };
 
 const DICTS: Record<Locale, Dict> = { en, km, ja };
