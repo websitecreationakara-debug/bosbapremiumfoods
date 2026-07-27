@@ -39,14 +39,14 @@ export function HeroSlider() {
 
   return (
     <section className="relative w-full overflow-hidden bg-muted">
-      <div className="relative aspect-[4/3] sm:aspect-[16/9] md:aspect-[2726/1135]">
+      <div className="relative aspect-[2726/1135]">
         {list.map((slide, i) => (
           <img
             key={slide.id}
             src={slide.image_url || FALLBACK_IMAGE}
             alt=""
             loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 h-full w-full object-cover object-left sm:object-center transition-opacity duration-1000 ${
+            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-1000 ${
               i === active ? "opacity-100" : "opacity-0"
             }`}
           />
