@@ -18,5 +18,10 @@
       "database_id": "7ba2d42f-28f8-4fa2-bde6-8f7b4f65327b",
       "migrations_dir": "drizzle/migrations"
     }
-  ]
+  ],
+  "vars": {
+    // Cross-site security dashboard ingest endpoint (see src/lib/audit.ts).
+    // Not a secret, just a URL — the shared token is set via `wrangler secret put`.
+    "SECURITY_EVENTS_URL": "https://todo-list-drab-ten.vercel.app/api/security-events"
+  }
 }

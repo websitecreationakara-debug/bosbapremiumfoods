@@ -25,6 +25,7 @@ export const hero_slides = sqliteTable("hero_slides", {
   title_bottom: text("title_bottom"),
   body: text("body"),
   image_url: text("image_url"),
+  image_url_mobile: text("image_url_mobile"),
   cta_label: text("cta_label"),
   cta_link: text("cta_link").notNull().default("/shop"),
   sort_order: integer("sort_order").notNull().default(0),
@@ -230,6 +231,24 @@ export const rateLimit = sqliteTable("rate_limit", {
   key: text("key").unique(),
   count: integer("count"),
   lastRequest: integer("last_request"),
+});
+
+// Durable record of sensitive admin actions (database restore, role changes,
+// bans, deletes) — mirrored to the central cross-site security dashboard via
+// src/lib/audit.ts. Nothing wrote to this before; the destructive endpoints
+// had zero audit trail.
+export const adminAuditLog = sqliteTable("admin_audit_log", {
+  id: text("id").primaryKey(),
+  userId: text("user_id"),
+  userEmail: text("user_email"),
+  role: text("role"),
+  type: text("type").notNull().default("action"),
+  action: text("action"),
+  detail: text("detail"),
+  ipAddress: text("ip_address"),
+  city: text("city"),
+  country: text("country"),
+  createdAt: integer("created_at"),
 });
 
 // TOTP secret + backup codes for the better-auth twoFactor plugin. One row per

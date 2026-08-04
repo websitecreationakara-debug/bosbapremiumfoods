@@ -36,22 +36,28 @@ const empty = {
   title_bottom: "",
   body: "",
   image_url: "",
+  image_url_mobile: "",
   cta_label: "",
   cta_link: "/shop",
   sort_order: "0",
   active: "true",
 };
 
-function BannersAdmin() {
-  const { data: slides = [] } = useHeroSlides({ all: true });
-  const { data: mediaItems = [] } = useQuery({
-    queryKey: ["media"],
-    queryFn: () => listMedia() as Promise<Media[]>,
-  });
-  const qc = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [form, setForm] = useState(empty);
-  const editing = !!form.id;
+function SlideImageField({
+  label,
+  hint,
+  value,
+  onChange,
+  mediaItems,
+  onUploaded,
+}: {
+  label: string;
+  hint?: string;
+  value: string;
+  onChange: (url: string) => void;
+  mediaItems: Media[];
+  onUploaded: () => void;
+}) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [picker, setPicker] = useState(false);
@@ -63,8 +69,8 @@ function BannersAdmin() {
       const fd = new FormData();
       fd.append("file", await compressImage(file));
       const { url } = await uploadMedia({ data: fd });
-      setForm((f) => ({ ...f, image_url: url }));
-      qc.invalidateQueries({ queryKey: ["media"] });
+      onChange(url);
+      onUploaded();
       toast.success("Image uploaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Upload failed");
@@ -74,13 +80,97 @@ function BannersAdmin() {
     }
   };
 
+  return (
+    <div className="space-y-2">
+      <Label>{label}</Label>
+      {hint && <p className="text-xs text-muted-foreground -mt-1">{hint}</p>}
+      <div className="flex items-start gap-3">
+        <div className="size-20 rounded-lg border bg-muted overflow-hidden shrink-0 relative">
+          {value ? (
+            <>
+              <img src={value} alt="" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={() => onChange("")}
+                className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5"
+                aria-label="Remove image"
+              >
+                <X className="size-3.5" />
+              </button>
+            </>
+          ) : (
+            <div className="w-full h-full grid place-items-center text-muted-foreground">
+              <ImageIcon className="size-6" />
+            </div>
+          )}
+        </div>
+        <div className="flex-1 space-y-2">
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => fileRef.current?.click()}
+            >
+              {uploading ? (
+                <Loader2 className="size-4 mr-1.5 animate-spin" />
+              ) : (
+                <Upload className="size-4 mr-1.5" />
+              )}
+              Upload
+            </Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setPicker((v) => !v)}>
+              <ImageIcon className="size-4 mr-1.5" /> Media library
+            </Button>
+          </div>
+          <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="or paste a URL https://..." />
+        </div>
+      </div>
+      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onUpload(e.target.files?.[0])} />
+      {picker && (
+        <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
+          {mediaItems.length === 0 ? (
+            <p className="text-xs text-muted-foreground p-2">No media yet — upload an image first.</p>
+          ) : (
+            <div className="grid grid-cols-5 gap-2">
+              {mediaItems.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => {
+                    onChange(m.url);
+                    setPicker(false);
+                  }}
+                  className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
+                >
+                  <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function BannersAdmin() {
+  const { data: slides = [] } = useHeroSlides({ all: true });
+  const { data: mediaItems = [] } = useQuery({
+    queryKey: ["media"],
+    queryFn: () => listMedia() as Promise<Media[]>,
+  });
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState(empty);
+  const editing = !!form.id;
+
   const openNew = () => {
     setForm({ ...empty, sort_order: String(slides.length) });
-    setPicker(false);
     setOpen(true);
   };
   const openEdit = (s: HeroSlide) => {
-    setPicker(false);
     setForm({
       id: s.id,
       eyebrow: s.eyebrow ?? "",
@@ -89,6 +179,7 @@ function BannersAdmin() {
       title_bottom: s.title_bottom ?? "",
       body: s.body ?? "",
       image_url: s.image_url ?? "",
+      image_url_mobile: s.image_url_mobile ?? "",
       cta_label: s.cta_label ?? "",
       cta_link: s.cta_link ?? "/shop",
       sort_order: String(s.sort_order),
@@ -106,6 +197,7 @@ function BannersAdmin() {
       title_bottom: form.title_bottom || null,
       body: form.body || null,
       image_url: form.image_url || null,
+      image_url_mobile: form.image_url_mobile || null,
       cta_label: form.cta_label || null,
       cta_link: form.cta_link || "/shop",
       sort_order: form.sort_order.trim() === "" ? 0 : Number(form.sort_order),
@@ -272,93 +364,22 @@ function BannersAdmin() {
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Slide image</Label>
-              <div className="flex items-start gap-3">
-                <div className="size-20 rounded-lg border bg-muted overflow-hidden shrink-0 relative">
-                  {form.image_url ? (
-                    <>
-                      <img src={form.image_url} alt="" className="w-full h-full object-cover" />
-                      <button
-                        type="button"
-                        onClick={() => setForm({ ...form, image_url: "" })}
-                        className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5"
-                        aria-label="Remove image"
-                      >
-                        <X className="size-3.5" />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="w-full h-full grid place-items-center text-muted-foreground">
-                      <ImageIcon className="size-6" />
-                    </div>
-                  )}
-                </div>
-                <div className="flex-1 space-y-2">
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={uploading}
-                      onClick={() => fileRef.current?.click()}
-                    >
-                      {uploading ? (
-                        <Loader2 className="size-4 mr-1.5 animate-spin" />
-                      ) : (
-                        <Upload className="size-4 mr-1.5" />
-                      )}
-                      Upload
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPicker((v) => !v)}
-                    >
-                      <ImageIcon className="size-4 mr-1.5" /> Media library
-                    </Button>
-                  </div>
-                  <Input
-                    value={form.image_url}
-                    onChange={(e) => setForm({ ...form, image_url: e.target.value })}
-                    placeholder="or paste a URL https://..."
-                  />
-                </div>
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/*"
-                hidden
-                onChange={(e) => onUpload(e.target.files?.[0])}
-              />
-              {picker && (
-                <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
-                  {mediaItems.length === 0 ? (
-                    <p className="text-xs text-muted-foreground p-2">
-                      No media yet — upload an image first.
-                    </p>
-                  ) : (
-                    <div className="grid grid-cols-5 gap-2">
-                      {mediaItems.map((m) => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => {
-                            setForm((f) => ({ ...f, image_url: m.url }));
-                            setPicker(false);
-                          }}
-                          className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
-                        >
-                          <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
+            <SlideImageField
+              label="Desktop image"
+              hint="Wide banner (~2.4:1) shown on tablet/desktop screens."
+              value={form.image_url}
+              onChange={(url) => setForm((f) => ({ ...f, image_url: url }))}
+              mediaItems={mediaItems}
+              onUploaded={() => qc.invalidateQueries({ queryKey: ["media"] })}
+            />
+            <SlideImageField
+              label="Mobile image (2:1)"
+              hint="Shown on phone-width screens instead of the desktop image. Falls back to the desktop image if left empty."
+              value={form.image_url_mobile}
+              onChange={(url) => setForm((f) => ({ ...f, image_url_mobile: url }))}
+              mediaItems={mediaItems}
+              onUploaded={() => qc.invalidateQueries({ queryKey: ["media"] })}
+            />
 
             <Button type="submit" className="w-full">
               {editing ? "Save changes" : "Create slide"}

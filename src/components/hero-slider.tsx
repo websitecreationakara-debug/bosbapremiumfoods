@@ -13,6 +13,7 @@ const FALLBACK_SLIDE: HeroSlide = {
   title_bottom: null,
   body: null,
   image_url: FALLBACK_IMAGE,
+  image_url_mobile: null,
   cta_label: "Shop now",
   cta_link: "/shop",
   sort_order: 0,
@@ -39,14 +40,25 @@ export function HeroSlider() {
 
   return (
     <section className="relative w-full overflow-hidden bg-muted">
-      <div className="relative aspect-[2726/1135]">
+      <div className="relative aspect-[2/1] md:aspect-[2726/1135]">
         {list.map((slide, i) => (
           <img
-            key={slide.id}
+            key={`mobile-${slide.id}`}
+            src={slide.image_url_mobile || slide.image_url || FALLBACK_IMAGE}
+            alt=""
+            loading={i === 0 ? "eager" : "lazy"}
+            className={`absolute inset-0 block h-full w-full object-cover transition-opacity duration-1000 md:hidden ${
+              i === active ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+        {list.map((slide, i) => (
+          <img
+            key={`desktop-${slide.id}`}
             src={slide.image_url || FALLBACK_IMAGE}
             alt=""
             loading={i === 0 ? "eager" : "lazy"}
-            className={`absolute inset-0 h-full w-full object-contain transition-opacity duration-1000 ${
+            className={`absolute inset-0 hidden h-full w-full object-contain transition-opacity duration-1000 md:block ${
               i === active ? "opacity-100" : "opacity-0"
             }`}
           />
@@ -59,7 +71,7 @@ export function HeroSlider() {
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 pb-10 md:pb-14">
           <a
             href={ctaLink}
-            className="inline-flex items-center gap-2 rounded-full bg-brand px-8 py-3.5 text-sm font-semibold text-brand-foreground shadow-lg transition-colors hover:bg-secondary-accent"
+            className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground shadow-lg transition-colors hover:bg-secondary-accent sm:px-8 sm:py-3.5"
           >
             {ctaLabel} <ArrowRight className="size-4" />
           </a>

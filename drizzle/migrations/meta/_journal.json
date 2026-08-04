@@ -204,6 +204,34 @@
       "when": 1784962909538,
       "tag": "0028_nostalgic_sue_storm",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "6",
+      "when": 1785152567468,
+      "tag": "0029_red_stardust",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "6",
+      "when": 1785733473602,
+      "tag": "0030_left_tigra",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "6",
+      "when": 1785735467489,
+      "tag": "0031_fearless_captain_universe",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "6",
+      "when": 1785739558976,
+      "tag": "0032_dear_roland_deschain",
+      "breakpoints": true
     }
   ]
 }

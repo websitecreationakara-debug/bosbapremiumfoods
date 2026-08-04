@@ -72,6 +72,7 @@ export type HeroSlide = {
   title_bottom: string | null;
   body: string | null;
   image_url: string | null;
+  image_url_mobile: string | null;
   cta_label: string | null;
   cta_link: string;
   sort_order: number;

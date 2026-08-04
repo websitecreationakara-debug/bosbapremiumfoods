@@ -1,0 +1,1 @@
+ALTER TABLE `hero_slides` ADD `image_url_mobile` text;
