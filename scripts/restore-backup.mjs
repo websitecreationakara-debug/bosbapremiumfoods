@@ -1,4 +1,4 @@
-// Downloads a Bosba backup from Google Drive (gdrive:Bosba Premium Foods) and
+// Downloads a Bosba backup from Google Drive (gdrive:Backups/Bosba Premium Foods) and
 // unpacks the source snapshot for inspection. Does NOT touch the live
 // database — restoring overwrites production and can't be undone, so that
 // step is printed as a command for you to run yourself once you're sure.
@@ -12,7 +12,7 @@ import path from "node:path";
 
 const DB = "bosbapremiumfoods";
 const RCLONE = "C:\\Users\\Demo\\.project-tracker\\bin\\rclone.exe";
-const DRIVE_REMOTE = "gdrive:Bosba Premium Foods";
+const DRIVE_REMOTE = "gdrive:Backups/Bosba Premium Foods";
 const RESTORE_DIR = "D:\\Backups\\bosba\\restore";
 
 const wantedDate = process.argv[2] ?? null;

@@ -13,7 +13,7 @@
 //   wrangler d1 execute bosbapremiumfoods --remote --file <that-file>.sql
 //
 // Old dumps/snapshots are pruned automatically, keeping the most recent KEEP of each,
-// both locally and in the Google Drive mirror (gdrive:Bosba Premium Foods).
+// both locally and in the Google Drive mirror (gdrive:Backups/Bosba Premium Foods).
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
@@ -23,7 +23,7 @@ import { fileURLToPath } from "node:url";
 const DB = "bosbapremiumfoods";
 const KEEP = 8; // how many dumps to retain (weekly cadence -> ~2 months of history)
 const RCLONE = "C:\\Users\\Demo\\.project-tracker\\bin\\rclone.exe";
-const DRIVE_REMOTE = "gdrive:Bosba Premium Foods";
+const DRIVE_REMOTE = "gdrive:Backups/Bosba Premium Foods";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const dir = "D:\\Backups\\bosba";

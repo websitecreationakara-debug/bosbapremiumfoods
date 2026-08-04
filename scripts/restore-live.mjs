@@ -14,7 +14,7 @@ import readline from "node:readline/promises";
 
 const DB = "bosbapremiumfoods";
 const RCLONE = "C:\\Users\\Demo\\.project-tracker\\bin\\rclone.exe";
-const DRIVE_REMOTE = "gdrive:Bosba Premium Foods";
+const DRIVE_REMOTE = "gdrive:Backups/Bosba Premium Foods";
 const RESTORE_DIR = "D:\\Backups\\bosba\\restore";
 const PROJECT_DIR = "D:\\Ecommerce\\Bosba Premium Foods";
 
