@@ -18,11 +18,10 @@ import { groupVariations, productFromPrice } from "@/lib/variants";
 export const Route = createFileRoute("/_store/")({
   head: () => ({
     meta: [
-      { title: "BOSBA Premium Foods — Premium Japanese Seafood Delivered" },
+      { title: "BOSBA Premium Foods — Provides High Premium Quality Foods From Japan" },
       {
         name: "description",
-        content:
-          "Premium quality seafood and foods from Japan — sashimi-grade tuna, salmon, uni, scallops and more, delivered chilled across Cambodia.",
+        content: "Provides High Premium Quality Foods From Japan",
       },
       { property: "og:url", content: "https://bosbapremiumfoods.com/" },
     ],
