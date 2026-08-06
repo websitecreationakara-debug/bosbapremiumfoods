@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion, useScroll, useTransform, type MotionValue } from "motion/react";
+import { motion, useScroll, useSpring, useTransform, type MotionValue } from "motion/react";
 import { ArrowRight, ChevronDown, MapPin } from "lucide-react";
 import { useProducts } from "@/hooks/use-products";
 import { ProductCard } from "@/components/product-card";
@@ -18,33 +18,33 @@ const A5_MARBLING = "8–12";
 // region/farm name once Demo has it; everything else on the page still holds.
 const ORIGIN_REGION = "Kyushu, Japan";
 
-// Real, freely-licensed photos (Wikimedia Commons) chosen as stand-ins until
+// Real, freely-licensed photos (Wikimedia Commons, sized down to ~1280px
+// thumbnails so the scroll animation stays smooth) chosen as stand-ins until
 // real supplier/farm photography is available. Strength varies -- see the
 // per-scene comments below for which ones are the best swap candidates.
 const IMG = {
-  // Real BOSBA product photo, already live on this site's own hero banner.
-  wagyuHero: "/media/wagyu-6da72c50.jpg",
+  // Demo's own real promotional banner (compressed from the original 2.96MB
+  // PNG down to a 147KB JPEG so it doesn't fight the smoothness fix below).
+  heroBanner: "/wagyu/hero-banner.jpg",
   // Standard Wikipedia locator map of Japan (real cartography, CC-licensed).
   japanMap: "https://upload.wikimedia.org/wikipedia/commons/6/6e/Japan_location_map.svg",
-  // Shirakawa-go gassho-zukuri farmhouse -- strong match, real thatched-roof
-  // Japanese farmhouse with mountains already visible behind it.
-  farmhouseDoor:
-    "https://upload.wikimedia.org/wikipedia/commons/8/87/Gassho-zukuri_farmhouse-01.jpg",
-  // Real black wagyu-type cattle on a Japanese farm (Utsunomiya). Decent but
-  // not a perfect match -- best candidate to replace with real supplier photos
-  // of actual day-to-day care (grooming, stalls, etc).
-  care: "https://upload.wikimedia.org/wikipedia/commons/4/47/Utsunomiya_Cattle.jpg",
+  // Uchiyama Ranch, Fukuoka -- a real Japanese cattle barn complex (open-sided
+  // sheds, not a residential house), rice paddies in front. Replaces the
+  // earlier Shirakawa-go farmhouse photo, which was someone's home, not a
+  // cattle barn -- wrong building entirely.
+  barn: "https://upload.wikimedia.org/wikipedia/commons/thumb/1/15/Uchiyama_Ranch_in_Nishi%2C_Fukuoka.jpg/1280px-Uchiyama_Ranch_in_Nishi%2C_Fukuoka.jpg",
+  // Real Tajima-bloodline wagyu calves inside an actual barn stall, ear tags
+  // visible -- strong, authentic match for day-to-day care.
+  care: "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c7/Tajimagyu1.jpg/1280px-Tajimagyu1.jpg",
   // PLACEHOLDER -- generic UK cattle-feed photo, not Japan-specific. Weakest
   // image on the page; replace first if you get real feeding photos.
   diet: "https://upload.wikimedia.org/wikipedia/commons/b/b2/Hay_bales_and_cattle_feed_-_geograph.org.uk_-_5483557.jpg",
-  // Wide Shirakawa-go valley shot -- real mountains + green fields, though no
-  // cattle in frame. Best available real "open air" landscape found; a real
-  // photo of your supplier's own pasture would be a strong upgrade here.
-  pasture:
-    "https://upload.wikimedia.org/wikipedia/commons/4/48/Historic_Village_of_Shirakawa-go_%282016%29_-_img_11.jpg",
+  // Real wagyu-type cow resting in a pasture with Mount Aso behind it --
+  // exactly the "mountains + open air" shot originally asked for.
+  pasture: "https://upload.wikimedia.org/wikipedia/commons/thumb/8/86/Cow_%26_Mt_Aso_01.JPG/1280px-Cow_%26_Mt_Aso_01.JPG",
 };
 
-const STAGES = ["Origin", "Care", "Diet", "Freedom", "Table"];
+const STAGES = ["Origin", "Arrival", "Care", "Diet", "Freedom"];
 
 export const Route = createFileRoute("/_store/wagyu")({
   head: () => ({
@@ -68,13 +68,14 @@ function WagyuStory() {
     target: storyRef,
     offset: ["start start", "end end"],
   });
-  const activeStage = useTransform(scrollYProgress, [0, 1], [0, STAGES.length - 1]);
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 260, damping: 40, mass: 0.4 });
+  const activeStage = useTransform(smoothProgress, [0, 1], [0, STAGES.length - 1]);
 
   const { data: products = [] } = useProducts();
   const wagyuProducts = products.filter((p) => p.title.toLowerCase().includes("wagyu"));
 
   return (
-    <div className="bg-black text-white">
+    <div className="bg-[#0c1f16] text-white">
       <Hero />
 
       {/* Slim progress rail, desktop only -- shows which beat of the story is active */}
@@ -87,15 +88,42 @@ function WagyuStory() {
       </div>
 
       <div ref={storyRef}>
-        <Scene image={IMG.farmhouseDoor} imageAlt="Traditional Japanese farmhouse" zoomFrom={1.15} zoomTo={1}>
+        <Scene
+          image={IMG.japanMap}
+          imageAlt="Map of Japan"
+          heightVh={180}
+          zoomFrom={1}
+          zoomTo={2.2}
+          imageClassName="!object-contain p-12 md:p-24 [filter:grayscale(1)_brightness(0.5)_sepia(0.5)_hue-rotate(-10deg)_saturate(2.2)]"
+          overlay={
+            <div
+              className="pointer-events-none absolute z-10"
+              style={{ left: "38%", top: "78%" }}
+            >
+              <span className="absolute -inset-3 animate-ping rounded-full bg-brand/40" />
+              <MapPin className="relative size-6 -translate-x-1/2 -translate-y-full text-brand" fill="currentColor" />
+            </div>
+          }
+        >
           <div className="max-w-xl">
             <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand">Origin</p>
             <h2 className="font-display text-3xl font-semibold leading-tight md:text-5xl">
-              This is where the story starts
+              Every great wagyu starts with where it's from
+            </h2>
+            <p className="mt-4 text-base text-white/80 md:text-lg">{ORIGIN_REGION}</p>
+          </div>
+        </Scene>
+
+        <Scene image={IMG.barn} imageAlt="A real Japanese cattle barn" zoomFrom={1.12} zoomTo={1}>
+          <div className="max-w-xl">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand">Arrival</p>
+            <h2 className="font-display text-3xl font-semibold leading-tight md:text-5xl">
+              This is where the cattle live
             </h2>
             <p className="mt-4 text-base text-white/80 md:text-lg">
-              A working farmhouse in {ORIGIN_REGION} — generations of the same quiet,
-              careful approach to raising cattle.
+              A working cattle barn in {ORIGIN_REGION} — open-sided sheds, rice
+              paddies out front, and generations of the same quiet, careful
+              approach to raising cattle.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Badge label={`A4 marbling ${A4_MARBLING}`} />
@@ -104,16 +132,17 @@ function WagyuStory() {
           </div>
         </Scene>
 
-        <Scene image={IMG.care} imageAlt="Wagyu cattle being cared for">
+        <Scene image={IMG.care} imageAlt="Wagyu cattle being cared for inside the barn">
           <div className="max-w-xl">
             <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand">Care</p>
             <h2 className="font-display text-3xl font-semibold leading-tight md:text-5xl">
               Raised without rushing
             </h2>
             <p className="mt-4 text-base text-white/80 md:text-lg">
-              Every animal is looked after individually — clean housing, low stress,
-              and the kind of patient daily attention that shows up later in the
-              marbling. There are no shortcuts to A5.
+              Every animal is tagged and looked after individually — clean
+              housing, low stress, and the kind of patient daily attention
+              that shows up later in the marbling. There are no shortcuts to
+              A5.
             </p>
           </div>
         </Scene>
@@ -132,7 +161,7 @@ function WagyuStory() {
           </div>
         </Scene>
 
-        <Scene image={IMG.pasture} imageAlt="Green fields with mountains in the distance" zoomFrom={1} zoomTo={1.1}>
+        <Scene image={IMG.pasture} imageAlt="Wagyu cow resting in a green pasture with a mountain behind it" zoomFrom={1} zoomTo={1.1}>
           <div className="max-w-xl">
             <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand">Freedom</p>
             <h2 className="font-display text-3xl font-semibold leading-tight md:text-5xl">
@@ -140,7 +169,7 @@ function WagyuStory() {
             </h2>
             <p className="mt-4 text-base text-white/80 md:text-lg">
               Mountains on the horizon, space to move, and fresh air every day —
-              raised the way it's meant to be, not confined to a shed.
+              raised the way it's meant to be, not confined indoors.
             </p>
           </div>
         </Scene>
@@ -153,48 +182,20 @@ function WagyuStory() {
 
 function Hero() {
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 py-24">
-      <div className="mx-auto grid w-full max-w-6xl items-center gap-10 md:grid-cols-2">
-        <div className="order-2 md:order-1">
-          <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand">
-            Product of Japan
-          </p>
-          <h1 className="font-display text-4xl font-semibold leading-tight md:text-6xl">
-            The Story of Our Wagyu
-          </h1>
-          <p className="mt-5 max-w-md text-base text-white/70 md:text-lg">
-            From a small farm in {ORIGIN_REGION} to your table — scroll to see how
-            it's raised.
-          </p>
-        </div>
-        <div className="order-1 md:order-2">
-          <img
-            src={IMG.wagyuHero}
-            alt="BOSBA A5 Wagyu"
-            className="aspect-[4/3] w-full rounded-2xl object-cover shadow-2xl"
-          />
-        </div>
-      </div>
-
-      <div className="relative mx-auto mt-14 aspect-square w-full max-w-md">
-        <img
-          src={IMG.japanMap}
-          alt="Map of Japan"
-          className="h-full w-full object-contain opacity-90 [filter:grayscale(1)_brightness(0.55)_sepia(0.4)_hue-rotate(-10deg)_saturate(2)]"
-        />
-        {/* Placeholder pin -- approximate Kyushu position on the standard Japan locator map */}
-        <div className="absolute" style={{ left: "38%", top: "78%" }}>
-          <span className="absolute -inset-3 animate-ping rounded-full bg-brand/40" />
-          <MapPin className="relative size-6 -translate-x-1/2 -translate-y-full text-brand" fill="currentColor" />
-        </div>
-      </div>
+    <section className="relative flex min-h-screen flex-col items-center justify-end overflow-hidden">
+      <img
+        src={IMG.heroBanner}
+        alt="BOSBA Premium Foods — Japanese A4 A5 Wagyu Steak, unmatched marbling, unforgettable flavor"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0c1f16] via-transparent to-black/20" />
 
       <motion.div
         animate={{ y: [0, 8, 0] }}
         transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
-        className="absolute bottom-8 flex flex-col items-center gap-1 text-white/60"
+        className="relative z-10 mb-10 flex flex-col items-center gap-1 text-white/80"
       >
-        <span className="text-xs uppercase tracking-widest">Scroll</span>
+        <span className="text-xs uppercase tracking-widest">Scroll to see where it's from</span>
         <ChevronDown className="size-5" />
       </motion.div>
     </section>
