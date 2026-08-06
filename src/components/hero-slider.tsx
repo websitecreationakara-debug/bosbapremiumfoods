@@ -21,8 +21,8 @@ const FALLBACK_SLIDE: HeroSlide = {
   created_at: "",
 };
 
-export function HeroSlider() {
-  const { data: slides = [] } = useHeroSlides();
+export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] }) {
+  const { data: slides = [] } = useHeroSlides({ initialData: initialSlides });
   const [active, setActive] = useState(0);
 
   const list = slides.length > 0 ? slides : [FALLBACK_SLIDE];

@@ -69,10 +69,11 @@ export function useCategories() {
   });
 }
 
-export function useHeroSlides(opts?: { all?: boolean }) {
+export function useHeroSlides(opts?: { all?: boolean; initialData?: HeroSlide[] }) {
   return useQuery({
     queryKey: ["hero_slides", opts?.all ? "all" : "active"],
     queryFn: () => listHeroSlides({ data: { all: !!opts?.all } }) as Promise<HeroSlide[]>,
+    initialData: opts?.initialData,
   });
 }
 

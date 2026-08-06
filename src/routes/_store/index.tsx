@@ -14,8 +14,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
 import { useAuth } from "@/hooks/use-auth";
 import { groupVariations, productFromPrice } from "@/lib/variants";
+import { listHeroSlides } from "@/data/banners";
+import type { HeroSlide } from "@/lib/types";
 
 export const Route = createFileRoute("/_store/")({
+  // SSR-fetches the real hero banner so it's already in the HTML on first paint —
+  //   without this, HeroSlider briefly renders its Unsplash placeholder while
+  //   useHeroSlides() is still fetching client-side, then swaps to the real banner,
+  //   a visible flash/glitch on every fresh page load.
+  loader: () => listHeroSlides({ data: { all: false } }) as Promise<HeroSlide[]>,
   head: () => ({
     meta: [
       { title: "BOSBA Premium Foods — Provides High Premium Quality Foods From Japan" },
@@ -31,6 +38,7 @@ export const Route = createFileRoute("/_store/")({
 });
 
 function Home() {
+  const heroSlides = Route.useLoaderData();
   const { data: products = [], isLoading } = useProducts();
   const { data: categories = [] } = useCategories();
   const { data: promotions = [] } = usePromotions();
@@ -65,7 +73,7 @@ function Home() {
 
   return (
     <div className="space-y-24 md:space-y-32 pb-24">
-      <HeroSlider />
+      <HeroSlider initialSlides={heroSlides} />
 
       {/* Features strip — centered, borderless */}
       <section className="mx-auto max-w-6xl px-6">
