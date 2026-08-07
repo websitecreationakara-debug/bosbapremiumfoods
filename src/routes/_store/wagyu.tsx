@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChapterWordmark, ChapterDots, useActiveChapter, type WagyuChapter } from "@/components/wagyu/chapter-nav";
+import { ChapterDots, useActiveChapter, type WagyuChapter } from "@/components/wagyu/chapter-nav";
 import { WagyuHero } from "@/components/wagyu/hero";
 import { OriginChapter } from "@/components/wagyu/origin-chapter";
 import { FarmChapter } from "@/components/wagyu/farm-chapter";
@@ -36,7 +36,6 @@ function WagyuPage() {
 
   return (
     <div className="relative">
-      <ChapterWordmark />
       <ChapterDots chapters={chapters} activeId={activeId} />
 
       <WagyuHero />

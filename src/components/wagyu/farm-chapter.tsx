@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { PlaceholderImage } from "./placeholder-image";
 
 export function FarmChapter() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -18,10 +17,10 @@ export function FarmChapter() {
     <section id="farm" ref={trackRef} className="relative h-[260vh] bg-[#141210]">
       <div className="sticky top-0 h-screen overflow-hidden">
         {/* Field revealed behind the door */}
-        <PlaceholderImage
-          tone="deep"
-          label="Full-bleed field photo, revealed as the door opens"
-          className="absolute inset-0 h-full w-full"
+        <img
+          src="/wagyu/farm-reveal.jpg"
+          alt="A cow grazing alone on a green hillside"
+          className="absolute inset-0 h-full w-full object-cover"
         />
 
         <motion.div
@@ -36,14 +35,25 @@ export function FarmChapter() {
           </h3>
         </motion.div>
 
-        {/* Door panels */}
+        {/* Door panels — one image split down the middle, each half positioned
+            so together they read as a single door before scrolling apart. */}
         <motion.div
-          style={{ x: leftDoorX }}
-          className="absolute inset-y-0 left-0 z-20 w-1/2 border-r border-black/30 bg-gradient-to-br from-[#8a5a34] to-[#5f3d20]"
+          style={{
+            x: leftDoorX,
+            backgroundImage: "url(/wagyu/farm-door.jpg)",
+            backgroundSize: "200% 100%",
+            backgroundPosition: "left center",
+          }}
+          className="absolute inset-y-0 left-0 z-20 w-1/2 border-r border-black/30 bg-[#3a2a18]"
         />
         <motion.div
-          style={{ x: rightDoorX }}
-          className="absolute inset-y-0 right-0 z-20 w-1/2 bg-gradient-to-bl from-[#8a5a34] to-[#5f3d20]"
+          style={{
+            x: rightDoorX,
+            backgroundImage: "url(/wagyu/farm-door.jpg)",
+            backgroundSize: "200% 100%",
+            backgroundPosition: "right center",
+          }}
+          className="absolute inset-y-0 right-0 z-20 w-1/2 bg-[#3a2a18]"
         />
 
         <motion.div

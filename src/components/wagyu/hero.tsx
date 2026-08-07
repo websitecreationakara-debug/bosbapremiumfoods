@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import { PlaceholderImage } from "./placeholder-image";
 
 export function WagyuHero() {
   return (
@@ -40,13 +39,15 @@ export function WagyuHero() {
           transition={{ duration: 0.8, ease: "easeOut", delay: 0.15 }}
           className="relative mx-auto aspect-[4/5] w-full max-w-sm md:mx-0"
         >
-          <PlaceholderImage
-            label="Aged-paper map graphic"
-            className="absolute top-0 right-0 h-3/4 w-3/4 rotate-1 rounded-sm shadow-lg"
+          <img
+            src="/wagyu/map-miyazaki.jpg"
+            alt="Aged map of Japan with Miyazaki prefecture highlighted"
+            className="absolute top-0 right-0 h-3/4 w-3/4 rotate-1 rounded-sm object-cover shadow-lg"
           />
-          <PlaceholderImage
-            label="Marbled beef photo — swap in real image"
-            className="absolute bottom-0 left-0 h-4/5 w-4/5 -rotate-1 rounded-sm shadow-xl"
+          <img
+            src="/wagyu/hero-beef.jpg"
+            alt="Marbled Miyazaki wagyu beef"
+            className="absolute bottom-0 left-0 h-4/5 w-4/5 -rotate-1 rounded-sm object-cover shadow-xl"
           />
         </motion.div>
       </div>

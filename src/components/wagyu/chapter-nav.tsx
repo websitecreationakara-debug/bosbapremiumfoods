@@ -40,19 +40,6 @@ export function useActiveChapter(chapters: WagyuChapter[]) {
   return activeId;
 }
 
-export function ChapterWordmark({ dark = false }: { dark?: boolean }) {
-  return (
-    <div
-      className={
-        "pointer-events-none fixed top-6 left-6 z-40 font-serif text-lg italic md:top-8 md:left-10 " +
-        (dark ? "text-white" : "text-[#141210]")
-      }
-    >
-      Miyazaki
-    </div>
-  );
-}
-
 export function ChapterDots({
   chapters,
   activeId,

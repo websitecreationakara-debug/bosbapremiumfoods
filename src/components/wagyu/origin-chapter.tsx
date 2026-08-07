@@ -1,6 +1,5 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform } from "motion/react";
-import { PlaceholderImage } from "./placeholder-image";
 
 export function OriginChapter() {
   const trackRef = useRef<HTMLDivElement>(null);
@@ -15,9 +14,10 @@ export function OriginChapter() {
   return (
     <section id="origin" ref={trackRef} className="relative h-[220vh] bg-[#f3ede1]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
-        <PlaceholderImage
-          label="Aged-paper map of Japan, Miyazaki prefecture highlighted"
-          className="absolute inset-0 m-auto h-[85%] w-full max-w-3xl rounded-sm"
+        <img
+          src="/wagyu/map-miyazaki.jpg"
+          alt="Aged map of Japan with Miyazaki prefecture highlighted"
+          className="absolute inset-0 m-auto h-[85%] w-full max-w-md rounded-sm object-contain"
         />
 
         <motion.div

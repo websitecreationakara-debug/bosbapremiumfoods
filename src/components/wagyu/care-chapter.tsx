@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import { HeartPulse, Footprints, Wind, Clock, type LucideIcon } from "lucide-react";
-import { PlaceholderImage } from "./placeholder-image";
 
 const items: { icon: LucideIcon; title: string; body: string }[] = [
   {
@@ -41,7 +40,11 @@ export function CareChapter() {
           <h2 className="mb-8 font-serif text-4xl leading-tight text-[#141210] sm:text-5xl">
             How they raise a legend.
           </h2>
-          <PlaceholderImage label="Cattle grazing in a green field" className="aspect-[4/3] w-full rounded-sm" />
+          <img
+            src="/wagyu/care-pasture.jpg"
+            alt="Cattle grazing in a green pasture"
+            className="aspect-[4/3] w-full rounded-sm object-cover"
+          />
         </motion.div>
 
         <div className="grid grid-cols-1 divide-y divide-[#141210]/10 border border-[#141210]/10 sm:grid-cols-2 sm:divide-x sm:divide-y-0">

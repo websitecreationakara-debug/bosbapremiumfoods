@@ -1,5 +1,4 @@
 import { motion } from "motion/react";
-import { PlaceholderImage } from "./placeholder-image";
 
 const items = [
   { name: "Corn", note: "Energy & sweetness" },
@@ -18,7 +17,11 @@ export function DietChapter() {
           viewport={{ once: true, amount: 0.4 }}
           transition={{ duration: 0.6 }}
         >
-          <PlaceholderImage label="Cattle feeding on hay" className="aspect-[4/3] w-full rounded-sm" />
+          <img
+            src="/wagyu/diet-hay.jpg"
+            alt="Cattle feeding on hay"
+            className="aspect-[4/3] w-full rounded-sm object-cover"
+          />
         </motion.div>
 
         <motion.div

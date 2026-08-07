@@ -1,10 +1,13 @@
 import { motion } from "motion/react";
-import { PlaceholderImage } from "./placeholder-image";
 
 export function FieldChapter() {
   return (
     <section id="field" className="relative flex min-h-screen items-end overflow-hidden bg-[#141210]">
-      <PlaceholderImage tone="deep" label="Full-bleed mountain valley photo" className="absolute inset-0 h-full w-full" />
+      <img
+        src="/wagyu/field-mountain.webp"
+        alt="Wagyu cattle grazing in a misty mountain valley at sunset"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
       <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
       <motion.div
