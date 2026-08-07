@@ -18,8 +18,8 @@ export function DietChapter() {
           transition={{ duration: 0.6 }}
         >
           <img
-            src="/wagyu/diet-hay.jpg"
-            alt="Cattle feeding on hay"
+            src="/wagyu/diet-hay.webp"
+            alt="Wagyu cattle feeding at a trough"
             className="aspect-[4/3] w-full rounded-sm object-cover"
           />
         </motion.div>
