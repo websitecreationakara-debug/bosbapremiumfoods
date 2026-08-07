@@ -15,9 +15,9 @@ export function OriginChapter() {
     <section id="origin" ref={trackRef} className="relative h-[220vh] bg-[#f3ede1]">
       <div className="sticky top-0 flex h-screen items-center justify-center overflow-hidden px-6">
         <img
-          src="/wagyu/map-miyazaki.jpg"
-          alt="Aged map of Japan with Miyazaki prefecture highlighted"
-          className="absolute inset-0 m-auto h-[85%] w-full max-w-md rounded-sm object-contain"
+          src="/wagyu/map-kyushu-zoom.jpg"
+          alt="Aged map of Kyushu with Miyazaki prefecture highlighted"
+          className="absolute inset-0 m-auto h-[80%] w-full max-w-2xl rounded-sm object-cover"
         />
 
         <motion.div
