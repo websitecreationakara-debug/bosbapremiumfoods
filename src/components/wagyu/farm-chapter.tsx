@@ -9,8 +9,8 @@ export function FarmChapter() {
   });
 
   const cardOpacity = useTransform(scrollYProgress, [0, 0.18], [1, 0]);
-  const leftDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0%", "-100%"]);
-  const rightDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0%", "100%"]);
+  const leftDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0vw", "-60vw"]);
+  const rightDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0vw", "60vw"]);
   const captionOpacity = useTransform(scrollYProgress, [0.7, 0.95], [0, 1]);
 
   return (
@@ -35,26 +35,31 @@ export function FarmChapter() {
           </h3>
         </motion.div>
 
-        {/* Door panels — one image split down the middle, each half positioned
-            so together they read as a single door before scrolling apart. */}
-        <motion.div
-          style={{
-            x: leftDoorX,
-            backgroundImage: "url(/wagyu/farm-door.jpg)",
-            backgroundSize: "200% 100%",
-            backgroundPosition: "left center",
-          }}
-          className="absolute inset-y-0 left-0 z-20 w-1/2 border-r border-black/30 bg-[#3a2a18]"
-        />
-        <motion.div
-          style={{
-            x: rightDoorX,
-            backgroundImage: "url(/wagyu/farm-door.jpg)",
-            backgroundSize: "200% 100%",
-            backgroundPosition: "right center",
-          }}
-          className="absolute inset-y-0 right-0 z-20 w-1/2 bg-[#3a2a18]"
-        />
+        {/* Door — a properly-proportioned frame (matches the source image's
+            848:1264 aspect ratio) split into two halves that swing open,
+            rather than a full-bleed stretch that distorted the artwork. */}
+        <div className="absolute inset-0 z-20 flex items-center justify-center">
+          <div className="relative aspect-[848/1264] h-[86vh] max-h-[820px] drop-shadow-2xl">
+            <motion.div
+              style={{
+                x: leftDoorX,
+                backgroundImage: "url(/wagyu/farm-door.jpg)",
+                backgroundSize: "200% 100%",
+                backgroundPosition: "left center",
+              }}
+              className="absolute inset-y-0 left-0 w-1/2 border-r border-black/30 bg-[#3a2a18]"
+            />
+            <motion.div
+              style={{
+                x: rightDoorX,
+                backgroundImage: "url(/wagyu/farm-door.jpg)",
+                backgroundSize: "200% 100%",
+                backgroundPosition: "right center",
+              }}
+              className="absolute inset-y-0 right-0 w-1/2 bg-[#3a2a18]"
+            />
+          </div>
+        </div>
 
         <motion.div
           style={{ opacity: cardOpacity }}
