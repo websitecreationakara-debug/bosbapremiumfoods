@@ -21,7 +21,6 @@ import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
 import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
-import { Route as StoreWagyuRouteImport } from './routes/_store/wagyu'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
@@ -93,11 +92,6 @@ const StoreShopRoute = StoreShopRouteImport.update({
 const StoreThankYouRoute = StoreThankYouRouteImport.update({
   id: '/thank-you',
   path: '/thank-you',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreWagyuRoute = StoreWagyuRouteImport.update({
-  id: '/wagyu',
-  path: '/wagyu',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreWishlistRoute = StoreWishlistRouteImport.update({
@@ -178,7 +172,6 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
-  '/wagyu': typeof StoreWagyuRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -203,7 +196,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
-  '/wagyu': typeof StoreWagyuRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -232,7 +224,6 @@ export interface FileRoutesById {
   '/_store/privacy': typeof StorePrivacyRoute
   '/_store/shop': typeof StoreShopRoute
   '/_store/thank-you': typeof StoreThankYouRoute
-  '/_store/wagyu': typeof StoreWagyuRoute
   '/_store/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -262,7 +253,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/shop'
     | '/thank-you'
-    | '/wagyu'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -287,7 +277,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/shop'
     | '/thank-you'
-    | '/wagyu'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -315,7 +304,6 @@ export interface FileRouteTypes {
     | '/_store/privacy'
     | '/_store/shop'
     | '/_store/thank-you'
-    | '/_store/wagyu'
     | '/_store/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -424,13 +412,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StoreThankYouRouteImport
       parentRoute: typeof StoreRoute
     }
-    '/_store/wagyu': {
-      id: '/_store/wagyu'
-      path: '/wagyu'
-      fullPath: '/wagyu'
-      preLoaderRoute: typeof StoreWagyuRouteImport
-      parentRoute: typeof StoreRoute
-    }
     '/_store/wishlist': {
       id: '/_store/wishlist'
       path: '/wishlist'
@@ -534,7 +515,6 @@ interface StoreRouteChildren {
   StorePrivacyRoute: typeof StorePrivacyRoute
   StoreShopRoute: typeof StoreShopRoute
   StoreThankYouRoute: typeof StoreThankYouRoute
-  StoreWagyuRoute: typeof StoreWagyuRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StorePayIdRoute: typeof StorePayIdRoute
@@ -550,7 +530,6 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePrivacyRoute: StorePrivacyRoute,
   StoreShopRoute: StoreShopRoute,
   StoreThankYouRoute: StoreThankYouRoute,
-  StoreWagyuRoute: StoreWagyuRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
   StorePayIdRoute: StorePayIdRoute,
