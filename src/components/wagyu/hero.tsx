@@ -40,8 +40,8 @@ export function WagyuHero() {
           className="relative mx-auto aspect-[4/5] w-full max-w-sm md:mx-0"
         >
           <img
-            src="/wagyu/map-miyazaki.jpg"
-            alt="Aged map of Japan with Miyazaki prefecture highlighted"
+            src="/wagyu/map-kyushu-zoom.jpg"
+            alt="Aged map of Kyushu with Miyazaki prefecture highlighted"
             className="absolute top-0 right-0 h-3/4 w-3/4 rotate-1 rounded-sm object-cover shadow-lg"
           />
           <img
