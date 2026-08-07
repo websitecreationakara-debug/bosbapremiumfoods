@@ -11,6 +11,7 @@ export function FarmChapter() {
   const cardOpacity = useTransform(scrollYProgress, [0, 0.18], [1, 0]);
   const leftDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0vw", "-60vw"]);
   const rightDoorX = useTransform(scrollYProgress, [0.25, 0.75], ["0vw", "60vw"]);
+  const wallOpacity = useTransform(scrollYProgress, [0.25, 0.7], [1, 0]);
   const captionOpacity = useTransform(scrollYProgress, [0.7, 0.95], [0, 1]);
 
   return (
@@ -23,9 +24,17 @@ export function FarmChapter() {
           className="absolute inset-0 h-full w-full object-cover"
         />
 
+        {/* Wood-wall backdrop — closes the gap around the door frame so the
+            reveal photo stays hidden until the door actually opens, then
+            fades out in step with the panels sliding apart. */}
+        <motion.div
+          style={{ opacity: wallOpacity }}
+          className="absolute inset-0 z-10 bg-gradient-to-b from-[#6b4a2c] via-[#4a3220] to-[#2c1e12]"
+        />
+
         <motion.div
           style={{ opacity: captionOpacity }}
-          className="absolute bottom-16 left-6 z-10 max-w-sm md:left-10"
+          className="absolute bottom-16 left-6 z-[15] max-w-sm md:left-10"
         >
           <p className="mb-2 text-xs font-medium tracking-[0.2em] text-[#e6b8a8] uppercase">
             Step inside
