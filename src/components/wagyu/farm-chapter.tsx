@@ -39,7 +39,7 @@ export function FarmChapter() {
             848:1264 aspect ratio) split into two halves that swing open,
             rather than a full-bleed stretch that distorted the artwork. */}
         <div className="absolute inset-0 z-20 flex items-center justify-center">
-          <div className="relative aspect-[848/1264] h-[86vh] max-h-[820px] drop-shadow-2xl">
+          <div className="relative aspect-[848/1264] h-[98vh] max-h-[1400px] drop-shadow-2xl">
             <motion.div
               style={{
                 x: leftDoorX,
