@@ -19,7 +19,7 @@ export function FarmChapter() {
         {/* Field revealed behind the door */}
         <img
           src="/wagyu/farm-reveal.jpg"
-          alt="A cow grazing alone on a green hillside"
+          alt="A green mountain valley with grazing cattle in the distance"
           className="absolute inset-0 h-full w-full object-cover"
         />
 
