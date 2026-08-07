@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { motion, useScroll, useSpring, useTransform } from "motion/react";
+import { GlassPanel } from "@/components/wagyu/glass-panel";
 
 // A single "beat" of the scroll story. Renders a tall (default 220vh) track;
 // while that track is passing through the viewport, its visual content stays
@@ -55,7 +56,7 @@ export function Scene({
     <div ref={ref} style={{ height: `${heightVh}vh` }} className="relative">
       <motion.div
         style={{ opacity, willChange: "opacity" }}
-        className="sticky top-0 h-screen w-full overflow-hidden bg-[#0c1f16]"
+        className="sticky top-0 h-screen w-full overflow-hidden bg-[#f0ece1]"
       >
         <motion.img
           src={image}
@@ -63,11 +64,16 @@ export function Scene({
           style={{ scale, willChange: "transform" }}
           className={`absolute inset-0 h-full w-full object-cover ${imageClassName ?? ""}`}
         />
-        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-black/30" />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#141210]/75 via-[#141210]/10 to-[#141210]/30" />
         {overlay}
         {children && (
-          <motion.div style={{ y: contentY }} className="relative z-10 flex h-full items-end pb-20 md:items-center md:pb-0">
-            <div className="mx-auto w-full max-w-6xl px-6">{children}</div>
+          <motion.div
+            style={{ y: contentY }}
+            className="relative z-10 flex h-full items-end pb-20 md:items-center md:pb-0"
+          >
+            <div className="mx-auto w-full max-w-6xl px-6">
+              <GlassPanel className="max-w-xl">{children}</GlassPanel>
+            </div>
           </motion.div>
         )}
       </motion.div>
