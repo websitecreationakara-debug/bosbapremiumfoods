@@ -82,6 +82,9 @@ export function SiteHeader() {
             <Link to="/shop" className="hover:text-foreground transition-colors whitespace-nowrap">
               {t("nav.allProducts")}
             </Link>
+            <Link to="/wagyu" className="hover:text-foreground transition-colors whitespace-nowrap">
+              {t("nav.wagyuStory")}
+            </Link>
             {hasOffers && (
               <Link
                 to="/offers"
@@ -253,6 +256,14 @@ export function SiteHeader() {
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                 >
                   {t("nav.allProducts")}
+                </Link>
+              </SheetClose>
+              <SheetClose asChild>
+                <Link
+                  to="/wagyu"
+                  className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                >
+                  {t("nav.wagyuStory")}
                 </Link>
               </SheetClose>
               {hasOffers && (

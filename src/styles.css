@@ -168,4 +168,10 @@
     background-size: 24px 24px;
   }
   .text-balance { text-wrap: balance; }
+
+  @keyframes wagyu-marquee {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .animate-wagyu-marquee { animation: wagyu-marquee 32s linear infinite; }
 }
