@@ -1,0 +1,231 @@
+/**
+ * Obsidian Omakase — scoped styles for the /wagyu page only.
+ * Colors are CSS custom properties so the page can switch between the dark
+ * "obsidian" theme (default) and a light parchment theme via the site's
+ * existing dark/light toggle (the `.dark` class on <html>).
+ */
+
+.wagyu-obsidian {
+  --wagyu-bg: #0a0a08;
+  --wagyu-bg-alt: #0d0d0b;
+  --wagyu-bg-rgb: 10, 10, 8;
+  --wagyu-card: #111110;
+  --wagyu-card-hover: #151513;
+  --wagyu-text: #f5edd8;
+  --wagyu-text-rgb: 245, 237, 216;
+  --wagyu-gold: #c9a84c;
+  --wagyu-gold-rgb: 201, 168, 76;
+  --wagyu-gold-light: #e8c96a;
+  --wagyu-gold-light-rgb: 232, 201, 106;
+
+  background-color: var(--wagyu-bg);
+  color: var(--wagyu-text);
+}
+
+/* Light theme — active whenever the site's global toggle is not in dark mode */
+:root:not(.dark) .wagyu-obsidian {
+  --wagyu-bg: #ffffff;
+  --wagyu-bg-alt: #ffffff;
+  --wagyu-bg-rgb: 255, 255, 255;
+  --wagyu-card: #ffffff;
+  --wagyu-card-hover: #f5f5f3;
+  --wagyu-text: #211d14;
+  --wagyu-text-rgb: 33, 29, 20;
+  --wagyu-gold: #8a6b1f;
+  --wagyu-gold-rgb: 138, 107, 31;
+  --wagyu-gold-light: #b8934a;
+  --wagyu-gold-light-rgb: 184, 147, 74;
+}
+
+.wagyu-obsidian .gold-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--wagyu-gold), transparent);
+  margin: 0 auto;
+}
+
+.wagyu-obsidian .kanji-watermark {
+  font-family: "Noto Serif JP", serif;
+  color: rgba(var(--wagyu-gold-rgb), 0.05);
+  font-size: clamp(120px, 25vw, 300px);
+  font-weight: 300;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+}
+
+@keyframes wagyu-float-up {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateY(-120px) scale(0.3);
+    opacity: 0;
+  }
+}
+
+@keyframes wagyu-ken-burns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.08);
+  }
+}
+
+.wagyu-obsidian .ken-burns {
+  animation: wagyu-ken-burns 12s ease-out forwards;
+}
+
+@keyframes wagyu-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.wagyu-obsidian .fade-up {
+  animation: wagyu-fade-up 0.8s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+/* Scroll reveal (replaces AOS) */
+.wagyu-obsidian .reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wagyu-obsidian .reveal.reveal-left {
+  transform: translateX(-28px);
+}
+.wagyu-obsidian .reveal.reveal-right {
+  transform: translateX(28px);
+}
+.wagyu-obsidian .reveal.visible {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+.wagyu-obsidian .btn-gold {
+  display: inline-block;
+  background: linear-gradient(135deg, var(--wagyu-gold), var(--wagyu-gold-light));
+  /* Gold buttons always take dark ink, regardless of page theme. */
+  color: #1a1610;
+  font-family: "Jost", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.875rem 2.5rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wagyu-obsidian .btn-gold:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 30px rgba(var(--wagyu-gold-rgb), 0.4);
+}
+.wagyu-obsidian .btn-gold:active {
+  transform: scale(0.97);
+}
+
+.wagyu-obsidian .btn-outline-gold {
+  display: inline-block;
+  background: transparent;
+  color: var(--wagyu-gold);
+  font-family: "Jost", sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  padding: 0.875rem 2.5rem;
+  border: 1px solid var(--wagyu-gold);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wagyu-obsidian .btn-outline-gold:hover {
+  background: rgba(var(--wagyu-gold-rgb), 0.1);
+  box-shadow: 0 0 20px rgba(var(--wagyu-gold-rgb), 0.2);
+  transform: scale(1.03);
+}
+.wagyu-obsidian .btn-outline-gold:active {
+  transform: scale(0.97);
+}
+
+/* Gallery tiles — smooth zoom + border brighten on hover */
+.wagyu-obsidian .gallery-tile img {
+  transition:
+    transform 0.6s cubic-bezier(0.23, 1, 0.32, 1),
+    filter 0.4s ease;
+}
+.wagyu-obsidian .gallery-tile:hover img {
+  transform: scale(1.06);
+  filter: brightness(1.05);
+}
+.wagyu-obsidian .gallery-tile .gallery-tile-border {
+  transition: border-color 0.4s ease;
+}
+.wagyu-obsidian .gallery-tile:hover .gallery-tile-border {
+  border-color: rgba(var(--wagyu-gold-rgb), 0.5);
+}
+
+/* Chapter nav dots — subtle hover preview before a dot becomes active */
+.wagyu-obsidian .chapter-dot:hover {
+  transform: scale(1.35);
+  border-color: var(--wagyu-gold);
+}
+
+/* Header nav links — thin gold underline that grows in on hover */
+.wagyu-obsidian .wagyu-nav-link {
+  position: relative;
+  padding-bottom: 5px;
+}
+.wagyu-obsidian .wagyu-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 1px;
+  background: var(--wagyu-gold);
+  transition: width 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+}
+.wagyu-obsidian .wagyu-nav-link:hover::after {
+  width: 100%;
+}
+
+/* FAQ rows — soft hover background for affordance */
+.wagyu-obsidian .faq-trigger {
+  transition: background-color 0.3s ease;
+}
+.wagyu-obsidian .faq-trigger:hover {
+  background-color: rgba(var(--wagyu-gold-rgb), 0.05);
+}
+
+@media (max-width: 768px) {
+  .wagyu-obsidian .cooking-step-grid {
+    grid-template-columns: 1fr !important;
+    direction: ltr !important;
+  }
+  .wagyu-obsidian .trust-header-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .wagyu-obsidian .gallery-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .wagyu-obsidian .gallery-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .wagyu-obsidian .gallery-grid > * {
+    grid-column: span 1 !important;
+  }
+}

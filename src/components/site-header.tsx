@@ -203,7 +203,7 @@ export function SiteHeader() {
 
             <button
               onClick={() => setDrawerOpen(true)}
-              className="relative grid size-9 place-items-center rounded-full hover:bg-muted transition-colors"
+              className="relative grid size-9 place-items-center rounded-full hover:bg-muted hover:scale-110 active:scale-90 transition-[background-color,transform] duration-200 ease-out"
               aria-label={t("nav.cart")}
             >
               <ShoppingBag className="size-[18px]" />

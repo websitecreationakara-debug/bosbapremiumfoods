@@ -1,0 +1,476 @@
+import { useRef, useState, useCallback } from "react";
+import { Link } from "@tanstack/react-router";
+import { Reveal } from "@/components/wagyu/reveal";
+import A4 from "../../image/a4.jpg";
+import A5 from "../../image/a5.jpg";
+import { SupplyChainSection } from "@/components/wagyu/supply-chain-section";
+
+const grades = [
+  {
+    grade: "A4",
+    tagline: "Balanced Luxury",
+    desc: "Generously marbled, rich and tender — with a balanced beef experience that showcases both the depth of Wagyu flavor and the richness of fine marbling.",
+    marbling: 4,
+    richness: 4,
+    beefFlavor: 5,
+    texture: "Tender",
+    bms: "BMS 5–7",
+    price: "$14",
+    unit: "/ 100g",
+  },
+  {
+    grade: "A5",
+    tagline: "Ultimate Indulgence",
+    desc: "Exceptionally marbled, rich and luxurious — made for those who want the full Wagyu experience. The highest grade of Japanese beef.",
+    marbling: 5,
+    richness: 5,
+    beefFlavor: 4,
+    texture: "Extremely Tender",
+    bms: "BMS 8–12",
+    price: "$19",
+    unit: "/ 100g",
+  },
+];
+
+function RatingDots({ filled }: { filled: number }) {
+  return (
+    <div style={{ display: "flex", gap: "0.35rem" }}>
+      {Array.from({ length: 5 }, (_, i) => (
+        <span
+          key={i}
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: i < filled ? "var(--wagyu-gold)" : "rgba(var(--wagyu-text-rgb),0.15)",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export function ComparisonSection() {
+  const [sliderPos, setSliderPos] = useState(50);
+  const [isDragging, setIsDragging] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const updateSlider = useCallback((clientX: number) => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    const pos = Math.max(5, Math.min(95, ((clientX - rect.left) / rect.width) * 100));
+    setSliderPos(pos);
+  }, []);
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    setIsDragging(true);
+    updateSlider(e.clientX);
+  };
+  const onMouseMove = (e: React.MouseEvent) => {
+    if (isDragging) updateSlider(e.clientX);
+  };
+  const onMouseUp = () => setIsDragging(false);
+  const onTouchMove = (e: React.TouchEvent) => updateSlider(e.touches[0].clientX);
+
+  return (
+    <section
+      id="comparison"
+      style={{
+        backgroundColor: "var(--wagyu-bg)",
+        padding: "clamp(3.25rem, 6vw, 5.5rem) 0",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(1.5rem, 5vw, 4rem)" }}>
+        <div style={{ textAlign: "center", marginBottom: "2.75rem" }}>
+          <Reveal>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "1rem",
+                marginBottom: "1rem",
+              }}
+            >
+              <span
+                style={{
+                  width: 40,
+                  height: 1,
+                  background: "var(--wagyu-gold)",
+                  display: "inline-block",
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.65rem",
+                  letterSpacing: "0.3em",
+                  textTransform: "uppercase",
+                  color: "var(--wagyu-gold)",
+                }}
+              >
+                The Difference
+              </span>
+              <span
+                style={{
+                  width: 40,
+                  height: 1,
+                  background: "var(--wagyu-gold)",
+                  display: "inline-block",
+                }}
+              />
+            </div>
+          </Reveal>
+          <Reveal delay={100}>
+            <h2
+              style={{
+                fontFamily: "'Cormorant Garamond', serif",
+                fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)",
+                fontWeight: 400,
+                color: "var(--wagyu-text)",
+                lineHeight: 1.2,
+              }}
+            >
+              Which Wagyu Fits You?
+            </h2>
+          </Reveal>
+          <Reveal delay={200}>
+            <p
+              style={{
+                fontFamily: "'Jost', sans-serif",
+                fontSize: "1rem",
+                fontWeight: 300,
+                color: "rgba(var(--wagyu-text-rgb),0.6)",
+                maxWidth: 480,
+                margin: "1rem auto 0",
+                lineHeight: 1.7,
+              }}
+            >
+              Drag the slider to compare A4 and A5 marbling side by side.
+            </p>
+          </Reveal>
+        </div>
+        <SupplyChainSection />
+        {/* Interactive comparison slider */}
+        <Reveal delay={300}>
+          <div
+            ref={containerRef}
+            onMouseDown={onMouseDown}
+            onMouseMove={onMouseMove}
+            onMouseUp={onMouseUp}
+            onMouseLeave={onMouseUp}
+            onTouchStart={(e) => updateSlider(e.touches[0].clientX)}
+            onTouchMove={onTouchMove}
+            style={{
+              position: "relative",
+              width: "100%",
+              aspectRatio: "16/7",
+              overflow: "hidden",
+              cursor: isDragging ? "grabbing" : "ew-resize",
+              userSelect: "none",
+              border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
+              marginBottom: "2.75rem",
+            }}
+          >
+            {/* A5 (right, full width) */}
+            <img
+              src={A5}
+              alt="Wagyu A5 marbling"
+              style={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center",
+              }}
+              draggable={false}
+            />
+            {/* A4 (left, clipped) */}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                clipPath: `inset(0 ${100 - sliderPos}% 0 0)`,
+              }}
+            >
+              <img
+                src={A4}
+                alt="Wagyu A4 marbling"
+                style={{
+                  position: "absolute",
+                  inset: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  objectPosition: "center",
+                }}
+                draggable={false}
+              />
+            </div>
+
+            {/* Labels */}
+            <div
+              style={{
+                position: "absolute",
+                top: "1rem",
+                left: "1.5rem",
+                background: "rgba(var(--wagyu-bg-rgb),0.8)",
+                border: "1px solid rgba(var(--wagyu-gold-rgb),0.4)",
+                padding: "0.4rem 1rem",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.1rem",
+                  color: "var(--wagyu-gold)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                A4
+              </span>
+            </div>
+            <div
+              style={{
+                position: "absolute",
+                top: "1rem",
+                right: "1.5rem",
+                background: "rgba(var(--wagyu-bg-rgb),0.8)",
+                border: "1px solid rgba(var(--wagyu-gold-rgb),0.4)",
+                padding: "0.4rem 1rem",
+                backdropFilter: "blur(8px)",
+              }}
+            >
+              <span
+                style={{
+                  fontFamily: "'Cormorant Garamond', serif",
+                  fontSize: "1.1rem",
+                  color: "var(--wagyu-gold-light)",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                A5
+              </span>
+            </div>
+
+            {/* Slider line */}
+            <div
+              style={{
+                position: "absolute",
+                top: 0,
+                bottom: 0,
+                left: `${sliderPos}%`,
+                width: 2,
+                background: "var(--wagyu-gold)",
+                boxShadow: "0 0 12px rgba(var(--wagyu-gold-rgb),0.6)",
+                transform: "translateX(-50%)",
+              }}
+            >
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  width: 44,
+                  height: 44,
+                  borderRadius: "50%",
+                  background: "var(--wagyu-bg)",
+                  border: "2px solid var(--wagyu-gold)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 0 20px rgba(var(--wagyu-gold-rgb),0.4)",
+                }}
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M5 8L2 5M5 8L2 11M11 8L14 5M11 8L14 11"
+                    stroke="var(--wagyu-gold)"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                  />
+                  <line x1="5" y1="8" x2="11" y2="8" stroke="var(--wagyu-gold)" strokeWidth="1.5" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </Reveal>
+
+        {/* Two-side comparison cards */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gap: "2rem",
+          }}
+        >
+          {grades.map((g, i) => (
+            <Reveal key={g.grade} direction={i === 0 ? "left" : "right"} delay={100}>
+              <div
+                style={{
+                  background: "var(--wagyu-card)",
+                  border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
+                  padding: "clamp(1.75rem, 4vw, 2.75rem)",
+                  height: "100%",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    flexWrap: "wrap",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    gap: "1rem",
+                    marginBottom: "2rem",
+                  }}
+                >
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: "clamp(3rem, 6vw, 4.5rem)",
+                        fontWeight: 400,
+                        color: "var(--wagyu-gold)",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {g.grade}
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.2em",
+                        textTransform: "uppercase",
+                        color: "rgba(var(--wagyu-text-rgb),0.5)",
+                        marginTop: "0.35rem",
+                      }}
+                    >
+                      {g.tagline}
+                    </div>
+                  </div>
+                  <div style={{ textAlign: "right" }}>
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: "1.8rem",
+                        fontWeight: 400,
+                        color: "var(--wagyu-text)",
+                      }}
+                    >
+                      {g.price}
+                      <span
+                        style={{
+                          fontFamily: "'Jost', sans-serif",
+                          fontSize: "0.9rem",
+                          color: "rgba(var(--wagyu-text-rgb),0.5)",
+                        }}
+                      >
+                        {g.unit}
+                      </span>
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.15em",
+                        textTransform: "uppercase",
+                        color: "rgba(var(--wagyu-text-rgb),0.45)",
+                        marginTop: "0.25rem",
+                      }}
+                    >
+                      Sirloin · {g.bms}
+                    </div>
+                  </div>
+                </div>
+
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.95rem",
+                    fontWeight: 300,
+                    color: "rgba(var(--wagyu-text-rgb),0.65)",
+                    lineHeight: 1.8,
+                  }}
+                >
+                  {g.desc}
+                </p>
+
+                <div
+                  style={{
+                    borderTop: "1px solid rgba(var(--wagyu-gold-rgb),0.15)",
+                    marginTop: "2rem",
+                    paddingTop: "1.75rem",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(2, 1fr)",
+                    rowGap: "1.5rem",
+                  }}
+                >
+                  {[
+                    { label: "Marbling", value: g.marbling },
+                    { label: "Richness", value: g.richness },
+                    { label: "Beef Flavor", value: g.beefFlavor },
+                  ].map((attr) => (
+                    <div key={attr.label}>
+                      <div
+                        style={{
+                          fontFamily: "'Jost', sans-serif",
+                          fontSize: "0.65rem",
+                          letterSpacing: "0.15em",
+                          textTransform: "uppercase",
+                          color: "rgba(var(--wagyu-text-rgb),0.45)",
+                          marginBottom: "0.6rem",
+                        }}
+                      >
+                        {attr.label}
+                      </div>
+                      <RatingDots filled={attr.value} />
+                    </div>
+                  ))}
+                  <div>
+                    <div
+                      style={{
+                        fontFamily: "'Jost', sans-serif",
+                        fontSize: "0.65rem",
+                        letterSpacing: "0.15em",
+                        textTransform: "uppercase",
+                        color: "rgba(var(--wagyu-text-rgb),0.45)",
+                        marginBottom: "0.6rem",
+                      }}
+                    >
+                      Texture
+                    </div>
+                    <div
+                      style={{
+                        fontFamily: "'Cormorant Garamond', serif",
+                        fontSize: "1.05rem",
+                        color: "var(--wagyu-text)",
+                      }}
+                    >
+                      {g.texture}
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: "2rem" }}>
+                  <Link
+                    to="/shop"
+                    className="btn-gold"
+                    style={{ display: "inline-block", textDecoration: "none" }}
+                  >
+                    Explore {g.grade}
+                  </Link>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
