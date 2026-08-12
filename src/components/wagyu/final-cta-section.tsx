@@ -149,7 +149,9 @@ export function FinalCTASection() {
               Explore Collection
             </a>
             <a
-              href="tel:+85599361350"
+              href="https://t.me/bosbapremiumfoods_bot"
+              target="_blank"
+              rel="noreferrer"
               className="btn-outline-gold"
               style={{ borderRadius: 0, textDecoration: "none" }}
             >
