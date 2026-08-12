@@ -1,93 +1,90 @@
 import { useEffect, useRef, useState } from "react";
 
-export type WagyuChapter = { id: string; label: string };
+type ChapterNavProps = {
+  sectionIds: string[];
+};
 
-// Tracks which chapter section is most centered in the viewport so the dot
-// rail and the section itself agree on "active" without prop-drilling scroll
-// state through every chapter component.
-export function useActiveChapter(chapters: WagyuChapter[]) {
-  const [activeId, setActiveId] = useState(chapters[0]?.id ?? "");
-  const ratios = useRef(new Map<string, number>());
+/** Fixed left-edge dot rail that stays on screen and tracks which story chapter is in view. */
+export function ChapterNav({ sectionIds }: ChapterNavProps) {
+  const [activeId, setActiveId] = useState(sectionIds[0]);
+  const [visible, setVisible] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
   useEffect(() => {
-    const elements = chapters
-      .map((c) => document.getElementById(c.id))
+    const elements = sectionIds
+      .map((id) => document.getElementById(id))
       .filter((el): el is HTMLElement => el !== null);
 
-    const observer = new IntersectionObserver(
+    if (elements.length === 0) return;
+
+    observerRef.current = new IntersectionObserver(
       (entries) => {
-        for (const entry of entries) {
-          ratios.current.set(entry.target.id, entry.intersectionRatio);
-        }
-        let bestId = activeId;
-        let bestRatio = 0;
-        for (const [id, ratio] of ratios.current) {
-          if (ratio > bestRatio) {
-            bestRatio = ratio;
-            bestId = id;
-          }
-        }
-        if (bestRatio > 0) setActiveId(bestId);
+        const visibleEntries = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        if (visibleEntries[0]) setActiveId(visibleEntries[0].target.id);
       },
-      { threshold: [0, 0.25, 0.5, 0.75, 1] },
+      { rootMargin: "-45% 0px -45% 0px", threshold: 0 },
     );
 
-    elements.forEach((el) => observer.observe(el));
-    return () => observer.disconnect();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [chapters]);
+    elements.forEach((el) => observerRef.current?.observe(el));
 
-  return activeId;
-}
+    const firstEl = elements[0];
+    const lastEl = elements[elements.length - 1];
+    const onScroll = () => {
+      const firstTop = firstEl.getBoundingClientRect().top;
+      const lastBottom = lastEl.getBoundingClientRect().bottom;
+      setVisible(firstTop < window.innerHeight * 0.6 && lastBottom > window.innerHeight * 0.15);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
 
-export function ChapterDots({
-  chapters,
-  activeId,
-}: {
-  chapters: WagyuChapter[];
-  activeId: string;
-}) {
-  const activeIndex = Math.max(
-    0,
-    chapters.findIndex((c) => c.id === activeId),
-  );
+    return () => {
+      observerRef.current?.disconnect();
+      window.removeEventListener("scroll", onScroll);
+    };
+  }, [sectionIds]);
 
   return (
     <nav
-      aria-label="Story chapters"
-      className="fixed top-1/2 right-5 z-40 hidden -translate-y-1/2 flex-col items-end gap-4 md:right-8 md:flex"
+      aria-label="Chapter navigation"
+      style={{
+        position: "fixed",
+        left: "clamp(1rem, 3vw, 2rem)",
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 30,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: "0.65rem",
+        opacity: visible ? 1 : 0,
+        pointerEvents: visible ? "auto" : "none",
+        transition: "opacity 0.4s ease",
+      }}
+      className="hidden sm:flex"
     >
-      {chapters.map((chapter, i) => {
-        const isActive = i === activeIndex;
+      {sectionIds.map((id) => {
+        const isActive = id === activeId;
         return (
           <button
-            key={chapter.id}
-            type="button"
-            onClick={() =>
-              document.getElementById(chapter.id)?.scrollIntoView({ behavior: "smooth" })
-            }
-            className="group flex items-center gap-3"
+            key={id}
+            className="chapter-dot"
+            aria-label={`Go to ${id.replace(/-/g, " ")} section`}
             aria-current={isActive}
-          >
-            <span
-              className={
-                "text-[10px] font-medium tracking-[0.18em] uppercase transition-opacity " +
-                (isActive
-                  ? "opacity-100 text-[#141210]"
-                  : "opacity-0 group-hover:opacity-60 text-[#141210]")
-              }
-            >
-              {chapter.label}
-            </span>
-            <span
-              className={
-                "rounded-full transition-all " +
-                (isActive
-                  ? "size-2 bg-[#a8402f]"
-                  : "size-[5px] bg-[#141210]/30 group-hover:bg-[#141210]/50")
-              }
-            />
-          </button>
+            onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth" })}
+            style={{
+              width: isActive ? 8 : 6,
+              height: isActive ? 8 : 6,
+              borderRadius: "50%",
+              border: "1px solid rgba(var(--wagyu-gold-rgb),0.5)",
+              background: isActive ? "var(--wagyu-gold)" : "transparent",
+              boxShadow: isActive ? "0 0 8px rgba(var(--wagyu-gold-rgb),0.6)" : "none",
+              padding: 0,
+              cursor: "pointer",
+              transition: "all 0.3s cubic-bezier(0.23,1,0.32,1)",
+            }}
+          />
         );
       })}
     </nav>
