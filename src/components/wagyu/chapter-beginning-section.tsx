@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import imagefarm from "../../image/japenfarm.jpg";
 
 export function ChapterBeginningSection() {
   return (
@@ -66,7 +67,7 @@ export function ChapterBeginningSection() {
                       color: "var(--wagyu-gold)",
                     }}
                   >
-                    Chapter 01 — The Beginning
+                    The Beginning
                   </span>
                 </div>
               </Reveal>
@@ -125,10 +126,34 @@ export function ChapterBeginningSection() {
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.7)",
                     lineHeight: 1.8,
+                    marginBottom: "1.75rem",
                   }}
                 >
                   And behind every piece is a place with its own story.
                 </p>
+              </Reveal>
+
+              <Reveal delay={440}>
+                <div
+                  style={{
+                    borderLeft: "2px solid var(--wagyu-gold)",
+                    padding: "0.25rem 0 0.25rem 1.5rem",
+                  }}
+                >
+                  <p
+                    style={{
+                      fontFamily: "'Cormorant Garamond', serif",
+                      fontStyle: "italic",
+                      fontSize: "1.3rem",
+                      fontWeight: 400,
+                      color: "rgba(var(--wagyu-text-rgb),0.85)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    For our Wagyu, that story begins in{" "}
+                    <span style={{ color: "var(--wagyu-gold)" }}>Miyazaki, Japan</span>.
+                  </p>
+                </div>
               </Reveal>
             </div>
           </div>
@@ -136,7 +161,7 @@ export function ChapterBeginningSection() {
           <Reveal direction="right" delay={200} style={{ position: "relative" }}>
             <div style={{ position: "relative", overflow: "hidden" }}>
               <img
-                src="/wagyu/farm-reveal.jpg"
+                src={imagefarm}
                 alt="Misty mountains above a traditional Japanese farmhouse"
                 style={{ width: "100%", aspectRatio: "4/5", objectFit: "cover", display: "block" }}
               />
@@ -170,6 +195,37 @@ export function ChapterBeginningSection() {
                   borderLeft: "2px solid var(--wagyu-gold)",
                 }}
               />
+            </div>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "0.6rem",
+                marginTop: "1.25rem",
+              }}
+            >
+              <span
+                aria-hidden
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "var(--wagyu-gold)",
+                  flexShrink: 0,
+                }}
+              />
+              <span
+                style={{
+                  fontFamily: "'Jost', sans-serif",
+                  fontSize: "0.7rem",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  color: "rgba(var(--wagyu-text-rgb),0.6)",
+                }}
+              >
+                Miyazaki Prefecture, Japan
+              </span>
             </div>
           </Reveal>
         </div>

@@ -220,7 +220,7 @@ export function TrustSection() {
                   lineHeight: 1.15,
                 }}
               >
-                The Bosba
+                The <span style={{ color: "var(--wagyu-gold)", fontWeight: 700 }}>BOSBA</span>
                 <br />
                 <em style={{ color: "var(--wagyu-gold)" }}>Quality</em>
                 <br />

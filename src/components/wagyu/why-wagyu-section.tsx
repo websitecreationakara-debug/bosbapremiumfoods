@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
 
 const BullMon = ({ size = 50, opacity = 0.4 }: { size?: number; opacity?: number }) => (
@@ -17,23 +18,56 @@ const BullMon = ({ size = 50, opacity = 0.4 }: { size?: number; opacity?: number
 );
 
 const tiers = [
-  { label: "Regular Beef", desc: "Standard marbling, everyday flavor", bar: 20, color: "#6B6355" },
-  { label: "Australian Wagyu", desc: "Improved genetics, richer taste", bar: 55, color: "#9B7E3A" },
+  {
+    label: "Regular Beef",
+    desc: "Standard marbling, everyday flavor",
+    bar: 20,
+    color: "#6B6355",
+    colorFaded: "#6B635580",
+  },
+  {
+    label: "Australian Wagyu",
+    desc: "Improved genetics, richer taste",
+    bar: 55,
+    color: "#9B7E3A",
+    colorFaded: "#9B7E3A80",
+  },
   {
     label: "Japanese Wagyu A4",
     desc: "Exceptional snowflake marbling",
     bar: 80,
     color: "var(--wagyu-gold)",
+    colorFaded: "rgba(var(--wagyu-gold-rgb), 0.5)",
   },
   {
     label: "Japanese Wagyu A5",
     desc: "The pinnacle — pure luxury",
     bar: 100,
     color: "var(--wagyu-gold-light)",
+    colorFaded: "rgba(var(--wagyu-gold-light-rgb), 0.5)",
   },
 ];
 
 export function WhyWagyuSection() {
+  const barsRef = useRef<HTMLDivElement>(null);
+  const [barsFilled, setBarsFilled] = useState(false);
+
+  useEffect(() => {
+    const el = barsRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setBarsFilled(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
       id="why-wagyu"
@@ -141,8 +175,8 @@ export function WhyWagyuSection() {
             </Reveal>
 
             <Reveal delay={400}>
-              <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-                {tiers.map((tier) => (
+              <div ref={barsRef} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
+                {tiers.map((tier, i) => (
                   <div key={tier.label}>
                     <div
                       style={{
@@ -182,9 +216,11 @@ export function WhyWagyuSection() {
                       <div
                         style={{
                           height: "100%",
-                          width: `${tier.bar}%`,
-                          background: `linear-gradient(90deg, ${tier.color}80, ${tier.color})`,
+                          width: barsFilled ? `${tier.bar}%` : "0%",
+                          background: `linear-gradient(90deg, ${tier.colorFaded}, ${tier.color})`,
                           borderRadius: 2,
+                          transition: "width 2.2s cubic-bezier(0.16, 1, 0.3, 1)",
+                          transitionDelay: `${i * 220}ms`,
                         }}
                       />
                     </div>
@@ -231,59 +267,6 @@ export function WhyWagyuSection() {
                   borderLeft: "2px solid var(--wagyu-gold)",
                 }}
               />
-            </div>
-
-            <div
-              style={{
-                position: "absolute",
-                bottom: -24,
-                right: -24,
-                background: "var(--wagyu-card)",
-                border: "1px solid rgba(var(--wagyu-gold-rgb),0.3)",
-                padding: "1.25rem 1.5rem",
-                minWidth: 160,
-              }}
-            >
-              <div
-                style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "2.5rem",
-                  fontWeight: 300,
-                  color: "var(--wagyu-gold)",
-                  lineHeight: 1,
-                }}
-              >
-                A5
-              </div>
-              <div
-                style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.15em",
-                  color: "rgba(var(--wagyu-text-rgb),0.5)",
-                  textTransform: "uppercase",
-                  marginTop: "0.25rem",
-                }}
-              >
-                Highest Grade
-              </div>
-              <div
-                style={{
-                  width: "100%",
-                  height: 1,
-                  background: "rgba(var(--wagyu-gold-rgb),0.2)",
-                  margin: "0.75rem 0",
-                }}
-              />
-              <div
-                style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "0.7rem",
-                  color: "rgba(var(--wagyu-text-rgb),0.6)",
-                }}
-              >
-                BMS Score 8–12
-              </div>
             </div>
 
             <div style={{ position: "absolute", top: -20, left: -20 }}>

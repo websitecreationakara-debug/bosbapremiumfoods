@@ -40,37 +40,6 @@ export function ChapterAnimalSection() {
             </span>
 
             <div style={{ position: "relative", zIndex: 1 }}>
-              <Reveal>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "0.75rem",
-                    marginBottom: "1.5rem",
-                  }}
-                >
-                  <span
-                    style={{
-                      width: 30,
-                      height: 1,
-                      background: "var(--wagyu-gold)",
-                      display: "inline-block",
-                    }}
-                  />
-                  <span
-                    style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: "0.65rem",
-                      letterSpacing: "0.3em",
-                      textTransform: "uppercase",
-                      color: "var(--wagyu-gold)",
-                    }}
-                  >
-                    Chapter 04 — The Animal
-                  </span>
-                </div>
-              </Reveal>
-
               <Reveal delay={100}>
                 <h2
                   style={{

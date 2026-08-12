@@ -57,8 +57,8 @@ export function JourneyTimelineSection() {
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                       <div
                         style={{
-                          width: 48,
-                          height: 48,
+                          width: "clamp(36px, 10vw, 48px)",
+                          height: "clamp(36px, 10vw, 48px)",
                           borderRadius: "50%",
                           border: active
                             ? "1px solid var(--wagyu-gold)"
@@ -68,7 +68,7 @@ export function JourneyTimelineSection() {
                           alignItems: "center",
                           justifyContent: "center",
                           fontFamily: "'Jost', sans-serif",
-                          fontSize: "0.95rem",
+                          fontSize: "0.85rem",
                           color: active ? "var(--wagyu-gold)" : "var(--wagyu-text)",
                         }}
                       >
@@ -77,9 +77,9 @@ export function JourneyTimelineSection() {
                       <span
                         style={{
                           fontFamily: "'Jost', sans-serif",
-                          fontSize: "0.8rem",
+                          fontSize: "0.75rem",
                           color: active ? "var(--wagyu-text)" : "rgba(var(--wagyu-text-rgb),0.6)",
-                          marginTop: "0.75rem",
+                          marginTop: "0.6rem",
                           whiteSpace: "nowrap",
                         }}
                       >
@@ -90,12 +90,12 @@ export function JourneyTimelineSection() {
                     {i < STEPS.length - 1 && (
                       <span
                         style={{
-                          width: "clamp(2rem, 6vw, 4.5rem)",
+                          width: "clamp(1.1rem, 5vw, 4.5rem)",
                           height: 1,
                           background: "rgba(var(--wagyu-gold-rgb),0.25)",
-                          margin: "0 0.5rem",
+                          margin: "0 0.35rem",
                           alignSelf: "flex-start",
-                          marginTop: 23,
+                          marginTop: "clamp(18px, 5vw, 23px)",
                         }}
                       />
                     )}

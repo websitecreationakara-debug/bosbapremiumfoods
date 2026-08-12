@@ -89,17 +89,6 @@ export function SceneCardsSection() {
 
                 <div style={{ position: "relative", zIndex: 1 }}>
                   <div style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>{scene.icon}</div>
-                  <span
-                    style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: "0.65rem",
-                      letterSpacing: "0.25em",
-                      textTransform: "uppercase",
-                      color: "var(--wagyu-gold)",
-                    }}
-                  >
-                    Scene {scene.num}
-                  </span>
                   <h3
                     style={{
                       fontFamily: "'Cormorant Garamond', serif",

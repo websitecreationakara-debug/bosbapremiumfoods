@@ -1,21 +1,33 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import artofwugyu1 from "../../image/artofwugyu1.jpg";
+import artofwugyu2 from "../../image/artofwugyu2.jpg";
+import artofwugyu3 from "../../image/artofwugyu3.jpg";
+import artofwugyu4 from "../../image/artofwugyu4.jpg";
+import artofwugyu5 from "../../image/artofwugyu5.jpg";
+import artofwugyu6 from "../../image/artofwugyu6.jpg";
+import artofwugyu7 from "../../image/artofwugyu7.jpg";
+import artofwugyu8 from "../../image/artofwugyu8.jpg";
+import artofwugyu9 from "../../image/artofwugyu9.jpg";
+import artofwugyu10 from "../../image/artofwugyu10.jpg";
 
 const GALLERY_IMAGES = [
-  { src: "/wagyu/hero-beef.jpg", alt: "Snowflake marbling close-up", span: 2 },
-  { src: "/wagyu/farm-reveal.jpg", alt: "The farmhouse where the cattle are raised", span: 1 },
+  { src: artofwugyu1, span: 2 },
+  { src: artofwugyu2, span: 1 },
   {
-    src: "/wagyu/care-pasture.jpg",
-    alt: "Cattle at pasture, raised with meticulous care",
+    src: artofwugyu3,
     span: 1,
   },
-  { src: "/wagyu/diet-hay.webp", alt: "Specialized feed as part of the daily diet", span: 1 },
+  { src: artofwugyu4, span: 1 },
+  { src: artofwugyu5, span: 1 },
+  { src: artofwugyu6, span: 1 },
+  { src: artofwugyu7, span: 1 },
+  { src: artofwugyu8, span: 1 },
+  { src: artofwugyu9, span: 1 },
   {
-    src: "/wagyu/field-mountain.webp",
-    alt: "The open mountain air of the grazing fields",
-    span: 1,
+    src: artofwugyu10,
+    span: 2,
   },
-  { src: "/wagyu/map-kyushu-zoom.jpg", alt: "Kyushu, the prefecture of origin", span: 2 },
 ];
 
 export function GallerySection() {
@@ -77,7 +89,7 @@ export function GallerySection() {
                 lineHeight: 1.2,
               }}
             >
-              The Origin & The Craft
+              The Art of Wagyu
             </h2>
           </Reveal>
         </div>
@@ -104,7 +116,7 @@ export function GallerySection() {
               >
                 <img
                   src={img.src}
-                  alt={img.alt}
+                  // alt={img.alt}
                   style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
                 />
                 <div
@@ -135,7 +147,7 @@ export function GallerySection() {
                       letterSpacing: "0.03em",
                     }}
                   >
-                    {img.alt}
+                    {/* {img.alt} */}
                   </span>
                 </div>
               </div>

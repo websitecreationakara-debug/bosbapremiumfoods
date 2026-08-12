@@ -28,6 +28,30 @@ const steps = [
   },
 ];
 
+const methods = [
+  {
+    title: "Wagyu Steak",
+    prep: "Salt · Pepper · High Heat",
+    desc: "A thick-cut sirloin, seasoned simply and seared to perfection. Let the marbling do the work.",
+    tip: "2–3 min each side. Rest before serving.",
+    emoji: "🥩",
+  },
+  {
+    title: "Yakiniku",
+    prep: "Thin slices · Japanese grill",
+    desc: "Thin Wagyu slices on a Japanese grill. The fat renders quickly, creating an extraordinary aroma and flavor.",
+    tip: "30–45 seconds per side. Serve immediately.",
+    emoji: "🔥",
+  },
+  {
+    title: "Wagyu Don",
+    prep: "Wagyu · Japanese rice · Egg",
+    desc: "Thinly sliced Wagyu over steamed Japanese rice, finished with a soft egg. Simple, satisfying, extraordinary.",
+    tip: "Slice thin. Cook briefly. Serve over hot rice.",
+    emoji: "🍚",
+  },
+];
+
 // Renders the step photo when available; falls back to the editorial
 // numeral/kanji panel for any step that doesn't have photography yet.
 function StepPanel({ num, image }: { num: string; image?: string }) {
@@ -245,58 +269,100 @@ export function CookingGuideSection() {
           ))}
         </div>
 
-        <Reveal delay={200} style={{ marginTop: "3rem", textAlign: "center" }}>
-          <div
-            style={{
-              position: "relative",
-              background: "var(--wagyu-card)",
-              border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
-              overflow: "hidden",
-              aspectRatio: "16/9",
-              maxWidth: 800,
-              margin: "0 auto",
-            }}
-          >
-            <img
-              src="/wagyu/hero-beef.jpg"
-              alt="Wagyu dining experience"
-              style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.5 }}
-            />
-            <div
-              style={{
-                position: "absolute",
-                inset: 0,
-                background: "rgba(var(--wagyu-bg-rgb),0.55)",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "1rem",
-              }}
-            >
-              <p
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 300px), 1fr))",
+            gap: "2rem",
+            marginTop: "3rem",
+          }}
+        >
+          {methods.map((method, idx) => (
+            <Reveal key={method.title} delay={idx * 100}>
+              <div
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.3rem",
-                  color: "var(--wagyu-text)",
-                  letterSpacing: "0.05em",
+                  background: "var(--wagyu-card)",
+                  border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
+                  padding: "clamp(1.75rem, 4vw, 2.5rem)",
+                  height: "100%",
+                  transition: "border-color 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(var(--wagyu-gold-rgb),0.4)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(var(--wagyu-gold-rgb),0.2)";
                 }}
               >
-                Searing · Resting · Slicing · Plating
-              </p>
-              <p
-                style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "0.75rem",
-                  color: "rgba(var(--wagyu-text-rgb),0.5)",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                The Wagyu Experience
-              </p>
-            </div>
-          </div>
-        </Reveal>
+                <div style={{ fontSize: "2.25rem", marginBottom: "1.5rem" }}>{method.emoji}</div>
+                <div
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                    color: "var(--wagyu-gold)",
+                    marginBottom: "0.75rem",
+                  }}
+                >
+                  {method.prep}
+                </div>
+                <h3
+                  style={{
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "1.5rem",
+                    fontWeight: 500,
+                    color: "var(--wagyu-text)",
+                    marginBottom: "1rem",
+                  }}
+                >
+                  {method.title}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.9rem",
+                    fontWeight: 300,
+                    color: "rgba(var(--wagyu-text-rgb),0.65)",
+                    lineHeight: 1.7,
+                    marginBottom: "1.5rem",
+                  }}
+                >
+                  {method.desc}
+                </p>
+                <div
+                  style={{
+                    borderTop: "1px solid rgba(var(--wagyu-gold-rgb),0.15)",
+                    paddingTop: "1rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: "'Jost', sans-serif",
+                      fontSize: "0.6rem",
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
+                      color: "rgba(var(--wagyu-text-rgb),0.45)",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    Pro tip
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "'Jost', sans-serif",
+                      fontSize: "0.8rem",
+                      fontStyle: "italic",
+                      color: "rgba(var(--wagyu-text-rgb),0.7)",
+                    }}
+                  >
+                    {method.tip}
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+          ))}
+        </div>
       </div>
     </section>
   );

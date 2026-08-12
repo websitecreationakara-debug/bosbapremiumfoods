@@ -65,13 +65,13 @@ export function SupplyChainSection() {
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
-                    width: 108,
+                    width: "clamp(78px, 22vw, 108px)",
                   }}
                 >
                   <div
                     style={{
-                      width: 64,
-                      height: 64,
+                      width: "clamp(48px, 14vw, 64px)",
+                      height: "clamp(48px, 14vw, 64px)",
                       borderRadius: "50%",
                       border: node.active
                         ? "1px solid var(--wagyu-gold)"
@@ -84,7 +84,7 @@ export function SupplyChainSection() {
                       alignItems: "center",
                       justifyContent: "center",
                       overflow: "hidden",
-                      fontSize: "1.3rem",
+                      fontSize: "clamp(1rem, 3.5vw, 1.3rem)",
                       color: node.active ? "var(--wagyu-gold)" : "var(--wagyu-text)",
                     }}
                   >
@@ -131,10 +131,10 @@ export function SupplyChainSection() {
                   <span
                     aria-hidden
                     style={{
-                      width: "clamp(0.75rem, 2vw, 1.5rem)",
+                      width: "clamp(0.5rem, 2vw, 1.5rem)",
                       height: 1,
                       background: "rgba(var(--wagyu-gold-rgb),0.25)",
-                      marginTop: 31,
+                      marginTop: "clamp(24px, 7vw, 31px)",
                     }}
                   />
                 )}

@@ -105,8 +105,8 @@ export function OriginSection() {
                   <div
                     style={{
                       position: "relative",
-                      width: 96,
-                      height: 96,
+                      width: "clamp(68px, 20vw, 96px)",
+                      height: "clamp(68px, 20vw, 96px)",
                       borderRadius: "50%",
                       border: step.active
                         ? "1px solid var(--wagyu-gold)"
@@ -134,7 +134,7 @@ export function OriginSection() {
                     <span
                       style={{
                         fontFamily: "'Cormorant Garamond', serif",
-                        fontSize: "1.35rem",
+                        fontSize: "clamp(1.05rem, 3vw, 1.35rem)",
                         color: step.active ? "var(--wagyu-gold)" : "var(--wagyu-text)",
                       }}
                     >
@@ -156,15 +156,15 @@ export function OriginSection() {
                 </div>
 
                 {i < FLOW.length - 1 && (
-                  <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.3rem" }}>
                     <span
                       style={{
-                        width: 24,
+                        width: "clamp(12px, 3vw, 24px)",
                         height: 1,
                         background: "rgba(var(--wagyu-gold-rgb),0.4)",
                       }}
                     />
-                    <ArrowRight size={16} color="var(--wagyu-gold)" />
+                    <ArrowRight size={14} color="var(--wagyu-gold)" />
                   </div>
                 )}
               </div>

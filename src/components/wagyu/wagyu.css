@@ -5,7 +5,13 @@
  * existing dark/light toggle (the `.dark` class on <html>).
  */
 
-.wagyu-obsidian {
+/*
+ * Defined on :root (not just .wagyu-obsidian) because Radix's Sheet/Dialog
+ * portals render into document.body, outside .wagyu-obsidian's DOM subtree —
+ * a plain descendant-scoped custom property wouldn't reach that portaled
+ * content, even though it's still a React-tree descendant.
+ */
+:root {
   --wagyu-bg: #0a0a08;
   --wagyu-bg-alt: #0d0d0b;
   --wagyu-bg-rgb: 10, 10, 8;
@@ -17,13 +23,15 @@
   --wagyu-gold-rgb: 201, 168, 76;
   --wagyu-gold-light: #e8c96a;
   --wagyu-gold-light-rgb: 232, 201, 106;
+}
 
+.wagyu-obsidian {
   background-color: var(--wagyu-bg);
   color: var(--wagyu-text);
 }
 
 /* Light theme — active whenever the site's global toggle is not in dark mode */
-:root:not(.dark) .wagyu-obsidian {
+:root:not(.dark) {
   --wagyu-bg: #ffffff;
   --wagyu-bg-alt: #ffffff;
   --wagyu-bg-rgb: 255, 255, 255;

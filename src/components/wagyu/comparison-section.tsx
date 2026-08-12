@@ -17,6 +17,7 @@ const grades = [
     bms: "BMS 5–7",
     price: "$14",
     unit: "/ 100g",
+    link: "https://bosbapremiumfoods.com/product/wagyu-a4",
   },
   {
     grade: "A5",
@@ -29,6 +30,7 @@ const grades = [
     bms: "BMS 8–12",
     price: "$19",
     unit: "/ 100g",
+    link: "https://bosbapremiumfoods.com/product/wagyu-a5",
   },
 ];
 
@@ -82,6 +84,9 @@ export function ComparisonSection() {
         overflow: "hidden",
       }}
     >
+      <div className="mb-40">
+        <SupplyChainSection />
+      </div>
       <div style={{ maxWidth: 1200, margin: "0 auto", padding: "0 clamp(1.5rem, 5vw, 4rem)" }}>
         <div style={{ textAlign: "center", marginBottom: "2.75rem" }}>
           <Reveal>
@@ -152,7 +157,6 @@ export function ComparisonSection() {
             </p>
           </Reveal>
         </div>
-        <SupplyChainSection />
         {/* Interactive comparison slider */}
         <Reveal delay={300}>
           <div
@@ -305,7 +309,7 @@ export function ComparisonSection() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 340px), 1fr))",
             gap: "2rem",
           }}
         >
@@ -459,7 +463,7 @@ export function ComparisonSection() {
 
                 <div style={{ marginTop: "2rem" }}>
                   <Link
-                    to="/shop"
+                    to={g.link}
                     className="btn-gold"
                     style={{ display: "inline-block", textDecoration: "none" }}
                   >
