@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import "@/components/wagyu/wagyu.css";
+import { WagyuLanguageProvider, useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 import { WagyuHeader } from "@/components/wagyu/wagyu-header";
 import { ChapterNav } from "@/components/wagyu/chapter-nav";
 import { HeroSection } from "@/components/wagyu/hero-section";
@@ -33,7 +34,7 @@ export const Route = createFileRoute("/_store/wagyu")({
       { rel: "canonical", href: "https://bosbapremiumfoods.com/wagyu" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Noto+Serif+JP:wght@300;400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Battambang:wght@300;400;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Noto+Serif+JP:wght@300;400&display=swap",
       },
     ],
   }),
@@ -62,7 +63,20 @@ const ALL_SECTION_IDS = [
 
 function WagyuPage() {
   return (
-    <div className="wagyu-obsidian">
+    <WagyuLanguageProvider>
+      <WagyuPageContent />
+    </WagyuLanguageProvider>
+  );
+}
+
+// `lang` drives the `:lang(km)` rules in wagyu.css that swap in Battambang
+// (Khmer script isn't covered by Cormorant Garamond/Jost/DM Mono) and loosen
+// line-height so Khmer diacritics don't clip under the tight Latin leading.
+function WagyuPageContent() {
+  const { locale } = useWagyuI18n();
+
+  return (
+    <div className="wagyu-obsidian" lang={locale}>
       <WagyuHeader />
       <ChapterNav sectionIds={ALL_SECTION_IDS} />
       <HeroSection />

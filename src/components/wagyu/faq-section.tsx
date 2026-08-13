@@ -1,35 +1,20 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 
-const FAQS = [
-  {
-    q: "Why is Japanese Wagyu so expensive?",
-    a: "Japanese Wagyu cattle are raised for 30+ months under strict regulations — nearly three times longer than standard beef. The meticulous feeding program, stress-free environment, and limited production create a scarcity that reflects in the price. You're paying for an experience that cannot be replicated.",
-  },
-  {
-    q: "What is the difference between A4 and A5 Wagyu?",
-    a: "Both are exceptional, but A5 represents the absolute pinnacle. A4 has a BMS (Beef Marbling Score) of 6–8, offering rich flavor with balanced fat. A5 scores 9–12, with extreme intramuscular fat that melts at body temperature. A4 is ideal for steak lovers; A5 is a once-in-a-lifetime luxury experience.",
-  },
-  {
-    q: "How should I cook Japanese Wagyu at home?",
-    a: "Keep it simple. Bring to room temperature, heat a dry cast iron pan until smoking, sear 30–60 seconds per side (A5) or up to 90 seconds (A4). Rest 2–3 minutes, slice thinly against the grain. Season only with fleur de sel. No marinades, no sauces needed — the beef is the star.",
-  },
-  {
-    q: "How is the Wagyu delivered?",
-    a: "All orders are shipped in premium insulated packaging with dry ice or gel packs to maintain the cold chain. Your Wagyu arrives frozen and in perfect condition. We include a complimentary wagyu sauce and premium black pepper with every order.",
-  },
-  {
-    q: "How long can Wagyu stay frozen?",
-    a: "Properly stored in your freezer at -18°C or below, Japanese Wagyu can be kept for up to 6 months without any loss of quality. Once thawed in the refrigerator (24 hours), cook within 2–3 days for the best experience.",
-  },
-  {
-    q: "Is the origin of your Wagyu certified?",
-    a: "Yes. All our Wagyu is sourced from certified Japanese farms and graded by the Japan Meat Grading Association (JMGA). We provide full traceability documentation with every order, including the prefecture of origin and official grade certificate.",
-  },
+const FAQS: { qKey: WagyuI18nKey; aKey: WagyuI18nKey }[] = [
+  { qKey: "faq.q1.q", aKey: "faq.q1.a" },
+  { qKey: "faq.q2.q", aKey: "faq.q2.a" },
+  { qKey: "faq.q3.q", aKey: "faq.q3.a" },
+  { qKey: "faq.q4.q", aKey: "faq.q4.a" },
+  { qKey: "faq.q5.q", aKey: "faq.q5.a" },
+  { qKey: "faq.q6.q", aKey: "faq.q6.a" },
 ];
 
 export function FAQSection() {
   const [open, setOpen] = useState<number | null>(0);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   return (
     <section
@@ -65,7 +50,7 @@ export function FAQSection() {
                   color: "var(--wagyu-gold)",
                 }}
               >
-                FAQ
+                {t("faq.eyebrow")}
               </span>
               <span
                 style={{
@@ -79,22 +64,26 @@ export function FAQSection() {
           </Reveal>
           <Reveal delay={100}>
             <h2
+              lang={locale}
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)",
-                fontWeight: 400,
+                fontFamily: isKm
+                  ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                  : "'Cormorant Garamond', serif",
+                fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
+                fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
-                lineHeight: 1.2,
+                lineHeight: isKm ? 1.35 : 1.2,
+                letterSpacing: isKm ? "0.01em" : undefined,
               }}
             >
-              Your Questions, Answered
+              {t("faq.title")}
             </h2>
           </Reveal>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
           {FAQS.map((faq, i) => (
-            <Reveal key={faq.q} delay={i * 60}>
+            <Reveal key={faq.qKey} delay={i * 60}>
               <div
                 style={{
                   background: "var(--wagyu-card)",
@@ -119,15 +108,19 @@ export function FAQSection() {
                   }}
                 >
                   <span
+                    lang={locale}
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: "1.15rem",
-                      fontWeight: 500,
+                      fontFamily: isKm
+                        ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                        : "'Cormorant Garamond', serif",
+                      fontSize: isKm ? "1.05rem" : "1.15rem",
+                      fontWeight: isKm ? 700 : 500,
                       color: open === i ? "var(--wagyu-gold)" : "var(--wagyu-text)",
+                      lineHeight: isKm ? 1.4 : undefined,
                       transition: "color 0.3s",
                     }}
                   >
-                    {faq.q}
+                    {t(faq.qKey)}
                   </span>
                   <span
                     style={{
@@ -153,15 +146,16 @@ export function FAQSection() {
                       }}
                     />
                     <p
+                      lang={locale}
                       style={{
-                        fontFamily: "'Jost', sans-serif",
+                        fontFamily: "'Jost', 'Battambang', sans-serif",
                         fontSize: "0.9rem",
                         fontWeight: 300,
                         color: "rgba(var(--wagyu-text-rgb),0.65)",
                         lineHeight: 1.8,
                       }}
                     >
-                      {faq.a}
+                      {t(faq.aKey)}
                     </p>
                   </div>
                 )}

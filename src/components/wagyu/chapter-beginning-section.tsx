@@ -1,7 +1,11 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 import imagefarm from "../../image/japenfarm.jpg";
 
 export function ChapterBeginningSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="chapter-beginning"
@@ -74,23 +78,28 @@ export function ChapterBeginningSection() {
 
               <Reveal delay={100}>
                 <h2
+                  lang={locale}
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "clamp(2.5rem, 5vw, 3.8rem)",
-                    fontWeight: 400,
+                    fontFamily: isKm
+                      ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                      : "'Cormorant Garamond', serif",
+                    fontSize: isKm ? "clamp(2.1rem, 4.3vw, 3.2rem)" : "clamp(2.5rem, 5vw, 3.8rem)",
+                    fontWeight: isKm ? 700 : 400,
                     color: "var(--wagyu-text)",
-                    lineHeight: 1.15,
+                    lineHeight: isKm ? 1.35 : 1.15,
+                    letterSpacing: isKm ? "0.01em" : undefined,
                     marginBottom: "2rem",
                   }}
                 >
-                  Every Exceptional Wagyu Begins With Where It Comes From.
+                  {t("chapterBeginning.title")}
                 </h2>
               </Reveal>
 
               <Reveal delay={200}>
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "1rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -98,14 +107,15 @@ export function ChapterBeginningSection() {
                     marginBottom: "1.25rem",
                   }}
                 >
-                  In Japan, Wagyu is more than beef.
+                  {t("chapterBeginning.p1")}
                 </p>
               </Reveal>
 
               <Reveal delay={280}>
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "1rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -113,15 +123,15 @@ export function ChapterBeginningSection() {
                     marginBottom: "1.25rem",
                   }}
                 >
-                  It is the result of generations of breeding, careful management and strict
-                  standards — a tradition of excellence refined over centuries.
+                  {t("chapterBeginning.p2")}
                 </p>
               </Reveal>
 
               <Reveal delay={360}>
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "1rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -129,7 +139,7 @@ export function ChapterBeginningSection() {
                     marginBottom: "1.75rem",
                   }}
                 >
-                  And behind every piece is a place with its own story.
+                  {t("chapterBeginning.p3")}
                 </p>
               </Reveal>
 

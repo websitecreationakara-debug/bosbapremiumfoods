@@ -1,4 +1,5 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
   id: i,
@@ -9,6 +10,9 @@ const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
 }));
 
 export function FinalCTASection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="final-cta"
@@ -82,15 +86,16 @@ export function FinalCTASection() {
               }}
             />
             <span
+              lang={locale}
               style={{
-                fontFamily: "'Jost', sans-serif",
-                fontSize: "0.65rem",
-                letterSpacing: "0.3em",
-                textTransform: "uppercase",
+                fontFamily: "'Jost', 'Battambang', sans-serif",
+                fontSize: isKm ? "0.75rem" : "0.65rem",
+                letterSpacing: isKm ? "normal" : "0.3em",
+                textTransform: isKm ? "none" : "uppercase",
                 color: "var(--wagyu-gold)",
               }}
             >
-              Begin Your Journey
+              {t("finalCta.eyebrow")}
             </span>
             <span
               style={{
@@ -105,26 +110,32 @@ export function FinalCTASection() {
 
         <Reveal delay={100}>
           <h2
+            lang={locale}
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2.5rem, 6vw, 5rem)",
-              fontWeight: 300,
+              fontFamily: isKm
+                ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                : "'Cormorant Garamond', serif",
+              fontSize: isKm ? "clamp(2.1rem, 5vw, 3.8rem)" : "clamp(2.5rem, 6vw, 5rem)",
+              fontWeight: isKm ? 700 : 300,
               color: "var(--wagyu-text)",
-              lineHeight: 1.1,
-              letterSpacing: "-0.02em",
+              lineHeight: isKm ? 1.35 : 1.1,
+              letterSpacing: isKm ? "0.01em" : "-0.02em",
               marginBottom: "1.5rem",
             }}
           >
-            Ready to Experience
+            {t("finalCta.title.pre")}
             <br />
-            <em style={{ color: "var(--wagyu-gold)" }}>Authentic Japanese Wagyu?</em>
+            <em style={{ color: "var(--wagyu-gold)", fontStyle: isKm ? "normal" : "italic" }}>
+              {t("finalCta.title.em")}
+            </em>
           </h2>
         </Reveal>
 
         <Reveal delay={200}>
           <p
+            lang={locale}
             style={{
-              fontFamily: "'Jost', sans-serif",
+              fontFamily: "'Jost', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -133,9 +144,7 @@ export function FinalCTASection() {
               lineHeight: 1.8,
             }}
           >
-            Not all beef is created equal. This is proof. Explore our collection of certified
-            Japanese Wagyu A4 and A5 — delivered with care, reverence, and a promise of the
-            extraordinary.
+            {t("finalCta.body")}
           </p>
         </Reveal>
 
@@ -144,16 +153,18 @@ export function FinalCTASection() {
             <a
               href="/shop"
               className="btn-gold"
+              lang={locale}
               style={{ borderRadius: 0, textDecoration: "none" }}
             >
-              Explore Collection
+              {t("finalCta.exploreBtn")}
             </a>
             <a
               href="tel:+85599361350"
               className="btn-outline-gold"
+              lang={locale}
               style={{ borderRadius: 0, textDecoration: "none" }}
             >
-              Contact Our Team
+              {t("finalCta.contactBtn")}
             </a>
           </div>
         </Reveal>
@@ -168,24 +179,27 @@ export function FinalCTASection() {
               flexWrap: "wrap",
             }}
           >
-            {[
-              "Certified A4 & A5",
-              "Cold Chain Guaranteed",
-              "Free Sauce & Pepper",
-              "Authentic Japan",
-            ].map((t) => (
-              <div key={t} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            {(
+              [
+                "finalCta.badge.certified",
+                "finalCta.badge.coldChain",
+                "finalCta.badge.freeSauce",
+                "finalCta.badge.authentic",
+              ] as WagyuI18nKey[]
+            ).map((badgeKey) => (
+              <div key={badgeKey} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <span style={{ color: "var(--wagyu-gold)", fontSize: "0.9rem" }}>✓</span>
                 <span
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "0.7rem",
-                    letterSpacing: "0.1em",
+                    letterSpacing: isKm ? "normal" : "0.1em",
                     color: "rgba(var(--wagyu-text-rgb),0.6)",
-                    textTransform: "uppercase",
+                    textTransform: isKm ? "none" : "uppercase",
                   }}
                 >
-                  {t}
+                  {t(badgeKey)}
                 </span>
               </div>
             ))}

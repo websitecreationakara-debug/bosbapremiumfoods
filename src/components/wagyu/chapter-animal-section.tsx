@@ -1,6 +1,10 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 
 export function ChapterAnimalSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="chapter-animal"
@@ -42,15 +46,19 @@ export function ChapterAnimalSection() {
             <div style={{ position: "relative", zIndex: 1 }}>
               <Reveal delay={100}>
                 <h2
+                  lang={locale}
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "clamp(2.5rem, 5vw, 3.8rem)",
-                    fontWeight: 400,
+                    fontFamily: isKm
+                      ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                      : "'Cormorant Garamond', serif",
+                    fontSize: isKm ? "clamp(2.1rem, 4.3vw, 3.2rem)" : "clamp(2.5rem, 5vw, 3.8rem)",
+                    fontWeight: isKm ? 700 : 400,
                     color: "var(--wagyu-text)",
-                    lineHeight: 1.15,
+                    lineHeight: isKm ? 1.35 : 1.15,
+                    letterSpacing: isKm ? "0.01em" : undefined,
                   }}
                 >
-                  Before It Becomes Wagyu, It Begins Here.
+                  {t("chapterAnimal.title")}
                 </h2>
               </Reveal>
             </div>
@@ -59,8 +67,9 @@ export function ChapterAnimalSection() {
           <div>
             <Reveal delay={150}>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -68,15 +77,15 @@ export function ChapterAnimalSection() {
                   marginBottom: "1.25rem",
                 }}
               >
-                Japanese Wagyu is closely associated with carefully bred cattle and generations of
-                selective breeding.
+                {t("chapterAnimal.p1")}
               </p>
             </Reveal>
 
             <Reveal delay={220}>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -84,15 +93,15 @@ export function ChapterAnimalSection() {
                   marginBottom: "1.25rem",
                 }}
               >
-                The cattle are raised under controlled management, with attention paid to their
-                development throughout their lives.
+                {t("chapterAnimal.p2")}
               </p>
             </Reveal>
 
             <Reveal delay={290}>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -100,7 +109,7 @@ export function ChapterAnimalSection() {
                   marginBottom: "1.75rem",
                 }}
               >
-                The goal is not simply to produce more beef.
+                {t("chapterAnimal.p3")}
               </p>
             </Reveal>
 
@@ -112,16 +121,19 @@ export function ChapterAnimalSection() {
                 }}
               >
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontStyle: "italic",
-                    fontSize: "1.5rem",
-                    fontWeight: 400,
+                    fontFamily: isKm
+                      ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                      : "'Cormorant Garamond', serif",
+                    fontStyle: isKm ? "normal" : "italic",
+                    fontSize: isKm ? "1.2rem" : "1.5rem",
+                    fontWeight: isKm ? 700 : 400,
                     color: "var(--wagyu-gold)",
-                    lineHeight: 1.4,
+                    lineHeight: isKm ? 1.5 : 1.4,
                   }}
                 >
-                  "It is to produce exceptional beef."
+                  {t("chapterAnimal.quote")}
                 </p>
               </div>
             </Reveal>

@@ -28,9 +28,9 @@ function Privacy() {
       <div className="mt-8 space-y-8 text-[15px] leading-relaxed text-muted-foreground [&_h2]:font-display [&_h2]:font-semibold [&_h2]:text-lg [&_h2]:text-foreground [&_h2]:mt-8 [&_h2]:mb-2 [&_a]:text-brand [&_a]:underline">
         <p>
           BOSBA Premium Foods (“we”, “us”) operates the website at{" "}
-          <a href={SITE}>bosbapremiumfoods.com</a> and its companion mobile app. This policy explains
-          what information we collect, how we use it, and the choices you have. By using our store
-          you agree to this policy.
+          <a href={SITE}>bosbapremiumfoods.com</a> and its companion mobile app. This policy
+          explains what information we collect, how we use it, and the choices you have. By using
+          our store you agree to this policy.
         </p>
 
         <div>

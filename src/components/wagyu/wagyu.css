@@ -28,6 +28,76 @@
 .wagyu-obsidian {
   background-color: var(--wagyu-bg);
   color: var(--wagyu-text);
+  font-family: "DM Sans", "Battambang", system-ui, sans-serif;
+}
+
+/*
+ * Battambang is the Khmer-script member of every font stack below. Latin
+ * fonts on this page (Cormorant Garamond, Jost, DM Mono) don't cover Khmer
+ * glyphs, so the browser silently falls through to Battambang per-character
+ * — Latin text keeps its display typeface, Khmer text renders in a typeface
+ * actually drawn for the script instead of a generic system fallback.
+ */
+.wagyu-obsidian .font-display {
+  font-family: "Cormorant Garamond", "Battambang", Georgia, serif;
+}
+.wagyu-obsidian .font-mono-label {
+  font-family: "DM Mono", "Battambang", monospace;
+}
+.wagyu-obsidian .btn-gold,
+.wagyu-obsidian .btn-outline-gold {
+  font-family: "Jost", "Battambang", sans-serif;
+}
+
+/*
+ * Typographic corrections below are scoped to an explicit lang="km" set
+ * directly on the translated element (see hero-section.tsx) rather than the
+ * inherited :lang() pseudo-class — the whole page carries lang="km" once
+ * that's the active locale, and :lang() would then also catch untranslated
+ * English CTAs (e.g. the header's "Choose Your Wagyu") just for sitting
+ * inside that subtree.
+ *
+ * Wide letter-spacing + uppercase are Latin-caps conventions that break
+ * Khmer glyph clusters apart, so both get dropped here. Line-height only
+ * gets a light touch, not the generous bump body copy would get — Khmer
+ * diacritics need a little more room than the Latin leading was tuned for,
+ * but not much, or the page reads as loose and gappy.
+ */
+.wagyu-obsidian [lang="km"] {
+  line-height: 1.25;
+}
+.wagyu-obsidian h1[lang="km"],
+.wagyu-obsidian h2[lang="km"],
+.wagyu-obsidian h3[lang="km"] {
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+/*
+ * Battambang reads well for running body copy, but it's a plain UI grotesk —
+ * on the headline and gold CTA (both display/branding moments, set in the
+ * elegant Cormorant Garamond / Jost pairing for Latin) it looked generic and
+ * its glyphs sat too close together at "normal" tracking. Kantumruy Pro is a
+ * more refined, higher-contrast Khmer sans built for exactly that kind of
+ * branding use, so it takes over for headline + buttons; Battambang stays
+ * the fallback only for any glyph Kantumruy Pro doesn't cover.
+ */
+.wagyu-obsidian h1[lang="km"] {
+  font-family: "Kantumruy Pro", "Battambang", sans-serif;
+  font-weight: 700;
+  font-size: clamp(2.25rem, 5.5vw, 4.5rem);
+  letter-spacing: 0.01em;
+}
+.wagyu-obsidian h1[lang="km"] em {
+  font-family: "Kantumruy Pro", "Battambang", sans-serif;
+  font-weight: 700;
+}
+.wagyu-obsidian .btn-gold[lang="km"],
+.wagyu-obsidian .btn-outline-gold[lang="km"] {
+  font-family: "Kantumruy Pro", "Battambang", sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  font-weight: 600;
 }
 
 /* Light theme — active whenever the site's global toggle is not in dark mode */

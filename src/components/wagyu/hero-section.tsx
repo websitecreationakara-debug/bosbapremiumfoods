@@ -1,8 +1,10 @@
 import { forwardRef, useEffect, useRef } from "react";
 import { ChevronDown } from "lucide-react";
 import heroImage from "../../image/hero_wagyu_landscape_1cc86d18.jpg";
+import { useWagyuI18n } from "./wagyu-i18n";
 export const HeroSection = forwardRef<HTMLElement>((_, ref) => {
   const bgRef = useRef<HTMLDivElement>(null);
+  const { t, locale } = useWagyuI18n();
 
   useEffect(() => {
     const el = bgRef.current;
@@ -67,24 +69,34 @@ export const HeroSection = forwardRef<HTMLElement>((_, ref) => {
           }}
         >
           <div className="max-w-3xl">
-            <div className="font-mono-label text-xs tracking-[0.3em] uppercase text-white/60 mb-6">
-              BOSBA Premium Foods — Japanese Wagyu
+            <div
+              lang={locale}
+              className="font-mono-label text-xs tracking-[0.3em] uppercase text-white/60 mb-6"
+            >
+              {t("hero.eyebrow")}
             </div>
-            <h1 className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-white leading-[0.95] mb-6">
-              The Journey of
+            <h1
+              lang={locale}
+              className="font-display text-5xl md:text-7xl lg:text-8xl font-light text-white leading-[0.95] mb-6"
+            >
+              {t("hero.title.line1")}
               <br />
-              <em className="font-medium not-italic">Japanese Wagyu</em>
+              <em className="font-medium not-italic">{t("hero.title.line2")}</em>
             </h1>
-            <p className="font-body text-lg md:text-xl text-white/80 font-light leading-relaxed mb-8 max-w-xl">
-              From Miyazaki, Japan.
+            <p
+              lang={locale}
+              className="font-body text-lg md:text-xl text-white/80 font-light leading-relaxed mb-8 max-w-xl"
+            >
+              {t("hero.subtitle.line1")}
               <br />
-              Raised with care. Crafted by nature.
+              {t("hero.subtitle.line2")}
             </p>
-            <p className="font-body text-sm text-white/60 mb-10">
-              Discover the story behind Japanese Wagyu A4 &amp; A5.
+            <p lang={locale} className="font-body text-sm text-white/60 mb-10">
+              {t("hero.description")}
             </p>
             <a
               href="#journey"
+              lang={locale}
               className="btn-gold"
               style={{
                 display: "inline-flex",
@@ -93,7 +105,7 @@ export const HeroSection = forwardRef<HTMLElement>((_, ref) => {
                 textDecoration: "none",
               }}
             >
-              Explore the Journey <ChevronDown size={16} />
+              {t("hero.cta")} <ChevronDown size={16} />
             </a>
           </div>
         </div>

@@ -1,5 +1,6 @@
 import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 
 const FLOW = [
   { label: "Japan", sub: "Island Nation", active: false },
@@ -8,6 +9,9 @@ const FLOW = [
 ];
 
 export function OriginSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="origin"
@@ -49,29 +53,34 @@ export function OriginSection() {
               color: "var(--wagyu-gold)",
             }}
           >
-            The Origin
+            {t("origin.eyebrow")}
           </span>
         </Reveal>
 
         <Reveal delay={100}>
           <h2
+            lang={locale}
             style={{
-              fontFamily: "'Cormorant Garamond', serif",
-              fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-              fontWeight: 400,
+              fontFamily: isKm
+                ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                : "'Cormorant Garamond', serif",
+              fontSize: isKm ? "clamp(2.1rem, 5vw, 3.6rem)" : "clamp(2.5rem, 6vw, 4.5rem)",
+              fontWeight: isKm ? 700 : 400,
               color: "var(--wagyu-text)",
-              lineHeight: 1.1,
+              lineHeight: isKm ? 1.3 : 1.1,
+              letterSpacing: isKm ? "0.01em" : undefined,
               margin: "1rem 0 1.5rem",
             }}
           >
-            Miyazaki, Japan
+            {t("origin.title")}
           </h2>
         </Reveal>
 
         <Reveal delay={200}>
           <p
+            lang={locale}
             style={{
-              fontFamily: "'Jost', sans-serif",
+              fontFamily: "'Jost', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -80,8 +89,7 @@ export function OriginSection() {
               margin: "0 auto",
             }}
           >
-            On the southeastern coast of Kyushu lies Miyazaki, a region renowned for its Wagyu
-            production. Here, the story of our A5 Wagyu begins.
+            {t("origin.intro")}
           </p>
         </Reveal>
 
@@ -196,29 +204,31 @@ export function OriginSection() {
             />
             <div>
               <h3
+                lang={locale}
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "1.4rem",
-                  fontWeight: 500,
+                  fontFamily: isKm
+                    ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                    : "'Cormorant Garamond', serif",
+                  fontSize: isKm ? "1.3rem" : "1.4rem",
+                  fontWeight: isKm ? 700 : 500,
                   color: "var(--wagyu-text)",
+                  lineHeight: isKm ? 1.35 : undefined,
                   marginBottom: "0.75rem",
                 }}
               >
-                Why Miyazaki?
+                {t("origin.why.title")}
               </h3>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "0.9rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.6)",
                   lineHeight: 1.8,
                 }}
               >
-                Miyazaki Prefecture on the southeastern coast of Kyushu is one of Japan's most
-                recognized regions for Wagyu production. The combination of climate, geography, and
-                generations of dedicated farming has established Miyazaki as a source of exceptional
-                Japanese beef.
+                {t("origin.why.body")}
               </p>
             </div>
           </div>

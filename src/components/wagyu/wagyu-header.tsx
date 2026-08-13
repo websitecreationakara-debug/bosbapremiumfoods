@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { useWagyuI18n, WAGYU_LOCALES } from "./wagyu-i18n";
 import logo from "../../image/BOSBA2-Logo.png";
 
 const NAV_LINKS = [
@@ -17,6 +18,45 @@ const NAV_LINKS = [
   { label: "Gallery", href: "#gallery" },
   { label: "FAQ", href: "#faq" },
 ];
+
+function LanguageSwitch() {
+  const { locale, setLocale } = useWagyuI18n();
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        borderRadius: 999,
+        border: "1px solid rgba(var(--wagyu-text-rgb),0.2)",
+        padding: 2,
+        flexShrink: 0,
+      }}
+    >
+      {WAGYU_LOCALES.map((l) => (
+        <button
+          key={l.code}
+          onClick={() => setLocale(l.code)}
+          aria-pressed={locale === l.code}
+          style={{
+            padding: "0.35rem 0.7rem",
+            borderRadius: 999,
+            border: "none",
+            fontFamily: l.code === "km" ? "'Battambang', sans-serif" : "'Jost', sans-serif",
+            fontSize: l.code === "km" ? "0.75rem" : "0.68rem",
+            fontWeight: l.code === "km" ? 700 : 500,
+            letterSpacing: l.code === "km" ? "normal" : "0.04em",
+            cursor: "pointer",
+            transition: "all 0.25s ease",
+            background: locale === l.code ? "var(--wagyu-gold)" : "transparent",
+            color: locale === l.code ? "var(--wagyu-bg)" : "rgba(var(--wagyu-text-rgb),0.75)",
+          }}
+        >
+          {l.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function WagyuHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -123,6 +163,8 @@ export function WagyuHeader() {
           </nav>
 
           <div className="hidden lg:flex" style={{ alignItems: "center", gap: "1rem" }}>
+            <LanguageSwitch />
+
             <button
               onClick={toggle}
               aria-label="Toggle theme"
@@ -290,6 +332,8 @@ export function WagyuHeader() {
               gap: "1rem",
             }}
           >
+            <LanguageSwitch />
+
             <button
               onClick={toggle}
               aria-label="Toggle theme"

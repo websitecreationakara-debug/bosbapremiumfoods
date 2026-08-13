@@ -1,7 +1,11 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 import imagewugyu from "../../image/wugyu.jpg";
 
 export function ProcessSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="process"
@@ -38,16 +42,20 @@ export function ProcessSection() {
 
           <Reveal delay={100}>
             <h2
+              lang={locale}
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.5rem, 6vw, 4.5rem)",
-                fontWeight: 400,
+                fontFamily: isKm
+                  ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                  : "'Cormorant Garamond', serif",
+                fontSize: isKm ? "clamp(2.1rem, 5vw, 3.6rem)" : "clamp(2.5rem, 6vw, 4.5rem)",
+                fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
-                lineHeight: 1.1,
+                lineHeight: isKm ? 1.3 : 1.1,
+                letterSpacing: isKm ? "0.01em" : undefined,
                 marginTop: "1rem",
               }}
             >
-              Raised With Care.
+              {t("process.title")}
             </h2>
           </Reveal>
         </div>

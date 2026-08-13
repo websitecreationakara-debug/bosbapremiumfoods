@@ -1,35 +1,38 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 
-const SCENES = [
+const SCENES: { num: string; icon: string; titleKey: WagyuI18nKey; descKey: WagyuI18nKey }[] = [
   {
     num: "01",
     icon: "🏠",
-    title: "A Carefully Managed Environment",
-    desc: "The environment in which cattle are raised plays an important role in their development. Each animal is given space, clean conditions, and the attention required to develop properly.",
+    titleKey: "sceneCards.env.title",
+    descKey: "sceneCards.env.desc",
   },
   {
     num: "02",
     icon: "🌱",
-    title: "Careful Nutrition",
-    desc: "Feeding and management are carefully controlled as the cattle develop. Nutrition is managed with precision to support the natural development of the animal.",
+    titleKey: "sceneCards.nutrition.title",
+    descKey: "sceneCards.nutrition.desc",
   },
   {
     num: "03",
     icon: "⏳",
-    title: "Time Matters",
-    desc: "Exceptional Wagyu isn't created overnight. It is developed over time through careful breeding, management and patience — from birth through to the finished product.",
+    titleKey: "sceneCards.time.title",
+    descKey: "sceneCards.time.desc",
   },
   {
     num: "04",
     icon: "🤝",
-    title: "Attention to Every Animal",
-    desc: "Behind the final cut of Wagyu are people who dedicate themselves to raising cattle with care. Each animal receives individual attention throughout its development.",
+    titleKey: "sceneCards.attention.title",
+    descKey: "sceneCards.attention.desc",
   },
 ];
 
 export function SceneCardsSection() {
   const [hovered, setHovered] = useState<number | null>(null);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   return (
     <section
@@ -90,27 +93,31 @@ export function SceneCardsSection() {
                 <div style={{ position: "relative", zIndex: 1 }}>
                   <div style={{ fontSize: "1.75rem", marginBottom: "1rem" }}>{scene.icon}</div>
                   <h3
+                    lang={locale}
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: "1.5rem",
-                      fontWeight: 500,
+                      fontFamily: isKm
+                        ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                        : "'Cormorant Garamond', serif",
+                      fontSize: isKm ? "1.3rem" : "1.5rem",
+                      fontWeight: isKm ? 700 : 500,
                       color: "var(--wagyu-text)",
                       margin: "0.6rem 0 1rem",
-                      lineHeight: 1.25,
+                      lineHeight: isKm ? 1.4 : 1.25,
                     }}
                   >
-                    {scene.title}
+                    {t(scene.titleKey)}
                   </h3>
                   <p
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
                       fontSize: "0.9rem",
                       fontWeight: 300,
                       color: "rgba(var(--wagyu-text-rgb),0.6)",
                       lineHeight: 1.75,
                     }}
                   >
-                    {scene.desc}
+                    {t(scene.descKey)}
                   </p>
                 </div>
               </div>

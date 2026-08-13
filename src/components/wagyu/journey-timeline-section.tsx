@@ -1,13 +1,17 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 
-const STEPS = [
-  { num: 1, label: "Birth" },
-  { num: 2, label: "Growth" },
-  { num: 3, label: "Development" },
-  { num: 4, label: "Finished Wagyu" },
+const STEPS: { num: number; labelKey: WagyuI18nKey }[] = [
+  { num: 1, labelKey: "journey.step.birth" },
+  { num: 2, labelKey: "journey.step.growth" },
+  { num: 3, labelKey: "journey.step.development" },
+  { num: 4, labelKey: "journey.step.finished" },
 ];
 
 export function JourneyTimelineSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="journey"
@@ -29,15 +33,16 @@ export function JourneyTimelineSection() {
           >
             <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
               <span
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.3em",
-                  textTransform: "uppercase",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontSize: isKm ? "0.75rem" : "0.65rem",
+                  letterSpacing: isKm ? "normal" : "0.3em",
+                  textTransform: isKm ? "none" : "uppercase",
                   color: "var(--wagyu-gold)",
                 }}
               >
-                The Journey Of A Wagyu
+                {t("journey.eyebrow")}
               </span>
             </div>
 
@@ -75,15 +80,16 @@ export function JourneyTimelineSection() {
                         {step.num}
                       </div>
                       <span
+                        lang={locale}
                         style={{
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'Jost', 'Battambang', sans-serif",
                           fontSize: "0.75rem",
                           color: active ? "var(--wagyu-text)" : "rgba(var(--wagyu-text-rgb),0.6)",
                           marginTop: "0.6rem",
                           whiteSpace: "nowrap",
                         }}
                       >
-                        {step.label}
+                        {t(step.labelKey)}
                       </span>
                     </div>
 
