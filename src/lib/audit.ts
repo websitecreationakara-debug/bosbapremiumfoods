@@ -26,7 +26,13 @@ async function recordSecurityEvent(
   // VPN/hosting-provider tell (real people don't browse from AWS/DigitalOcean).
   const cf = (
     request as unknown as {
-      cf?: { country?: string; city?: string; latitude?: string; longitude?: string; asOrganization?: string };
+      cf?: {
+        country?: string;
+        city?: string;
+        latitude?: string;
+        longitude?: string;
+        asOrganization?: string;
+      };
     }
   ).cf;
   const country = cf?.country ?? "";
@@ -34,19 +40,21 @@ async function recordSecurityEvent(
   const now = Date.now();
 
   try {
-    await getDb().insert(adminAuditLog).values({
-      id: crypto.randomUUID(),
-      userId: user.id,
-      userEmail: user.email,
-      role: user.role ?? "",
-      type,
-      action,
-      detail: JSON.stringify(detail ?? {}),
-      ipAddress: ip,
-      city,
-      country,
-      createdAt: now,
-    });
+    await getDb()
+      .insert(adminAuditLog)
+      .values({
+        id: crypto.randomUUID(),
+        userId: user.id,
+        userEmail: user.email,
+        role: user.role ?? "",
+        type,
+        action,
+        detail: JSON.stringify(detail ?? {}),
+        ipAddress: ip,
+        city,
+        country,
+        createdAt: now,
+      });
   } catch {
     // best-effort local log
   }

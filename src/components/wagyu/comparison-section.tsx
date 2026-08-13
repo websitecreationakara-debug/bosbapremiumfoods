@@ -1,19 +1,32 @@
 import { useRef, useState, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 import A4 from "../../image/a4.jpg";
 import A5 from "../../image/a5.jpg";
 import { SupplyChainSection } from "@/components/wagyu/supply-chain-section";
 
-const grades = [
+const grades: {
+  grade: string;
+  taglineKey: WagyuI18nKey;
+  descKey: WagyuI18nKey;
+  marbling: number;
+  richness: number;
+  beefFlavor: number;
+  textureKey: WagyuI18nKey;
+  bms: string;
+  price: string;
+  unit: string;
+  link: string;
+}[] = [
   {
     grade: "A4",
-    tagline: "Balanced Luxury",
-    desc: "Generously marbled, rich and tender — with a balanced beef experience that showcases both the depth of Wagyu flavor and the richness of fine marbling.",
+    taglineKey: "comparison.a4.tagline",
+    descKey: "comparison.a4.desc",
     marbling: 4,
     richness: 4,
     beefFlavor: 5,
-    texture: "Tender",
+    textureKey: "comparison.a4.texture",
     bms: "BMS 5–7",
     price: "$14",
     unit: "/ 100g",
@@ -21,12 +34,12 @@ const grades = [
   },
   {
     grade: "A5",
-    tagline: "Ultimate Indulgence",
-    desc: "Exceptionally marbled, rich and luxurious — made for those who want the full Wagyu experience. The highest grade of Japanese beef.",
+    taglineKey: "comparison.a5.tagline",
+    descKey: "comparison.a5.desc",
     marbling: 5,
     richness: 5,
     beefFlavor: 4,
-    texture: "Extremely Tender",
+    textureKey: "comparison.a5.texture",
     bms: "BMS 8–12",
     price: "$19",
     unit: "/ 100g",
@@ -56,6 +69,8 @@ export function ComparisonSection() {
   const [sliderPos, setSliderPos] = useState(50);
   const [isDragging, setIsDragging] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   const updateSlider = useCallback((clientX: number) => {
     if (!containerRef.current) return;
@@ -108,15 +123,16 @@ export function ComparisonSection() {
                 }}
               />
               <span
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
-                  fontSize: "0.65rem",
-                  letterSpacing: "0.3em",
-                  textTransform: "uppercase",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontSize: isKm ? "0.75rem" : "0.65rem",
+                  letterSpacing: isKm ? "normal" : "0.3em",
+                  textTransform: isKm ? "none" : "uppercase",
                   color: "var(--wagyu-gold)",
                 }}
               >
-                The Difference
+                {t("comparison.eyebrow")}
               </span>
               <span
                 style={{
@@ -130,21 +146,26 @@ export function ComparisonSection() {
           </Reveal>
           <Reveal delay={100}>
             <h2
+              lang={locale}
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)",
-                fontWeight: 400,
+                fontFamily: isKm
+                  ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                  : "'Cormorant Garamond', serif",
+                fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
+                fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
-                lineHeight: 1.2,
+                lineHeight: isKm ? 1.35 : 1.2,
+                letterSpacing: isKm ? "0.01em" : undefined,
               }}
             >
-              Which Wagyu Fits You?
+              {t("comparison.title")}
             </h2>
           </Reveal>
           <Reveal delay={200}>
             <p
+              lang={locale}
               style={{
-                fontFamily: "'Jost', sans-serif",
+                fontFamily: "'Jost', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -153,7 +174,7 @@ export function ComparisonSection() {
                 lineHeight: 1.7,
               }}
             >
-              Drag the slider to compare A4 and A5 marbling side by side.
+              {t("comparison.subtitle")}
             </p>
           </Reveal>
         </div>
@@ -355,7 +376,7 @@ export function ComparisonSection() {
                         marginTop: "0.35rem",
                       }}
                     >
-                      {g.tagline}
+                      {t(g.taglineKey)}
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
@@ -402,7 +423,7 @@ export function ComparisonSection() {
                     lineHeight: 1.8,
                   }}
                 >
-                  {g.desc}
+                  {t(g.descKey)}
                 </p>
 
                 <div
@@ -415,12 +436,14 @@ export function ComparisonSection() {
                     rowGap: "1.5rem",
                   }}
                 >
-                  {[
-                    { label: "Marbling", value: g.marbling },
-                    { label: "Richness", value: g.richness },
-                    { label: "Beef Flavor", value: g.beefFlavor },
-                  ].map((attr) => (
-                    <div key={attr.label}>
+                  {(
+                    [
+                      { labelKey: "comparison.attr.marbling", value: g.marbling },
+                      { labelKey: "comparison.attr.richness", value: g.richness },
+                      { labelKey: "comparison.attr.beefFlavor", value: g.beefFlavor },
+                    ] as { labelKey: WagyuI18nKey; value: number }[]
+                  ).map((attr) => (
+                    <div key={attr.labelKey}>
                       <div
                         style={{
                           fontFamily: "'Jost', sans-serif",
@@ -431,7 +454,7 @@ export function ComparisonSection() {
                           marginBottom: "0.6rem",
                         }}
                       >
-                        {attr.label}
+                        {t(attr.labelKey)}
                       </div>
                       <RatingDots filled={attr.value} />
                     </div>
@@ -447,7 +470,7 @@ export function ComparisonSection() {
                         marginBottom: "0.6rem",
                       }}
                     >
-                      Texture
+                      {t("comparison.attr.texture")}
                     </div>
                     <div
                       style={{
@@ -456,7 +479,7 @@ export function ComparisonSection() {
                         color: "var(--wagyu-text)",
                       }}
                     >
-                      {g.texture}
+                      {t(g.textureKey)}
                     </div>
                   </div>
                 </div>
@@ -467,7 +490,7 @@ export function ComparisonSection() {
                     className="btn-gold"
                     style={{ display: "inline-block", textDecoration: "none" }}
                   >
-                    Explore {g.grade}
+                    {t("comparison.cta")} {g.grade}
                   </Link>
                 </div>
               </div>

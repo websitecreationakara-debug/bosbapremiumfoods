@@ -1,17 +1,45 @@
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 import logobosba from "../../image/BOSBA-Logo.png";
 
-const CHAIN = [
-  { icon: "🌿", title: "Miyazaki Farm", sub: "Origin", active: false },
-  { icon: "🐄", title: "Wagyu", sub: "Raised & Graded", active: false },
-  { icon: "✓", title: "Quality Handling", sub: "Inspection", active: false },
-  { icon: "❄", title: "Cold Chain", sub: "Preservation", active: false },
-  { icon: "✈", title: "Cambodia", sub: "Destination", active: false },
-  { icon: logobosba, title: "BOSBA", sub: "Premium Foods", active: true },
-  { icon: "🍽", title: "Your Table", sub: "Experience", active: true },
+const CHAIN: {
+  icon: string;
+  titleKey: WagyuI18nKey;
+  subKey: WagyuI18nKey;
+  active: boolean;
+}[] = [
+  { icon: "🌿", titleKey: "supplyChain.farm.title", subKey: "supplyChain.farm.sub", active: false },
+  {
+    icon: "🐄",
+    titleKey: "supplyChain.wagyu.title",
+    subKey: "supplyChain.wagyu.sub",
+    active: false,
+  },
+  {
+    icon: "✓",
+    titleKey: "supplyChain.quality.title",
+    subKey: "supplyChain.quality.sub",
+    active: false,
+  },
+  { icon: "❄", titleKey: "supplyChain.cold.title", subKey: "supplyChain.cold.sub", active: false },
+  {
+    icon: "✈",
+    titleKey: "supplyChain.cambodia.title",
+    subKey: "supplyChain.cambodia.sub",
+    active: false,
+  },
+  { icon: logobosba, titleKey: "trust.title.bosba", subKey: "supplyChain.bosba.sub", active: true },
+  {
+    icon: "🍽",
+    titleKey: "supplyChain.table.title",
+    subKey: "supplyChain.table.sub",
+    active: true,
+  },
 ];
 
 export function SupplyChainSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
   return (
     <section
       id="supply-chain"
@@ -32,8 +60,9 @@ export function SupplyChainSection() {
       >
         <Reveal delay={200}>
           <p
+            lang={locale}
             style={{
-              fontFamily: "'Jost', sans-serif",
+              fontFamily: "'Jost', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -42,8 +71,7 @@ export function SupplyChainSection() {
               margin: "0 auto",
             }}
           >
-            From its origin in Japan to your table in Cambodia, we carefully handle our premium
-            products to preserve the quality you expect from BOSBA.
+            {t("supplyChain.intro")}
           </p>
         </Reveal>
 
@@ -59,7 +87,7 @@ export function SupplyChainSection() {
             }}
           >
             {CHAIN.map((node, i) => (
-              <div key={node.title} style={{ display: "flex", alignItems: "flex-start" }}>
+              <div key={node.titleKey} style={{ display: "flex", alignItems: "flex-start" }}>
                 <div
                   style={{
                     display: "flex",
@@ -104,26 +132,28 @@ export function SupplyChainSection() {
                     )}
                   </div>
                   <span
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
                       fontSize: "0.8rem",
                       color: "var(--wagyu-text)",
                       marginTop: "0.75rem",
                     }}
                   >
-                    {node.title}
+                    {t(node.titleKey)}
                   </span>
                   <span
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: "0.62rem",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontSize: isKm ? "0.68rem" : "0.62rem",
+                      letterSpacing: isKm ? "normal" : "0.15em",
+                      textTransform: isKm ? "none" : "uppercase",
                       color: node.active ? "var(--wagyu-gold)" : "rgba(var(--wagyu-text-rgb),0.45)",
                       marginTop: "0.25rem",
                     }}
                   >
-                    {node.sub}
+                    {t(node.subKey)}
                   </span>
                 </div>
 

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
+import eduimage from "../../image/eduimage.jpg";
 
 const BullMon = ({ size = 50, opacity = 0.4 }: { size?: number; opacity?: number }) => (
   <svg viewBox="0 0 60 60" width={size} height={size} fill="none" style={{ opacity }}>
@@ -17,31 +19,37 @@ const BullMon = ({ size = 50, opacity = 0.4 }: { size?: number; opacity?: number
   </svg>
 );
 
-const tiers = [
+const tiers: {
+  labelKey: WagyuI18nKey;
+  descKey: WagyuI18nKey;
+  bar: number;
+  color: string;
+  colorFaded: string;
+}[] = [
   {
-    label: "Regular Beef",
-    desc: "Standard marbling, everyday flavor",
+    labelKey: "whyWagyu.tier.regular.label",
+    descKey: "whyWagyu.tier.regular.desc",
     bar: 20,
     color: "#6B6355",
     colorFaded: "#6B635580",
   },
   {
-    label: "Australian Wagyu",
-    desc: "Improved genetics, richer taste",
+    labelKey: "whyWagyu.tier.australian.label",
+    descKey: "whyWagyu.tier.australian.desc",
     bar: 55,
     color: "#9B7E3A",
     colorFaded: "#9B7E3A80",
   },
   {
-    label: "Japanese Wagyu A4",
-    desc: "Exceptional snowflake marbling",
+    labelKey: "whyWagyu.tier.a4.label",
+    descKey: "whyWagyu.tier.a4.desc",
     bar: 80,
     color: "var(--wagyu-gold)",
     colorFaded: "rgba(var(--wagyu-gold-rgb), 0.5)",
   },
   {
-    label: "Japanese Wagyu A5",
-    desc: "The pinnacle — pure luxury",
+    labelKey: "whyWagyu.tier.a5.label",
+    descKey: "whyWagyu.tier.a5.desc",
     bar: 100,
     color: "var(--wagyu-gold-light)",
     colorFaded: "rgba(var(--wagyu-gold-light-rgb), 0.5)",
@@ -51,6 +59,8 @@ const tiers = [
 export function WhyWagyuSection() {
   const barsRef = useRef<HTMLDivElement>(null);
   const [barsFilled, setBarsFilled] = useState(false);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   useEffect(() => {
     const el = barsRef.current;
@@ -105,7 +115,7 @@ export function WhyWagyuSection() {
                 color: "var(--wagyu-gold)",
               }}
             >
-              Education
+              {t("whyWagyu.eyebrow")}
             </span>
           </div>
         </Reveal>
@@ -121,27 +131,34 @@ export function WhyWagyuSection() {
           <div>
             <Reveal delay={100}>
               <h2
+                lang={locale}
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
-                  fontSize: "clamp(2.5rem, 5vw, 4rem)",
-                  fontWeight: 400,
+                  fontFamily: isKm
+                    ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                    : "'Cormorant Garamond', serif",
+                  fontSize: isKm ? "clamp(2.1rem, 4.3vw, 3.4rem)" : "clamp(2.5rem, 5vw, 4rem)",
+                  fontWeight: isKm ? 700 : 400,
                   color: "var(--wagyu-text)",
-                  lineHeight: 1.1,
+                  lineHeight: isKm ? 1.35 : 1.1,
+                  letterSpacing: isKm ? "0.01em" : undefined,
                   marginBottom: "1.5rem",
                 }}
               >
-                Why is Wagyu
+                {t("whyWagyu.title.pre")}
                 <br />
-                <em style={{ color: "var(--wagyu-gold)" }}>unlike anything</em>
+                <em style={{ color: "var(--wagyu-gold)", fontStyle: isKm ? "normal" : "italic" }}>
+                  {t("whyWagyu.title.em")}
+                </em>
                 <br />
-                else?
+                {t("whyWagyu.title.post")}
               </h2>
             </Reveal>
 
             <Reveal delay={200}>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -149,17 +166,17 @@ export function WhyWagyuSection() {
                   marginBottom: "1.5rem",
                 }}
               >
-                The secret lies in <strong style={{ color: "var(--wagyu-gold)" }}>Sashi</strong> —
-                the Japanese term for the intricate snowflake-like fat marbling that runs through
-                every fiber of the meat. This intramuscular fat melts at body temperature, creating
-                a buttery, umami-rich experience that no other beef can replicate.
+                {t("whyWagyu.p1.pre")}{" "}
+                <strong style={{ color: "var(--wagyu-gold)" }}>{t("whyWagyu.p1.strong")}</strong>{" "}
+                {t("whyWagyu.p1.post")}
               </p>
             </Reveal>
 
             <Reveal delay={300}>
               <p
+                lang={locale}
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'Jost', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -167,17 +184,14 @@ export function WhyWagyuSection() {
                   marginBottom: "2.5rem",
                 }}
               >
-                Japanese Wagyu cattle are raised for 30+ months — nearly triple the time of standard
-                beef — with meticulous care, specialized feed, and stress-free environments. The
-                result is beef graded on a scale from A1 to A5, where A5 represents the absolute
-                pinnacle of quality.
+                {t("whyWagyu.p2")}
               </p>
             </Reveal>
 
             <Reveal delay={400}>
               <div ref={barsRef} style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
                 {tiers.map((tier, i) => (
-                  <div key={tier.label}>
+                  <div key={tier.labelKey}>
                     <div
                       style={{
                         display: "flex",
@@ -193,7 +207,7 @@ export function WhyWagyuSection() {
                           letterSpacing: "0.05em",
                         }}
                       >
-                        {tier.label}
+                        {t(tier.labelKey)}
                       </span>
                       <span
                         style={{
@@ -202,7 +216,7 @@ export function WhyWagyuSection() {
                           color: "rgba(var(--wagyu-text-rgb),0.45)",
                         }}
                       >
-                        {tier.desc}
+                        {t(tier.descKey)}
                       </span>
                     </div>
                     <div
@@ -233,7 +247,7 @@ export function WhyWagyuSection() {
           <Reveal direction="right" delay={200} style={{ position: "relative" }}>
             <div style={{ position: "relative", overflow: "hidden" }}>
               <img
-                src="/wagyu/hero-beef.jpg"
+                src={eduimage}
                 alt="Wagyu snowflake marbling close-up"
                 style={{ width: "100%", aspectRatio: "4/3", objectFit: "cover", display: "block" }}
               />

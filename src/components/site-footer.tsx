@@ -30,7 +30,8 @@ export function SiteFooter() {
               <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
             </p>
             <p className="flex items-center gap-2">
-              <Truck className="size-4 shrink-0" /> {t("bar.delivery", { threshold: shipThreshold })}
+              <Truck className="size-4 shrink-0" />{" "}
+              {t("bar.delivery", { threshold: shipThreshold })}
             </p>
           </div>
         </div>

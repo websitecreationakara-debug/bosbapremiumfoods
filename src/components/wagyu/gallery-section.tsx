@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n } from "@/components/wagyu/wagyu-i18n";
 import artofwugyu1 from "../../image/artofwugyu1.jpg";
 import artofwugyu2 from "../../image/artofwugyu2.jpg";
 import artofwugyu3 from "../../image/artofwugyu3.jpg";
@@ -32,6 +33,8 @@ const GALLERY_IMAGES = [
 
 export function GallerySection() {
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   return (
     <section
@@ -67,7 +70,7 @@ export function GallerySection() {
                   color: "var(--wagyu-gold)",
                 }}
               >
-                Gallery
+                {t("gallery.eyebrow")}
               </span>
               <span
                 style={{
@@ -81,15 +84,19 @@ export function GallerySection() {
           </Reveal>
           <Reveal delay={100}>
             <h2
+              lang={locale}
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
-                fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)",
-                fontWeight: 400,
+                fontFamily: isKm
+                  ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                  : "'Cormorant Garamond', serif",
+                fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
+                fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
-                lineHeight: 1.2,
+                lineHeight: isKm ? 1.35 : 1.2,
+                letterSpacing: isKm ? "0.01em" : undefined,
               }}
             >
-              The Art of Wagyu
+              {t("gallery.title")}
             </h2>
           </Reveal>
         </div>

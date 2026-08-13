@@ -1,53 +1,69 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
-import image1 from "../../image/cooking1.jpg";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
+import image1 from "../../image/cookingguide1.jpg";
 import image2 from "../../image/cooking2.jpg";
-import image3 from "../../image/cooking3.jpg";
+import image3 from "../../image/cookingguide3.jpg";
 
-const steps = [
+const steps: {
+  num: string;
+  titleKey: WagyuI18nKey;
+  titleAlwaysEn?: boolean;
+  image: string;
+  descKey: WagyuI18nKey;
+  tipKey: WagyuI18nKey;
+}[] = [
   {
     num: "01",
-    title: "Bring to Room Temperature",
+    titleKey: "cooking.step1.title",
+    titleAlwaysEn: true,
     image: image1,
-    desc: "Remove your Wagyu from the refrigerator 30–45 minutes before cooking. This ensures even cooking throughout and prevents the exterior from overcooking before the center reaches temperature.",
-    tip: "Chef's Tip: Pat dry with paper towels. Season only with fleur de sel — never marinate A5 Wagyu.",
+    descKey: "cooking.step1.desc",
+    tipKey: "cooking.step1.tip",
   },
   {
     num: "02",
-    title: "Sear 30–60 Seconds Per Side",
+    titleKey: "cooking.step2.title",
     image: image2,
-    desc: "Heat a cast iron or stainless pan until smoking hot. No oil needed — Wagyu's own fat renders immediately. Sear each side for just 30–60 seconds for A5, up to 90 seconds for A4.",
-    tip: "Chef's Tip: Baste with the rendered fat. The Maillard crust is everything — don't move the steak.",
+    descKey: "cooking.step2.desc",
+    tipKey: "cooking.step2.tip",
   },
   {
     num: "03",
-    title: "Rest, Then Slice & Serve",
+    titleKey: "cooking.step3.title",
+    titleAlwaysEn: true,
     image: image3,
-    desc: "Rest the steak for 2–3 minutes on a warm board. Slice against the grain into thin pieces — Wagyu is best enjoyed in smaller portions to fully appreciate its richness.",
-    tip: "Chef's Tip: Serve with yuzu ponzu or wasabi. A5 pairs beautifully with a light red wine or sake.",
+    descKey: "cooking.step3.desc",
+    tipKey: "cooking.step3.tip",
   },
 ];
 
-const methods = [
+const methods: {
+  titleKey: WagyuI18nKey;
+  prepKey: WagyuI18nKey;
+  descKey: WagyuI18nKey;
+  tipKey: WagyuI18nKey;
+  emoji: string;
+}[] = [
   {
-    title: "Wagyu Steak",
-    prep: "Salt · Pepper · High Heat",
-    desc: "A thick-cut sirloin, seasoned simply and seared to perfection. Let the marbling do the work.",
-    tip: "2–3 min each side. Rest before serving.",
+    titleKey: "cooking.method1.title",
+    prepKey: "cooking.method1.prep",
+    descKey: "cooking.method1.desc",
+    tipKey: "cooking.method1.tip",
     emoji: "🥩",
   },
   {
-    title: "Yakiniku",
-    prep: "Thin slices · Japanese grill",
-    desc: "Thin Wagyu slices on a Japanese grill. The fat renders quickly, creating an extraordinary aroma and flavor.",
-    tip: "30–45 seconds per side. Serve immediately.",
+    titleKey: "cooking.method2.title",
+    prepKey: "cooking.method2.prep",
+    descKey: "cooking.method2.desc",
+    tipKey: "cooking.method2.tip",
     emoji: "🔥",
   },
   {
-    title: "Wagyu Don",
-    prep: "Wagyu · Japanese rice · Egg",
-    desc: "Thinly sliced Wagyu over steamed Japanese rice, finished with a soft egg. Simple, satisfying, extraordinary.",
-    tip: "Slice thin. Cook briefly. Serve over hot rice.",
+    titleKey: "cooking.method3.title",
+    prepKey: "cooking.method3.prep",
+    descKey: "cooking.method3.desc",
+    tipKey: "cooking.method3.tip",
     emoji: "🍚",
   },
 ];
@@ -119,6 +135,9 @@ function StepPanel({ num, image }: { num: string; image?: string }) {
 }
 
 export function CookingGuideSection() {
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
+
   return (
     <section
       id="cooking"
@@ -152,7 +171,7 @@ export function CookingGuideSection() {
                   color: "var(--wagyu-gold)",
                 }}
               >
-                Cooking Guide
+                {t("cooking.eyebrow")}
               </span>
             </div>
           </Reveal>
@@ -167,15 +186,16 @@ export function CookingGuideSection() {
                 maxWidth: 600,
               }}
             >
-              Luxury Becomes
+              {t("cooking.title.pre")}
               <br />
-              <em style={{ color: "var(--wagyu-gold)" }}>Approachable</em>
+              <em style={{ color: "var(--wagyu-gold)" }}>{t("cooking.title.em")}</em>
             </h2>
           </Reveal>
           <Reveal delay={200}>
             <p
+              lang={locale}
               style={{
-                fontFamily: "'Jost', sans-serif",
+                fontFamily: "'Jost', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -184,7 +204,7 @@ export function CookingGuideSection() {
                 lineHeight: 1.7,
               }}
             >
-              Three steps. That's all it takes to cook the world's finest beef perfectly at home.
+              {t("cooking.subtitle")}
             </p>
           </Reveal>
         </div>
@@ -220,19 +240,28 @@ export function CookingGuideSection() {
                     {step.num}
                   </div>
                   <h3
+                    lang={step.titleAlwaysEn ? undefined : locale}
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
-                      fontSize: "clamp(1.5rem, 3vw, 2.2rem)",
-                      fontWeight: 400,
+                      fontFamily:
+                        isKm && !step.titleAlwaysEn
+                          ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                          : "'Cormorant Garamond', serif",
+                      fontSize:
+                        isKm && !step.titleAlwaysEn
+                          ? "clamp(1.3rem, 2.6vw, 1.9rem)"
+                          : "clamp(1.5rem, 3vw, 2.2rem)",
+                      fontWeight: isKm && !step.titleAlwaysEn ? 700 : 400,
                       color: "var(--wagyu-text)",
+                      lineHeight: isKm && !step.titleAlwaysEn ? 1.4 : undefined,
                       marginBottom: "1rem",
                     }}
                   >
-                    {step.title}
+                    {t(step.titleKey)}
                   </h3>
                   <p
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
                       fontSize: "0.95rem",
                       fontWeight: 300,
                       color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -240,7 +269,7 @@ export function CookingGuideSection() {
                       marginBottom: "1.5rem",
                     }}
                   >
-                    {step.desc}
+                    {t(step.descKey)}
                   </p>
                   <div
                     style={{
@@ -251,16 +280,17 @@ export function CookingGuideSection() {
                     }}
                   >
                     <p
+                      lang={locale}
                       style={{
-                        fontFamily: "'Jost', sans-serif",
+                        fontFamily: "'Jost', 'Battambang', sans-serif",
                         fontSize: "0.8rem",
                         fontWeight: 400,
                         color: "var(--wagyu-gold)",
                         lineHeight: 1.6,
-                        fontStyle: "italic",
+                        fontStyle: isKm ? "normal" : "italic",
                       }}
                     >
-                      {step.tip}
+                      {t(step.tipKey)}
                     </p>
                   </div>
                 </div>
@@ -278,7 +308,7 @@ export function CookingGuideSection() {
           }}
         >
           {methods.map((method, idx) => (
-            <Reveal key={method.title} delay={idx * 100}>
+            <Reveal key={method.titleKey} delay={idx * 100}>
               <div
                 style={{
                   background: "var(--wagyu-card)",
@@ -296,31 +326,37 @@ export function CookingGuideSection() {
               >
                 <div style={{ fontSize: "2.25rem", marginBottom: "1.5rem" }}>{method.emoji}</div>
                 <div
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
-                    fontSize: "0.6rem",
-                    letterSpacing: "0.2em",
-                    textTransform: "uppercase",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
+                    fontSize: isKm ? "0.7rem" : "0.6rem",
+                    letterSpacing: isKm ? "normal" : "0.2em",
+                    textTransform: isKm ? "none" : "uppercase",
                     color: "var(--wagyu-gold)",
                     marginBottom: "0.75rem",
                   }}
                 >
-                  {method.prep}
+                  {t(method.prepKey)}
                 </div>
                 <h3
+                  lang={locale}
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
-                    fontSize: "1.5rem",
-                    fontWeight: 500,
+                    fontFamily: isKm
+                      ? "'Kantumruy Pro', 'Battambang', sans-serif"
+                      : "'Cormorant Garamond', serif",
+                    fontSize: isKm ? "1.3rem" : "1.5rem",
+                    fontWeight: isKm ? 700 : 500,
                     color: "var(--wagyu-text)",
+                    lineHeight: isKm ? 1.4 : undefined,
                     marginBottom: "1rem",
                   }}
                 >
-                  {method.title}
+                  {t(method.titleKey)}
                 </h3>
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "0.9rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -328,7 +364,7 @@ export function CookingGuideSection() {
                     marginBottom: "1.5rem",
                   }}
                 >
-                  {method.desc}
+                  {t(method.descKey)}
                 </p>
                 <div
                   style={{
@@ -337,26 +373,28 @@ export function CookingGuideSection() {
                   }}
                 >
                   <div
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
-                      fontSize: "0.6rem",
-                      letterSpacing: "0.15em",
-                      textTransform: "uppercase",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontSize: isKm ? "0.7rem" : "0.6rem",
+                      letterSpacing: isKm ? "normal" : "0.15em",
+                      textTransform: isKm ? "none" : "uppercase",
                       color: "rgba(var(--wagyu-text-rgb),0.45)",
                       marginBottom: "0.35rem",
                     }}
                   >
-                    Pro tip
+                    {t("cooking.proTip")}
                   </div>
                   <div
+                    lang={locale}
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'Jost', 'Battambang', sans-serif",
                       fontSize: "0.8rem",
-                      fontStyle: "italic",
+                      fontStyle: isKm ? "normal" : "italic",
                       color: "rgba(var(--wagyu-text-rgb),0.7)",
                     }}
                   >
-                    {method.tip}
+                    {t(method.tipKey)}
                   </div>
                 </div>
               </div>

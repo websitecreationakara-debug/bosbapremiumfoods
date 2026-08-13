@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
+import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 
 const ICONS = {
   dawn: (
@@ -100,36 +101,36 @@ const ICONS = {
   ),
 };
 
-const TRUST_ITEMS = [
+const TRUST_ITEMS: { icon: ReactNode; titleKey: WagyuI18nKey; descKey: WagyuI18nKey }[] = [
   {
     icon: ICONS.dawn,
-    title: "Dawn Market Inspection",
-    desc: "Every cut is personally inspected at first light, selecting only the finest pieces before the market opens to the public.",
+    titleKey: "trust.dawn.title",
+    descKey: "trust.dawn.desc",
   },
   {
     icon: ICONS.cold,
-    title: "Cold Chain Freshness",
-    desc: "Unbroken cold chain from Japanese farms to your door. Temperature-controlled at every step to preserve peak quality.",
+    titleKey: "trust.cold.title",
+    descKey: "trust.cold.desc",
   },
   {
     icon: ICONS.japan,
-    title: "Authentic Japanese Origin",
-    desc: "Sourced directly from certified Japanese prefectures. Every piece comes with full traceability documentation.",
+    titleKey: "trust.japan.title",
+    descKey: "trust.japan.desc",
   },
   {
     icon: ICONS.gift,
-    title: "Premium Packaging",
-    desc: "Delivered in luxury insulated packaging with complimentary wagyu sauce and premium black pepper — ready to gift.",
+    titleKey: "trust.gift.title",
+    descKey: "trust.gift.desc",
   },
   {
     icon: ICONS.cert,
-    title: "JMGA Certified",
-    desc: "All Wagyu is graded and certified by the Japan Meat Grading Association, ensuring authentic A4 and A5 standards.",
+    titleKey: "trust.cert.title",
+    descKey: "trust.cert.desc",
   },
   {
     icon: ICONS.delivery,
-    title: "Reliable Delivery",
-    desc: "Fast, reliable delivery with real-time tracking. Your Wagyu arrives in perfect condition, every single time.",
+    titleKey: "trust.delivery.title",
+    descKey: "trust.delivery.desc",
   },
 ];
 
@@ -152,6 +153,8 @@ const BullMon = () => (
 
 export function TrustSection() {
   const [hovered, setHovered] = useState<number | null>(null);
+  const { t, locale } = useWagyuI18n();
+  const isKm = locale === "km";
 
   return (
     <section
@@ -206,7 +209,7 @@ export function TrustSection() {
                     color: "var(--wagyu-gold)",
                   }}
                 >
-                  Our Promise
+                  {t("trust.eyebrow")}
                 </span>
               </div>
             </Reveal>
@@ -220,18 +223,22 @@ export function TrustSection() {
                   lineHeight: 1.15,
                 }}
               >
-                The <span style={{ color: "var(--wagyu-gold)", fontWeight: 700 }}>BOSBA</span>
+                The{" "}
+                <span style={{ color: "var(--wagyu-gold)", fontWeight: 700 }}>
+                  {t("trust.title.bosba")}
+                </span>
                 <br />
-                <em style={{ color: "var(--wagyu-gold)" }}>Quality</em>
+                <em style={{ color: "var(--wagyu-gold)" }}>{t("trust.title.em")}</em>
                 <br />
-                Promise
+                {t("trust.title.post")}
               </h2>
             </Reveal>
           </div>
           <Reveal delay={200} style={{ paddingBottom: "0.5rem" }}>
             <p
+              lang={locale}
               style={{
-                fontFamily: "'Jost', sans-serif",
+                fontFamily: "'Jost', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -239,8 +246,7 @@ export function TrustSection() {
                 maxWidth: 520,
               }}
             >
-              Every step of our process is designed to remove doubt and deliver confidence — so you
-              can focus entirely on the experience of the world's finest beef.
+              {t("trust.intro")}
             </p>
           </Reveal>
         </div>
@@ -254,7 +260,7 @@ export function TrustSection() {
           }}
         >
           {TRUST_ITEMS.map((item, i) => (
-            <Reveal key={item.title} delay={i * 60}>
+            <Reveal key={item.titleKey} delay={i * 60}>
               <div
                 onMouseEnter={() => setHovered(i)}
                 onMouseLeave={() => setHovered(null)}
@@ -293,18 +299,19 @@ export function TrustSection() {
                     letterSpacing: "0.02em",
                   }}
                 >
-                  {item.title}
+                  {t(item.titleKey)}
                 </h3>
                 <p
+                  lang={locale}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'Jost', 'Battambang', sans-serif",
                     fontSize: "0.85rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.55)",
                     lineHeight: 1.7,
                   }}
                 >
-                  {item.desc}
+                  {t(item.descKey)}
                 </p>
                 <div
                   style={{

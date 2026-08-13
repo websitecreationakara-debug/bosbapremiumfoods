@@ -9,12 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -124,14 +119,26 @@ function SlideImageField({
               <ImageIcon className="size-4 mr-1.5" /> Media library
             </Button>
           </div>
-          <Input value={value} onChange={(e) => onChange(e.target.value)} placeholder="or paste a URL https://..." />
+          <Input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder="or paste a URL https://..."
+          />
         </div>
       </div>
-      <input ref={fileRef} type="file" accept="image/*" hidden onChange={(e) => onUpload(e.target.files?.[0])} />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        hidden
+        onChange={(e) => onUpload(e.target.files?.[0])}
+      />
       {picker && (
         <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
           {mediaItems.length === 0 ? (
-            <p className="text-xs text-muted-foreground p-2">No media yet — upload an image first.</p>
+            <p className="text-xs text-muted-foreground p-2">
+              No media yet — upload an image first.
+            </p>
           ) : (
             <div className="grid grid-cols-5 gap-2">
               {mediaItems.map((m) => (
