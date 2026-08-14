@@ -101,7 +101,7 @@ export function WagyuHeader() {
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", minWidth: 0 }}>
             <Link
-              to="/"
+              to="/wagyu"
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -355,7 +355,7 @@ export function WagyuHeader() {
 
             <SheetClose asChild>
               <Link
-                to="/shop"
+                to="/shop?category=cook-yourself"
                 className="btn-gold"
                 style={{
                   flex: 1,

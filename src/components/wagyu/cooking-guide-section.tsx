@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
-import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
+import { useWagyuI18n, wagyuEn, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
 import image1 from "../../image/cookingguide1.jpg";
 import image2 from "../../image/cooking2.jpg";
 import image3 from "../../image/cookingguide3.jpg";
@@ -12,6 +12,7 @@ const steps: {
   image: string;
   descKey: WagyuI18nKey;
   tipKey: WagyuI18nKey;
+  showShopBtn?: boolean;
 }[] = [
   {
     num: "01",
@@ -35,6 +36,7 @@ const steps: {
     image: image3,
     descKey: "cooking.step3.desc",
     tipKey: "cooking.step3.tip",
+    showShopBtn: true,
   },
 ];
 
@@ -293,6 +295,21 @@ export function CookingGuideSection() {
                       {t(step.tipKey)}
                     </p>
                   </div>
+                  {step.showShopBtn && (
+                    <a
+                      href="/shop?category=cook-yourself"
+                      className="btn-gold"
+                      lang={locale}
+                      style={{
+                        display: "inline-block",
+                        marginTop: "1.5rem",
+                        borderRadius: 0,
+                        textDecoration: "none",
+                      }}
+                    >
+                      {t("cooking.shopBtn")}
+                    </a>
+                  )}
                 </div>
               </div>
             </Reveal>
@@ -326,37 +343,34 @@ export function CookingGuideSection() {
               >
                 <div style={{ fontSize: "2.25rem", marginBottom: "1.5rem" }}>{method.emoji}</div>
                 <div
-                  lang={locale}
+                  lang="en"
                   style={{
-                    fontFamily: "'Jost', 'Battambang', sans-serif",
-                    fontSize: isKm ? "0.7rem" : "0.6rem",
-                    letterSpacing: isKm ? "normal" : "0.2em",
-                    textTransform: isKm ? "none" : "uppercase",
+                    fontFamily: "'Jost', sans-serif",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
                     color: "var(--wagyu-gold)",
                     marginBottom: "0.75rem",
                   }}
                 >
-                  {t(method.prepKey)}
+                  {wagyuEn[method.prepKey]}
                 </div>
                 <h3
-                  lang={locale}
+                  lang="en"
                   style={{
-                    fontFamily: isKm
-                      ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                      : "'Cormorant Garamond', serif",
-                    fontSize: isKm ? "1.3rem" : "1.5rem",
-                    fontWeight: isKm ? 700 : 500,
+                    fontFamily: "'Cormorant Garamond', serif",
+                    fontSize: "1.5rem",
+                    fontWeight: 500,
                     color: "var(--wagyu-text)",
-                    lineHeight: isKm ? 1.4 : undefined,
                     marginBottom: "1rem",
                   }}
                 >
-                  {t(method.titleKey)}
+                  {wagyuEn[method.titleKey]}
                 </h3>
                 <p
-                  lang={locale}
+                  lang="en"
                   style={{
-                    fontFamily: "'Jost', 'Battambang', sans-serif",
+                    fontFamily: "'Jost', sans-serif",
                     fontSize: "0.9rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -364,7 +378,7 @@ export function CookingGuideSection() {
                     marginBottom: "1.5rem",
                   }}
                 >
-                  {t(method.descKey)}
+                  {wagyuEn[method.descKey]}
                 </p>
                 <div
                   style={{
@@ -373,28 +387,28 @@ export function CookingGuideSection() {
                   }}
                 >
                   <div
-                    lang={locale}
+                    lang="en"
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
-                      fontSize: isKm ? "0.7rem" : "0.6rem",
-                      letterSpacing: isKm ? "normal" : "0.15em",
-                      textTransform: isKm ? "none" : "uppercase",
+                      fontFamily: "'Jost', sans-serif",
+                      fontSize: "0.6rem",
+                      letterSpacing: "0.15em",
+                      textTransform: "uppercase",
                       color: "rgba(var(--wagyu-text-rgb),0.45)",
                       marginBottom: "0.35rem",
                     }}
                   >
-                    {t("cooking.proTip")}
+                    {wagyuEn["cooking.proTip"]}
                   </div>
                   <div
-                    lang={locale}
+                    lang="en"
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontFamily: "'Jost', sans-serif",
                       fontSize: "0.8rem",
-                      fontStyle: isKm ? "normal" : "italic",
+                      fontStyle: "italic",
                       color: "rgba(var(--wagyu-text-rgb),0.7)",
                     }}
                   >
-                    {t(method.tipKey)}
+                    {wagyuEn[method.tipKey]}
                   </div>
                 </div>
               </div>

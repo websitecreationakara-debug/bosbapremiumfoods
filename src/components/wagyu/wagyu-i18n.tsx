@@ -7,7 +7,7 @@ export const WAGYU_LOCALES: { code: WagyuLocale; label: string }[] = [
   { code: "en", label: "EN" },
 ];
 
-const en = {
+export const wagyuEn = {
   "hero.eyebrow": "BOSBA Premium Foods — Japanese Wagyu",
   "hero.title.line1": "The Journey of",
   "hero.title.line2": "Japanese Wagyu",
@@ -70,6 +70,7 @@ const en = {
   "whyWagyu.tier.a4.desc": "Exceptional snowflake marbling",
   "whyWagyu.tier.a5.label": "Japanese Wagyu A5",
   "whyWagyu.tier.a5.desc": "The pinnacle — pure luxury",
+  "whyWagyu.shopBtn": "Shop Now",
   "trust.eyebrow": "Our Promise",
   "trust.title.bosba": "BOSBA",
   "trust.title.em": "Quality",
@@ -145,6 +146,7 @@ const en = {
     "Rest the steak for 2–3 minutes on a warm board. Slice against the grain into thin pieces — Wagyu is best enjoyed in smaller portions to fully appreciate its richness.",
   "cooking.step3.tip":
     "Chef's Tip: Serve with yuzu ponzu or wasabi. A5 pairs beautifully with a light red wine or sake.",
+  "cooking.shopBtn": "Shop Now",
   "cooking.method1.title": "Wagyu Steak",
   "cooking.method1.prep": "Salt · Pepper · High Heat",
   "cooking.method1.desc":
@@ -196,7 +198,7 @@ const en = {
   "finalCta.badge.authentic": "Authentic Japan",
 } as const;
 
-export type WagyuI18nKey = keyof typeof en;
+export type WagyuI18nKey = keyof typeof wagyuEn;
 type Dict = Record<WagyuI18nKey, string>;
 
 const km: Dict = {
@@ -255,6 +257,7 @@ const km: Dict = {
     "— ដែលជាពាក្យក្នុងភាសាជប៉ុន ប្រើដើម្បីបរិយាយពីខ្លាញ់ដែលមានរសជាតិឆ្ងាញ់ ដោយខ្លាញ់នេះជាសរសៃខ្លាញ់ដែលមាននៅក្នុងសាច់ស្រាប់ដែលទូទៅគេហៅថា (Marbling) ជាតិខ្លាញ់នេះនឹងរលាយនៅពេលអ្នកចម្អិនវា ដោយបង្កើតរសជាតិដ៏សម្បូរបែប ប៊ឺ និងពោរពេញដោយ umami។",
   "whyWagyu.p2":
     "សាច់គោជប៉ុន (Wagyu) ត្រូវបានចិញ្ចឹមក្នុងរយៈពេលជាង 30ខែ ជាមួយនឹងការផ្ដល់ចំណីដែលល្អ ការយកចិត្តទុកដាក់ក្នុងការចិញ្ចឹមយ៉ាងប្រុងប្រយ័ត្ន និង បរិយាកាសដែលគ្មានភាពតានតឹង។ ដំណើរការទាំងនេះនាំមកនូវលទ្ធផលគនៃសាច់គោ ដែលមានលំដាប់ខ្ពស់ និងត្រូវបានចាត់លំដាប់ថ្នាក់ពី A1 ដល់ A5 ដោយ A5 ជាលំដាប់ថ្នាក់ខ្ពស់ជាងគេបំផុត។",
+  "whyWagyu.shopBtn": "ទិញឥឡូវនេះ",
   "whyWagyu.tier.regular.label": "Regular Beef",
   "whyWagyu.tier.regular.desc": "Standard marbling, everyday flavor",
   "whyWagyu.tier.australian.label": "Australian Wagyu",
@@ -268,25 +271,25 @@ const km: Dict = {
   "trust.title.em": "Quality",
   "trust.title.post": "Promise",
   "trust.intro":
-    "គ្រប់ជំហាននៃដំណើរការនីមួយៗរបស់យើង ធ្វើឡើងដើម្បីលុបបំបាត់នូវបន្ទិលសង្ស័យ និង ផ្តល់នូវទំនុកចិត្តដល់អតិថិជនទៅលើផលិតផលមួយនេះ។ ដូច្នេះអតិថិជនគ្រប់រូបអាចផ្តោតទាំងស្រុងលើបទពិសោធន៍នៃសាច់គោដែលមានគុណភាពល្អបំផុតរបស់ពីប្រទេសជប៉ុនជាមួយខាងហាង BOSBA Premium Foods យើងបាន",
+    "គ្រប់ជំហាននៃដំណើរការនីមួយៗរបស់យើង ធ្វើឡើងដើម្បីលុបបំបាត់នូវបន្ទិលសង្ស័យ និង ផ្តល់នូវទំនុកចិត្តដល់អតិថិជនទៅលើផលិតផលមួយនេះ។ ដូច្នេះអតិថិជនគ្រប់រូបអាចផ្តោតទាំងស្រុងលើបទពិសោធន៍នៃសាច់គោដែលមានគុណភាពល្អបំផុតរបស់ពីប្រទេសជប៉ុនជាមួយខាងហាង BOSBA Premium Foods យើងបាន។",
   "trust.dawn.title": "Dawn Market Inspection",
   "trust.dawn.desc":
-    "សាច់គោរាល់ដុំត្រូវបានត្រួតពិនិត្យដោយផ្ទាល់នៅដើមព្រឹក ដោយជ្រើសរើសយកតែដុំល្អបំផុត មុនពេលផ្សារបើកជូនសាធារណជន។",
+    "គ្រប់កំណាត់នៃសាច់គោជប៉ុន ត្រូវបានត្រួតពិនិត្យយ៉ាងប្រុងប្រយ័ត្ន មុនការជ្រើសរើសយកមកដាក់លក់ ដោយខាងអ្នកផ្គត់ផ្គង់ផ្ទាល់នឹងទៅដល់ទីតាំងដាក់លក់ពេលព្រឹកមុនពេលផ្សារបើកទៀត ដើម្បីបានកំណាត់នៃសាច់គោជប៉ុនដែលល្អបំផុត។",
   "trust.cold.title": "Cold Chain Freshness",
   "trust.cold.desc":
-    "ខ្សែសង្វាក់ត្រជាក់ដែលមិនដាច់ពីកសិដ្ឋានជប៉ុនរហូតដល់ទ្វារផ្ទះអ្នក។ សីតុណ្ហភាពត្រូវបានគ្រប់គ្រងគ្រប់ជំហាន ដើម្បីរក្សាគុណភាពខ្ពស់បំផុត។",
+    "ធានានូវភាពស្រស់នៃសាច់គោជប៉ុន (Wagyu) ដោយគ្រប់ជំហានមុននឹងមកដល់ហាង BOSBA Premium Foods  គឺខាងយើងបានធ្វើការគ្រប់គ្រងទៅលើសីតុណ្ហភាពនៃសាច់យ៉ាងតឹងរឹង និង ជិតដិតដើម្បីធានាបាននូវគុណភាពមួយដែលនឹងមិនធ្វើអោយអតិជនខកជិតទេ។",
   "trust.japan.title": "Authentic Japanese Origin",
   "trust.japan.desc":
-    "ដកស្រង់ដោយផ្ទាល់ពីខេត្តជប៉ុនដែលមានវិញ្ញាបនបត្រ។ ដុំសាច់នីមួយៗមានឯកសារតាមដានប្រភពពេញលេញ។",
+    "មានប្រភពនៃការនាំចូលច្បាស់លាស់ដែលមានបញ្ចាក់នូវវិញ្ញាបនបត្រ។ គ្រប់បំណេក និងកំណាត់នៃសាច់សុទ្ធតែមានភ្ជាប់មកជាមួយឯកសារដែលអាចតាមដានបានយ៉ាងត្រឺមត្រូវ។",
   "trust.gift.title": "Premium Packaging",
   "trust.gift.desc":
-    "ដឹកជញ្ជូនក្នុងកញ្ចប់ខ្ចប់ប្រណីតដែលរក្សាសីតុណ្ហភាព ភ្ជាប់ជាមួយទឹកជ្រលក់វ៉ាហ្គុយ និងម្រេចខ្មៅប្រណីតដោយឥតគិតថ្លៃ — ត្រៀមខ្លួនសម្រាប់ជាអំណោយ។",
+    "ដឹកជញ្ជូនក្នុងការវេចខ្ចប់ដែលមានការរៀបចំដាក់ក្នុងឡាំងដែលមាននូវទឹកកត្រឹមត្រូវ ដើម្បីរក្សារសីតុណ្ហភាព និង គុណភាព លើសពីនេះក៏មានការថែមជូននូវទឹកជ្រលក់ BBQ និង ម្រេចខ្មៅមួយឈុតផងដែរ។",
   "trust.cert.title": "JMGA Certified",
   "trust.cert.desc":
-    "សាច់គោជប៉ុន (Wagyu) ទាំងអស់ត្រូវបានវាយតម្លៃ និងបញ្ជាក់ដោយសមាគមវាយតម្លៃសាច់ជប៉ុន (JMGA) ដើម្បីធានាបាននូវស្តង់ដារ A4 និង A5 ពិតប្រាកដ។",
+    "គ្រប់សាច់គោជប៉ុន (Wagyu) ទាំងអស់ត្រូវបានចាត់ចំណាត់ថ្នាក់ និងបញ្ជាក់ដោយសមាគមចាត់ថ្នាក់សាច់ជប៉ុន ដែលធានានូវស្តង់ដារ A4 និង A5 ពិតប្រាកដ។",
   "trust.delivery.title": "Reliable Delivery",
   "trust.delivery.desc":
-    "សេវាដឹកជញ្ជូនលឿន និងគួរឱ្យទុកចិត្ត ជាមួយនឹងការតាមដានពេលវេលាជាក់ស្តែង។ សាច់គោវ៉ាហ្គុយរបស់អ្នកមកដល់ក្នុងស្ថានភាពល្អឥតខ្ចោះជានិច្ច។",
+    "ការដឹកជញ្ជូនលឿន និងអាចទុកចិត្តបានជាមួយនឹងការតាមដានពេលវេលាជាក់ស្តែង។ សាច់គោជប៉ុន (Wagyu) របស់អ្នកនឹងទៅដល់ដៃក្នុងស្ថានភាពដែលល្អឥតខ្ចោះគ្រប់ពេលវេលា។",
   "supplyChain.intro":
     "ចាប់ពីប្រភពដើមនៅប្រទេសជប៉ុន រហូតដល់តុអាហាររបស់អ្នកនៅកម្ពុជា យើងខ្ញុំយកចិត្តទុកដាក់ដោះស្រាយផលិតផលពិសេសរបស់យើង ដើម្បីរក្សាគុណភាពដែលអ្នកទុកចិត្តពី BOSBA។",
   "supplyChain.farm.title": "កសិដ្ឋានមីយ៉ាហ្សាគី",
@@ -295,7 +298,7 @@ const km: Dict = {
   "supplyChain.wagyu.sub": "ចិញ្ចឹម និងវាយតម្លៃ",
   "supplyChain.quality.title": "ការគ្រប់គ្រងគុណភាព",
   "supplyChain.quality.sub": "ត្រួតពិនិត្យ",
-  "supplyChain.cold.title": "ខ្សែសង្វាក់ត្រជាក់",
+  "supplyChain.cold.title": "ការគ្រប់គ្រងសីតុណ្ហភាព2",
   "supplyChain.cold.sub": "ការរក្សាទុក",
   "supplyChain.cambodia.title": "កម្ពុជា",
   "supplyChain.cambodia.sub": "ទិសដៅ",
@@ -336,6 +339,7 @@ const km: Dict = {
     "ទុកសាច់ចោលរយៈពេល 2-3 នាទី បន្ទាប់មកអាចហាន់ជាចំណិតទុចល្មម ដើម្បីទទួលបានរសជាតិដ៏សម្បូរបែបនៃសាច់។",
   "cooking.step3.tip":
     "គន្លឹះរបស់មេចុងភៅ៖ អាចទទួលទានបានជាមួយ yuzu ponzu និង wasabi ឬ ជាមួួយទឹកជ្រលក់ BBQ ក៏បាន។",
+  "cooking.shopBtn": "ទិញឥឡូវនេះ",
   "cooking.method1.title": "សាច់អាំងវ៉ាហ្គុយ (Wagyu Steak)",
   "cooking.method1.prep": "អំបិល · ម្រេច · កំដៅខ្ពស់",
   "cooking.method1.desc":
@@ -387,7 +391,7 @@ const km: Dict = {
   "finalCta.badge.authentic": "ពិតប្រាកដពីជប៉ុន",
 };
 
-const DICTS: Record<WagyuLocale, Dict> = { en, km };
+const DICTS: Record<WagyuLocale, Dict> = { en: wagyuEn, km };
 
 const STORAGE_KEY = "wagyu-locale";
 
@@ -412,7 +416,7 @@ export function WagyuLanguageProvider({ children }: { children: ReactNode }) {
     localStorage.setItem(STORAGE_KEY, l);
   };
 
-  const t = (key: WagyuI18nKey) => DICTS[locale][key] ?? en[key] ?? key;
+  const t = (key: WagyuI18nKey) => DICTS[locale][key] ?? wagyuEn[key] ?? key;
 
   return (
     <WagyuI18nContext.Provider value={{ locale, setLocale, t }}>

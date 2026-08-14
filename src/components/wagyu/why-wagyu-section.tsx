@@ -286,6 +286,20 @@ export function WhyWagyuSection() {
             <div style={{ position: "absolute", top: -20, left: -20 }}>
               <BullMon size={50} opacity={0.4} />
             </div>
+
+            <a
+              href="/shop?category=cook-yourself"
+              className="btn-gold"
+              lang={locale}
+              style={{
+                display: "inline-block",
+                marginTop: "1.75rem",
+                borderRadius: 0,
+                textDecoration: "none",
+              }}
+            >
+              {t("whyWagyu.shopBtn")}
+            </a>
           </Reveal>
         </div>
       </div>
