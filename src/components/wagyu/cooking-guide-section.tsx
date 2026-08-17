@@ -84,6 +84,7 @@ function StepPanel({ num, image }: { num: string; image?: string }) {
           border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
           overflow: "hidden",
         }}
+        className="rounded-sm"
       >
         <img
           src={image}
@@ -340,6 +341,7 @@ export function CookingGuideSection() {
                 onMouseLeave={(e) => {
                   e.currentTarget.style.borderColor = "rgba(var(--wagyu-gold-rgb),0.2)";
                 }}
+                className="rounded-sm"
               >
                 <div style={{ fontSize: "2.25rem", marginBottom: "1.5rem" }}>{method.emoji}</div>
                 <div

@@ -90,6 +90,7 @@ export function FAQSection() {
                   border: `1px solid ${open === i ? "rgba(var(--wagyu-gold-rgb),0.4)" : "rgba(var(--wagyu-gold-rgb),0.12)"}`,
                   transition: "border-color 0.3s",
                 }}
+                className="rounded-sm"
               >
                 <button
                   className="faq-trigger"

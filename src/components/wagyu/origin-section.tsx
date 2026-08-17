@@ -190,6 +190,7 @@ export function OriginSection() {
               display: "flex",
               gap: "1.5rem",
             }}
+            className="rounded-sm"
           >
             <span
               aria-hidden

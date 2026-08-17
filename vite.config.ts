@@ -40,7 +40,11 @@ export default defineConfig({
   vite: {
     // Pin to 8080 (the Cloudflare worker's internal host port) so the OAuth redirect_uri
     // the worker generates matches the port the browser is actually on. strictPort keeps it stable.
-    server: { port: 5173, strictPort: true ,allowedHosts: ['include-concentrate-screensavers-governor.trycloudflare.com'],},
+    server: {
+      port: 5173,
+      strictPort: true,
+      allowedHosts: ["quarterly-trees-vermont-device.trycloudflare.com"],
+    },
     // Only the bare "kysely" specifier (not subpaths) maps to the shim that adds the
     // two migration constants @better-auth/kysely-adapter expects (see the shim file).
     resolve: {

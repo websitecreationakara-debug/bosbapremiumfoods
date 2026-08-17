@@ -120,6 +120,7 @@ export function GallerySection() {
                   cursor: "pointer",
                   aspectRatio: img.span === 2 ? "16/7" : "1/1",
                 }}
+                className="rounded-sm"
               >
                 <img
                   src={img.src}

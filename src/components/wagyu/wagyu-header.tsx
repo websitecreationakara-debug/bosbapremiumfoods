@@ -197,7 +197,7 @@ export function WagyuHeader() {
 
             <Link
               to="/shop"
-              className="btn-gold"
+              className="btn-gold !rounded-sm"
               style={{
                 textDecoration: "none",
                 whiteSpace: "nowrap",
@@ -361,6 +361,7 @@ export function WagyuHeader() {
                   flex: 1,
                   textAlign: "center",
                   textDecoration: "none",
+                  borderRadius: "0.5rem",
                 }}
               >
                 Choose Your Wagyu
