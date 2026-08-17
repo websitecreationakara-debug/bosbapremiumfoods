@@ -169,7 +169,7 @@ export function ChapterBeginningSection() {
           </div>
 
           <Reveal direction="right" delay={200} style={{ position: "relative" }}>
-            <div style={{ position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "relative", overflow: "hidden" }} className="rounded-sm">
               <img
                 src={imagefarm}
                 alt="Misty mountains above a traditional Japanese farmhouse"

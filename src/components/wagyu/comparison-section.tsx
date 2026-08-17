@@ -198,6 +198,7 @@ export function ComparisonSection() {
               border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
               marginBottom: "2.75rem",
             }}
+            className="rounded-sm"
           >
             {/* A5 (right, full width) */}
             <img
@@ -343,6 +344,7 @@ export function ComparisonSection() {
                   padding: "clamp(1.75rem, 4vw, 2.75rem)",
                   height: "100%",
                 }}
+                className="rounded-sm"
               >
                 <div
                   style={{
@@ -487,7 +489,7 @@ export function ComparisonSection() {
                 <div style={{ marginTop: "2rem" }}>
                   <Link
                     to={g.link}
-                    className="btn-gold"
+                    className="btn-gold rounded-sm"
                     style={{ display: "inline-block", textDecoration: "none" }}
                   >
                     {t("comparison.cta")} {g.grade}

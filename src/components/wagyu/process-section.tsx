@@ -61,7 +61,7 @@ export function ProcessSection() {
         </div>
 
         <Reveal delay={200} style={{ position: "relative" }}>
-          <div style={{ position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "relative", overflow: "hidden" }} className="rounded-sm">
             <img
               src={imagewugyu}
               alt="Cattle grazing beside a traditional Japanese farmhouse in the misty mountains"

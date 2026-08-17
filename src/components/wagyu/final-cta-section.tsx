@@ -152,17 +152,17 @@ export function FinalCTASection() {
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <a
               href="/shop"
-              className="btn-gold"
+              className="btn-gold rounded-sm"
               lang={locale}
-              style={{ borderRadius: 0, textDecoration: "none" }}
+              style={{ textDecoration: "none" }}
             >
               {t("finalCta.exploreBtn")}
             </a>
             <a
               href="tel:+85599361350"
-              className="btn-outline-gold"
+              className="btn-outline-gold rounded-sm"
               lang={locale}
-              style={{ borderRadius: 0, textDecoration: "none" }}
+              style={{ textDecoration: "none" }}
             >
               {t("finalCta.contactBtn")}
             </a>

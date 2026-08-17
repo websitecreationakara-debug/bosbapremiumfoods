@@ -245,7 +245,7 @@ export function WhyWagyuSection() {
           </div>
 
           <Reveal direction="right" delay={200} style={{ position: "relative" }}>
-            <div style={{ position: "relative", overflow: "hidden" }}>
+            <div style={{ position: "relative", overflow: "hidden" }} className="rounded-sm outline-2 border border-0">
               <img
                 src={eduimage}
                 alt="Wagyu snowflake marbling close-up"
@@ -289,7 +289,7 @@ export function WhyWagyuSection() {
 
             <a
               href="/shop?category=cook-yourself"
-              className="btn-gold"
+              className="btn-gold !rounded-sm"
               lang={locale}
               style={{
                 display: "inline-block",

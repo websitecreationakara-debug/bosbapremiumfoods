@@ -30,6 +30,7 @@ export function JourneyTimelineSection() {
               border: "1px solid rgba(var(--wagyu-gold-rgb),0.2)",
               padding: "clamp(2.5rem, 6vw, 4rem) clamp(1.5rem, 5vw, 3rem)",
             }}
+            className="rounded-sm"
           >
             <div style={{ textAlign: "center", marginBottom: "2.25rem" }}>
               <span
