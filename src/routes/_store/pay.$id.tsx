@@ -119,11 +119,11 @@ function PayScreen() {
       }
     };
     tick();
-    // Bakong's personal-account Open API caps at 100 requests/day — at the
-    // old 3s interval, a single order's 3-minute wait alone burned ~60 of
-    // them. 10s keeps one checkout under 20 requests, leaving room for
-    // several orders/day instead of one.
-    const t = setInterval(tick, 10000);
+    // Bakong's personal-account Open API caps at 100 requests/day. Paired
+    // with the 1-minute QR expiration (src/lib/bakong.ts), 30s means at most
+    // ~2 checks per checkout attempt — around 50 attempts/day instead of 5-6
+    // at the previous 10s/3min pairing.
+    const t = setInterval(tick, 30000);
     return () => {
       stop = true;
       clearInterval(t);

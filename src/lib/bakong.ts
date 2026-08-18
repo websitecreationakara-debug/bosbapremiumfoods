@@ -80,7 +80,7 @@ export async function createBakongKhqr({
   amount,
   existing,
   currency = "USD",
-  expireMinutes = 3,
+  expireMinutes = 1,
 }: CreateArgs): Promise<KhqrCharge> {
   if (existing && (!existing.expiresAt || new Date(existing.expiresAt).getTime() > Date.now())) {
     return {
