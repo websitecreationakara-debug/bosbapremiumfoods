@@ -188,7 +188,10 @@ function ProductsAdmin() {
     setUploading(true);
     try {
       const fd = new FormData();
-      fd.append("file", await compressImage(file));
+      // Product photos never render larger than ~600px (product detail page)
+      // or ~200px (shop grid cards) — 800px covers both with 2x retina
+      // headroom, versus the 1600px default meant for full-bleed banners.
+      fd.append("file", await compressImage(file, { maxDim: 800 }));
       const { url } = await uploadMedia({ data: fd });
       setForm((f) => ({ ...f, image_url: url }));
       qc.invalidateQueries({ queryKey: ["media"] });
@@ -207,7 +210,7 @@ function ProductsAdmin() {
     try {
       for (const file of Array.from(files)) {
         const fd = new FormData();
-        fd.append("file", await compressImage(file));
+        fd.append("file", await compressImage(file, { maxDim: 800 }));
         const { url } = await uploadMedia({ data: fd });
         setGallery((g) => [...g, url]);
       }
