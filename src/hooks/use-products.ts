@@ -112,7 +112,9 @@ export function usePendingOrderCount(enabled: boolean) {
     queryKey: ["orders-pending-count"],
     queryFn: () => countPendingOrders() as Promise<number>,
     enabled,
+    // Backgrounded tabs don't refetch — React Query's default already pauses
+    // the interval then and refetches on refocus, which is all this sidebar
+    // badge needs.
     refetchInterval: 30000,
-    refetchIntervalInBackground: true,
   });
 }
