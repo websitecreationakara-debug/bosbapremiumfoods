@@ -28,8 +28,9 @@ function PayScreen() {
   const [confirming, setConfirming] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [quotaExceeded, setQuotaExceeded] = useState(false);
+  const [expired, setExpired] = useState(false);
+  const [regenerating, setRegenerating] = useState(false);
   const goneToThankYou = useRef(false);
-  const refreshing = useRef(false);
 
   const waiting = !!charge && charge.status === "unpaid";
 
@@ -46,6 +47,7 @@ function PayScreen() {
         finish();
         return;
       }
+      setExpired(false);
       setCharge(r as Charge);
     });
 
@@ -61,9 +63,11 @@ function PayScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
-  // Live countdown to the QR's expiration. Once it hits zero, fetch a fresh
-  // charge — startPayment already knows to regenerate rather than re-serve an
-  // expired one (see src/lib/bakong.ts).
+  // Live countdown to the QR's expiration. Once it hits zero, the code just
+  // goes dead — no silent auto-swap. A stale, abandoned /pay tab shouldn't
+  // keep generating new codes and polling forever; the customer has to
+  // explicitly ask for a new one (button below), same as this stops the
+  // payment-confirmation polling below.
   useEffect(() => {
     if (!charge?.expiresAt || paid) {
       setSecondsLeft(null);
@@ -73,14 +77,7 @@ function PayScreen() {
     const tick = () => {
       const left = Math.max(0, Math.round((expiresAtMs - Date.now()) / 1000));
       setSecondsLeft(left);
-      if (left === 0 && !refreshing.current) {
-        refreshing.current = true;
-        fetchCharge()
-          .catch(() => {})
-          .finally(() => {
-            refreshing.current = false;
-          });
-      }
+      if (left === 0) setExpired(true);
     };
     tick();
     const t = setInterval(tick, 1000);
@@ -88,10 +85,23 @@ function PayScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charge?.expiresAt, paid]);
 
+  const regenerate = async () => {
+    setRegenerating(true);
+    try {
+      await fetchCharge();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Couldn't generate a new code");
+    } finally {
+      setRegenerating(false);
+    }
+  };
+
   // Poll for confirmation while waiting. In real mode checkPayment asks Bakong
   // (check_transaction_by_md5); in mock mode the "I've paid" button drives it.
+  // Stops once the code expires — an expired, un-scannable QR can't have been
+  // paid against, and there's no point spending further quota checking it.
   useEffect(() => {
-    if (!waiting || paid) return;
+    if (!waiting || paid || expired) return;
     let stop = false;
     const tick = async () => {
       try {
@@ -119,7 +129,7 @@ function PayScreen() {
       clearInterval(t);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [waiting, paid, id]);
+  }, [waiting, paid, expired, id]);
 
   const simulate = async () => {
     setConfirming(true);
@@ -178,24 +188,48 @@ function PayScreen() {
           <span>KHQR</span>
         </div>
         <div className="mt-4 flex justify-center">
-          <div className="rounded-2xl bg-white p-4">
-            <QRCodeSVG value={charge.qrString ?? ""} size={208} marginSize={1} />
+          <div className="relative rounded-2xl bg-white p-4">
+            <QRCodeSVG
+              value={charge.qrString ?? ""}
+              size={208}
+              marginSize={1}
+              className={expired ? "opacity-20" : undefined}
+            />
+            {expired && (
+              <div className="absolute inset-0 grid place-items-center">
+                <span className="rounded-full bg-foreground px-4 py-1.5 text-xs font-bold uppercase tracking-wide text-background">
+                  Expired
+                </span>
+              </div>
+            )}
           </div>
         </div>
         <div className="mt-5 font-display font-bold text-3xl">${charge.amount.toFixed(2)}</div>
         <div className="mt-1 text-xs text-muted-foreground">
           Order #{id.slice(0, 8).toUpperCase()}
         </div>
-        {secondsLeft != null && (
+        {secondsLeft != null && !expired && (
           <div className="mt-3 text-xs text-muted-foreground">
-            {secondsLeft > 0
-              ? `Expires in ${mm}:${String(ss).padStart(2, "0")}`
-              : "Refreshing your code…"}
+            Expires in {mm}:{String(ss).padStart(2, "0")}
           </div>
         )}
       </div>
 
-      {quotaExceeded ? (
+      {expired ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-border bg-muted p-5 text-left">
+          <p className="text-sm font-semibold">This code has expired</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            It&rsquo;s no longer scannable. Generate a new one to continue paying.
+          </p>
+          <Button
+            onClick={regenerate}
+            disabled={regenerating}
+            className="mt-3 w-full rounded-full"
+          >
+            {regenerating ? "Generating…" : "Generate new code"}
+          </Button>
+        </div>
+      ) : quotaExceeded ? (
         <div className="mt-6 rounded-2xl border border-dashed border-destructive/60 bg-destructive/10 p-5 text-left">
           <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
             <AlertTriangle className="size-4" /> Can&rsquo;t confirm payment right now
