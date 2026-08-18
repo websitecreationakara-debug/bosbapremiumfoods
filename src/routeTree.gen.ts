@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as StoreRouteImport } from './routes/_store'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as WagyuRouteImport } from './routes/wagyu'
 import { Route as StoreIndexRouteImport } from './routes/_store/index'
 import { Route as StoreAccountRouteImport } from './routes/_store/account'
 import { Route as StoreAddressesRouteImport } from './routes/_store/addresses'
@@ -21,7 +22,6 @@ import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
 import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
-import { Route as StoreWagyuRouteImport } from './routes/_store/wagyu'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
@@ -48,6 +48,11 @@ const AdminRoute = AdminRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WagyuRoute = WagyuRouteImport.update({
+  id: '/wagyu',
+  path: '/wagyu',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StoreIndexRoute = StoreIndexRouteImport.update({
@@ -93,11 +98,6 @@ const StoreShopRoute = StoreShopRouteImport.update({
 const StoreThankYouRoute = StoreThankYouRouteImport.update({
   id: '/thank-you',
   path: '/thank-you',
-  getParentRoute: () => StoreRoute,
-} as any)
-const StoreWagyuRoute = StoreWagyuRouteImport.update({
-  id: '/wagyu',
-  path: '/wagyu',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreWishlistRoute = StoreWishlistRouteImport.update({
@@ -170,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/wagyu': typeof WagyuRoute
   '/account': typeof StoreAccountRoute
   '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
@@ -178,7 +179,6 @@ export interface FileRoutesByFullPath {
   '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
-  '/wagyu': typeof StoreWagyuRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -195,6 +195,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
+  '/wagyu': typeof WagyuRoute
   '/account': typeof StoreAccountRoute
   '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
@@ -203,7 +204,6 @@ export interface FileRoutesByTo {
   '/privacy': typeof StorePrivacyRoute
   '/shop': typeof StoreShopRoute
   '/thank-you': typeof StoreThankYouRoute
-  '/wagyu': typeof StoreWagyuRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -224,6 +224,7 @@ export interface FileRoutesById {
   '/_store': typeof StoreRouteWithChildren
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
+  '/wagyu': typeof WagyuRoute
   '/_store/account': typeof StoreAccountRoute
   '/_store/addresses': typeof StoreAddressesRoute
   '/_store/checkout': typeof StoreCheckoutRoute
@@ -232,7 +233,6 @@ export interface FileRoutesById {
   '/_store/privacy': typeof StorePrivacyRoute
   '/_store/shop': typeof StoreShopRoute
   '/_store/thank-you': typeof StoreThankYouRoute
-  '/_store/wagyu': typeof StoreWagyuRoute
   '/_store/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
@@ -254,6 +254,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/auth'
+    | '/wagyu'
     | '/account'
     | '/addresses'
     | '/checkout'
@@ -262,7 +263,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/shop'
     | '/thank-you'
-    | '/wagyu'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -279,6 +279,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/auth'
+    | '/wagyu'
     | '/account'
     | '/addresses'
     | '/checkout'
@@ -287,7 +288,6 @@ export interface FileRouteTypes {
     | '/privacy'
     | '/shop'
     | '/thank-you'
-    | '/wagyu'
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -307,6 +307,7 @@ export interface FileRouteTypes {
     | '/_store'
     | '/admin'
     | '/auth'
+    | '/wagyu'
     | '/_store/account'
     | '/_store/addresses'
     | '/_store/checkout'
@@ -315,7 +316,6 @@ export interface FileRouteTypes {
     | '/_store/privacy'
     | '/_store/shop'
     | '/_store/thank-you'
-    | '/_store/wagyu'
     | '/_store/wishlist'
     | '/admin/banners'
     | '/admin/categories'
@@ -336,6 +336,7 @@ export interface RootRouteChildren {
   StoreRoute: typeof StoreRouteWithChildren
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  WagyuRoute: typeof WagyuRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -359,6 +360,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/wagyu': {
+      id: '/wagyu'
+      path: '/wagyu'
+      fullPath: '/wagyu'
+      preLoaderRoute: typeof WagyuRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_store/': {
@@ -422,13 +430,6 @@ declare module '@tanstack/react-router' {
       path: '/thank-you'
       fullPath: '/thank-you'
       preLoaderRoute: typeof StoreThankYouRouteImport
-      parentRoute: typeof StoreRoute
-    }
-    '/_store/wagyu': {
-      id: '/_store/wagyu'
-      path: '/wagyu'
-      fullPath: '/wagyu'
-      preLoaderRoute: typeof StoreWagyuRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/wishlist': {
@@ -534,7 +535,6 @@ interface StoreRouteChildren {
   StorePrivacyRoute: typeof StorePrivacyRoute
   StoreShopRoute: typeof StoreShopRoute
   StoreThankYouRoute: typeof StoreThankYouRoute
-  StoreWagyuRoute: typeof StoreWagyuRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
   StorePayIdRoute: typeof StorePayIdRoute
@@ -550,7 +550,6 @@ const StoreRouteChildren: StoreRouteChildren = {
   StorePrivacyRoute: StorePrivacyRoute,
   StoreShopRoute: StoreShopRoute,
   StoreThankYouRoute: StoreThankYouRoute,
-  StoreWagyuRoute: StoreWagyuRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
   StorePayIdRoute: StorePayIdRoute,
@@ -591,6 +590,7 @@ const rootRouteChildren: RootRouteChildren = {
   StoreRoute: StoreRouteWithChildren,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  WagyuRoute: WagyuRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

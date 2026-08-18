@@ -19,7 +19,7 @@ import { GallerySection } from "@/components/wagyu/gallery-section";
 import { FAQSection } from "@/components/wagyu/faq-section";
 import { FinalCTASection } from "@/components/wagyu/final-cta-section";
 
-export const Route = createFileRoute("/_store/wagyu")({
+export const Route = createFileRoute("/wagyu")({
   head: () => ({
     meta: [
       { title: "Authentic Japanese Wagyu — BOSBA Premium Foods" },
@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_store/wagyu")({
       { rel: "canonical", href: "https://bosbapremiumfoods.com/wagyu" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Battambang:wght@300;400;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Noto+Serif+JP:wght@300;400&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Battambang:wght@300;400;700&family=Kantumruy+Pro:wght@400;500;600;700&family=Noto+Serif+JP:wght@300;400&display=swap",
       },
     ],
   }),
@@ -70,8 +70,8 @@ function WagyuPage() {
 }
 
 // `lang` drives the `:lang(km)` rules in wagyu.css that swap in Battambang
-// (Khmer script isn't covered by Cormorant Garamond/Jost/DM Mono) and loosen
-// line-height so Khmer diacritics don't clip under the tight Latin leading.
+// (Khmer script isn't covered by DM Sans) and loosen line-height so Khmer
+// diacritics don't clip under the tight Latin leading.
 function WagyuPageContent() {
   const { locale } = useWagyuI18n();
 

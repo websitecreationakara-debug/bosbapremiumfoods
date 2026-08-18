@@ -74,7 +74,7 @@ const en = {
   "shop.noProductsSub": "Try adjusting your filters or search term.",
   "shop.clearFilters": "Clear filters",
   // offers
-  "nav.offers": "Offers",
+  "nav.offers": "Promotion",
   "offers.title": "Special Offers",
   "offers.subtitle": "Limited-time deals on our premium picks.",
   "offers.empty": "No active offers right now — check back soon!",
