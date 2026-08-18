@@ -3,14 +3,10 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { startPayment, checkPayment, mockPay } from "@/data/payments";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldCheck, CheckCircle2, Smartphone, XCircle } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle2, Smartphone } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pay/$id")({
-  validateSearch: (s: Record<string, unknown>) => ({
-    ret: s.return === "1",
-    failed: s.failed === "1",
-  }),
   component: PayScreen,
 });
 
@@ -18,14 +14,12 @@ type Charge = {
   status: "unpaid" | "paid";
   amount: number;
   mock: boolean;
-  paymentURL?: string;
   qrString?: string;
   ref?: string;
 };
 
 function PayScreen() {
   const { id } = Route.useParams();
-  const { ret, failed } = Route.useSearch();
   const navigate = useNavigate();
   const [charge, setCharge] = useState<Charge | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,9 +27,7 @@ function PayScreen() {
   const [confirming, setConfirming] = useState(false);
   const goneToThankYou = useRef(false);
 
-  // True while we're waiting on the gateway: either the customer just came back
-  // from PPCBank's page (?return=1) or we're in mock mode showing our own QR.
-  const waiting = ret || (!!charge && charge.mock && charge.status === "unpaid");
+  const waiting = !!charge && charge.status === "unpaid";
 
   const finish = () => {
     if (goneToThankYou.current) return;
@@ -44,19 +36,13 @@ function PayScreen() {
     setTimeout(() => navigate({ to: "/thank-you" }), 1200);
   };
 
-  // First visit only: create the charge. Real mode redirects to PPCBank's hosted
-  // page; mock mode renders our own QR. Skipped when returning from the gateway.
+  // Create (or re-fetch the already-issued) charge and render its KHQR.
   useEffect(() => {
-    if (ret || failed) return;
     let cancelled = false;
     startPayment({ data: { orderId: id } })
       .then((r) => {
         if (cancelled) return;
         if (r.status === "paid") return finish();
-        if (!r.mock && r.paymentURL) {
-          window.location.assign(r.paymentURL);
-          return;
-        }
         setCharge(r as Charge);
       })
       .catch(
@@ -66,10 +52,10 @@ function PayScreen() {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, ret, failed]);
+  }, [id]);
 
-  // Poll for confirmation while waiting. In real mode checkPayment asks PPCBank
-  // (PMS1024); in mock mode the "I've paid" button drives it instead.
+  // Poll for confirmation while waiting. In real mode checkPayment asks Bakong
+  // (check_transaction_by_md5); in mock mode the "I've paid" button drives it.
   useEffect(() => {
     if (!waiting || paid) return;
     let stop = false;
@@ -123,34 +109,6 @@ function PayScreen() {
     );
   }
 
-  // Returned from the gateway reporting failure/cancellation — let them retry.
-  if (failed) {
-    return (
-      <div className="mx-auto max-w-md px-6 py-20 text-center">
-        <XCircle className="mx-auto h-16 w-16 text-destructive" />
-        <h1 className="mt-6 font-display font-semibold text-2xl">Payment not completed</h1>
-        <p className="mt-2 text-muted-foreground">
-          Your order is still reserved. You can try the payment again.
-        </p>
-        <Button asChild className="mt-6 w-full rounded-full">
-          <Link to="/pay/$id" params={{ id }} search={{ ret: false, failed: false }} reloadDocument>
-            Try again
-          </Link>
-        </Button>
-      </div>
-    );
-  }
-
-  // Returned from the gateway (success path) — confirm server-side, then advance.
-  if (ret) {
-    return (
-      <div className="mx-auto max-w-md px-6 py-32 text-center">
-        <Loader2 className="mx-auto h-8 w-8 animate-spin text-muted-foreground" />
-        <p className="mt-4 text-sm text-muted-foreground">Confirming your payment…</p>
-      </div>
-    );
-  }
-
   if (!charge) {
     return (
       <div className="mx-auto max-w-md px-6 py-32 text-center">
@@ -160,7 +118,6 @@ function PayScreen() {
     );
   }
 
-  // Mock mode only — real mode has already redirected to PPCBank's hosted page.
   return (
     <div className="mx-auto max-w-md px-6 py-12 text-center">
       <h1 className="font-display font-semibold tracking-tight text-2xl">Scan to pay</h1>
@@ -194,8 +151,8 @@ function PayScreen() {
             <Smartphone className="size-4" /> Test mode
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            The real PPCBank gateway isn&rsquo;t connected yet, so this QR isn&rsquo;t chargeable.
-            Use the button below to simulate a successful payment.
+            The Bakong gateway isn&rsquo;t connected yet, so this QR isn&rsquo;t chargeable. Use
+            the button below to simulate a successful payment.
           </p>
           <Button onClick={simulate} disabled={confirming} className="mt-3 w-full rounded-full">
             {confirming ? "Confirming…" : "Simulate successful payment"}

@@ -232,6 +232,13 @@
       "when": 1785739558976,
       "tag": "0032_dear_roland_deschain",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "6",
+      "when": 1787045486767,
+      "tag": "0033_material_firebrand",
+      "breakpoints": true
     }
   ]
 }

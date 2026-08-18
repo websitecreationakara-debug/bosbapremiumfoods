@@ -1,14 +1,16 @@
 import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { orders } from "@/db/schema";
-import { createKhqr, paymentMockMode, retrievePaymentResult } from "@/lib/payment";
+import { bakongMockMode, createBakongKhqr, retrieveBakongPaymentResult } from "@/lib/bakong";
 import { markOrderPaid } from "./orders";
 
 // Generate (or re-use) the KHQR for an awaiting-payment order and return what the
 // /pay screen needs. Guest-accessible: orders are addressed by their unguessable
 // UUID, and this only ever exposes that order's own payment details.
+//
+// A previously-issued QR is re-served as-is (see the payment_qr column
+// comment) rather than regenerated on every load.
 export const startPayment = createServerFn({ method: "POST" })
   .inputValidator((d: { orderId: string }) => d)
   .handler(async ({ data }) => {
@@ -18,25 +20,23 @@ export const startPayment = createServerFn({ method: "POST" })
     if (order.payment_method !== "khqr") throw new Error("This order is not paid online");
 
     if (order.payment_status === "paid") {
-      return { status: "paid" as const, amount: order.total, mock: paymentMockMode() };
+      return { status: "paid" as const, amount: order.total, mock: bakongMockMode() };
     }
 
-    // PPCBank redirects the customer back to these after the hosted page; the
-    // origin is taken from the live request so dev (:8080) and prod both work.
-    const origin = new URL(getRequest().url).origin;
-    const charge = await createKhqr({
-      orderId: order.id,
-      amount: order.total,
-      ref: order.payment_ref,
-      successURL: `${origin}/pay/${order.id}?return=1`,
-      errorURL: `${origin}/pay/${order.id}?failed=1`,
-    });
-
-    await db.update(orders).set({ payment_ref: charge.ref }).where(eq(orders.id, order.id));
+    const existing =
+      order.payment_ref && order.payment_qr
+        ? { ref: order.payment_ref, qrString: order.payment_qr }
+        : null;
+    const charge = await createBakongKhqr({ orderId: order.id, amount: order.total, existing });
+    if (!existing) {
+      await db
+        .update(orders)
+        .set({ payment_ref: charge.ref, payment_qr: charge.qrString })
+        .where(eq(orders.id, order.id));
+    }
 
     return {
       status: "unpaid" as const,
-      paymentURL: charge.paymentURL,
       qrString: charge.qrString,
       ref: charge.ref,
       amount: order.total,
@@ -45,8 +45,8 @@ export const startPayment = createServerFn({ method: "POST" })
   });
 
 // Polled by the /pay screen until payment confirms. In real mode this asks
-// PPCBank (PMS1024) and flips the order to paid on confirmation; in mock mode it
-// just reflects the DB status (set by mockPay).
+// Bakong (check_transaction_by_md5) and flips the order to paid on
+// confirmation; in mock mode it just reflects the DB status (set by mockPay).
 export const checkPayment = createServerFn({ method: "GET" })
   .inputValidator((d: { orderId: string }) => d)
   .handler(async ({ data }) => {
@@ -62,12 +62,12 @@ export const checkPayment = createServerFn({ method: "GET" })
     if (!order) throw new Error("Order not found");
 
     if (
-      !paymentMockMode() &&
+      !bakongMockMode() &&
       order.payment_method === "khqr" &&
       order.payment_status !== "paid" &&
       order.payment_ref
     ) {
-      const result = await retrievePaymentResult(order.payment_ref);
+      const result = await retrieveBakongPaymentResult(order.payment_ref);
       if (result.paid) {
         await markOrderPaid(data.orderId, result.referenceNo ?? order.payment_ref);
         return { status: "paid" as const, amount: order.total };
@@ -82,6 +82,6 @@ export const checkPayment = createServerFn({ method: "GET" })
 export const mockPay = createServerFn({ method: "POST" })
   .inputValidator((d: { orderId: string }) => d)
   .handler(async ({ data }) => {
-    if (!paymentMockMode()) throw new Error("Mock payment is disabled");
+    if (!bakongMockMode()) throw new Error("Mock payment is disabled");
     return markOrderPaid(data.orderId, `MOCK-CONFIRMED-${Date.now()}`);
   });

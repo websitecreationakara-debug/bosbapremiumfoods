@@ -167,6 +167,11 @@ export const orders = sqliteTable("orders", {
   payment_status: text("payment_status").notNull().default("unpaid"),
   // Gateway transaction reference, used to match a payment callback to its order.
   payment_ref: text("payment_ref"),
+  // The generated KHQR string itself. Cached and re-served as-is on every /pay
+  // load instead of regenerating — a fresh Bakong QR has a new expiration
+  // baked in, which changes its content-hash (payment_ref), which would
+  // silently orphan a QR the customer already scanned/paid against.
+  payment_qr: text("payment_qr"),
   paid_at: text("paid_at"),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),

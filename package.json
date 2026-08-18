@@ -25,7 +25,8 @@
     "backup": "node scripts/backup.mjs",
     "backup:auto": "node scripts/backup.mjs --auto",
     "deploy": "npm run build && wrangler deploy -c dist/server/wrangler.json",
-    "pwa:icons": "node scripts/gen-pwa-icons.mjs"
+    "pwa:icons": "node scripts/gen-pwa-icons.mjs",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",
@@ -64,6 +65,7 @@
     "@tanstack/react-router": "^1.168.25",
     "@tanstack/react-start": "^1.167.50",
     "@tanstack/router-plugin": "^1.167.28",
+    "bakong-khqr": "^1.0.20",
     "better-auth": "^1.6.13",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -116,6 +118,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
     "globals": "^15.15.0",
+    "patch-package": "^8.0.1",
     "prettier": "^3.7.3",
     "sharp": "^0.34.5",
     "typescript": "^5.8.3",

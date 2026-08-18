@@ -24,10 +24,12 @@ declare global {
       TELEGRAM_BOT_TOKEN?: string;
       TELEGRAM_CHAT_ID?: string;
       TELEGRAM_TOPIC_ID?: string;
-      // KHQR payment gateway (PPCBank). Absent in mock mode — see src/lib/payment.ts.
-      PPCBANK_BASE_URL?: string;
-      PPCBANK_MERCHANT_CODE?: string;
-      PPCBANK_PASSWORD?: string;
+      // KHQR via the NBC Bakong Open API against a personal account. Absent in
+      // mock mode — see src/lib/bakong.ts.
+      BAKONG_TOKEN?: string;
+      BAKONG_ACCOUNT_ID?: string;
+      BAKONG_ACCOUNT_NAME?: string;
+      BAKONG_ACCOUNT_CITY?: string;
       // Comma-separated SHA-256 signing fingerprints for the Play Store TWA app,
       // served at /.well-known/assetlinks.json. From Play App Signing.
       ANDROID_CERT_SHA256?: string;
