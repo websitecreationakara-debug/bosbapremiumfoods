@@ -16,6 +16,7 @@ type Charge = {
   mock: boolean;
   qrString?: string;
   ref?: string;
+  expiresAt?: string;
 };
 
 function PayScreen() {
@@ -25,7 +26,9 @@ function PayScreen() {
   const [error, setError] = useState<string | null>(null);
   const [paid, setPaid] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const goneToThankYou = useRef(false);
+  const refreshing = useRef(false);
 
   const waiting = !!charge && charge.status === "unpaid";
 
@@ -36,23 +39,53 @@ function PayScreen() {
     setTimeout(() => navigate({ to: "/thank-you" }), 1200);
   };
 
+  const fetchCharge = () =>
+    startPayment({ data: { orderId: id } }).then((r) => {
+      if (r.status === "paid") {
+        finish();
+        return;
+      }
+      setCharge(r as Charge);
+    });
+
   // Create (or re-fetch the already-issued) charge and render its KHQR.
   useEffect(() => {
     let cancelled = false;
-    startPayment({ data: { orderId: id } })
-      .then((r) => {
-        if (cancelled) return;
-        if (r.status === "paid") return finish();
-        setCharge(r as Charge);
-      })
-      .catch(
-        (e) => !cancelled && setError(e instanceof Error ? e.message : "Couldn't start payment"),
-      );
+    fetchCharge().catch(
+      (e) => !cancelled && setError(e instanceof Error ? e.message : "Couldn't start payment"),
+    );
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  // Live countdown to the QR's expiration. Once it hits zero, fetch a fresh
+  // charge — startPayment already knows to regenerate rather than re-serve an
+  // expired one (see src/lib/bakong.ts).
+  useEffect(() => {
+    if (!charge?.expiresAt || paid) {
+      setSecondsLeft(null);
+      return;
+    }
+    const expiresAtMs = new Date(charge.expiresAt).getTime();
+    const tick = () => {
+      const left = Math.max(0, Math.round((expiresAtMs - Date.now()) / 1000));
+      setSecondsLeft(left);
+      if (left === 0 && !refreshing.current) {
+        refreshing.current = true;
+        fetchCharge()
+          .catch(() => {})
+          .finally(() => {
+            refreshing.current = false;
+          });
+      }
+    };
+    tick();
+    const t = setInterval(tick, 1000);
+    return () => clearInterval(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [charge?.expiresAt, paid]);
 
   // Poll for confirmation while waiting. In real mode checkPayment asks Bakong
   // (check_transaction_by_md5); in mock mode the "I've paid" button drives it.
@@ -118,6 +151,9 @@ function PayScreen() {
     );
   }
 
+  const mm = secondsLeft != null ? Math.floor(secondsLeft / 60) : null;
+  const ss = secondsLeft != null ? secondsLeft % 60 : null;
+
   return (
     <div className="mx-auto max-w-md px-6 py-12 text-center">
       <h1 className="font-display font-semibold tracking-tight text-2xl">Scan to pay</h1>
@@ -138,6 +174,13 @@ function PayScreen() {
         <div className="mt-1 text-xs text-muted-foreground">
           Order #{id.slice(0, 8).toUpperCase()}
         </div>
+        {secondsLeft != null && (
+          <div className="mt-3 text-xs text-muted-foreground">
+            {secondsLeft > 0
+              ? `Expires in ${mm}:${String(ss).padStart(2, "0")}`
+              : "Refreshing your code…"}
+          </div>
+        )}
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">

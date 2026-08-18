@@ -57,14 +57,20 @@ export type KhqrCharge = {
   qrString?: string;
   ref: string; // md5 of the QR — used to look the payment up
   mock: boolean;
+  // ISO timestamp the QR stops being valid. Undefined in mock mode (no real
+  // expiration to track).
+  expiresAt?: string;
 };
+
+type ExistingCharge = { ref: string; qrString: string; expiresAt: string | null };
 
 type CreateArgs = {
   orderId: string;
   amount: number;
   // An already-issued charge for this order, if any — reused verbatim rather
-  // than regenerated (see the payment_qr column comment in db/schema.ts).
-  existing?: { ref: string; qrString: string } | null;
+  // than regenerated (see the payment_qr column comment in db/schema.ts),
+  // unless it's already past its own expiresAt.
+  existing?: ExistingCharge | null;
   currency?: "USD" | "KHR";
   expireMinutes?: number;
 };
@@ -74,9 +80,16 @@ export async function createBakongKhqr({
   amount,
   existing,
   currency = "USD",
-  expireMinutes = 15,
+  expireMinutes = 3,
 }: CreateArgs): Promise<KhqrCharge> {
-  if (existing) return { ref: existing.ref, mock: existing.ref.startsWith("mock:"), qrString: existing.qrString };
+  if (existing && (!existing.expiresAt || new Date(existing.expiresAt).getTime() > Date.now())) {
+    return {
+      ref: existing.ref,
+      mock: existing.ref.startsWith("mock:"),
+      qrString: existing.qrString,
+      expiresAt: existing.expiresAt ?? undefined,
+    };
+  }
 
   const billNumber = orderId.slice(0, 8).toUpperCase();
 
@@ -88,6 +101,7 @@ export async function createBakongKhqr({
     };
   }
 
+  const expiresAt = new Date(Date.now() + expireMinutes * 60 * 1000);
   const individualInfo = new IndividualInfo(
     // bakongMockMode() above already guarantees this is set.
     env.BAKONG_ACCOUNT_ID as string,
@@ -98,7 +112,7 @@ export async function createBakongKhqr({
       amount,
       billNumber,
       storeLabel: "BOSBA Premium Foods",
-      expirationTimestamp: Date.now() + expireMinutes * 60 * 1000,
+      expirationTimestamp: expiresAt.getTime(),
     },
   );
 
@@ -107,7 +121,12 @@ export async function createBakongKhqr({
   if (result.status.code !== 0 || !result.data) {
     throw new Error(`Bakong KHQR generation failed: ${result.status.message ?? result.status.errorCode}`);
   }
-  return { ref: result.data.md5, mock: false, qrString: result.data.qr };
+  return {
+    ref: result.data.md5,
+    mock: false,
+    qrString: result.data.qr,
+    expiresAt: expiresAt.toISOString(),
+  };
 }
 
 // Poll a charge's status by the QR's md5. Mock mode never reaches here.

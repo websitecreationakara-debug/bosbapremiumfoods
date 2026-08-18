@@ -1,0 +1,1 @@
+ALTER TABLE `orders` ADD `payment_qr_expires_at` text;

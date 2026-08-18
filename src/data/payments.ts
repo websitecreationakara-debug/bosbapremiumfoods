@@ -25,13 +25,19 @@ export const startPayment = createServerFn({ method: "POST" })
 
     const existing =
       order.payment_ref && order.payment_qr
-        ? { ref: order.payment_ref, qrString: order.payment_qr }
+        ? { ref: order.payment_ref, qrString: order.payment_qr, expiresAt: order.payment_qr_expires_at }
         : null;
     const charge = await createBakongKhqr({ orderId: order.id, amount: order.total, existing });
-    if (!existing) {
+    // A fresh charge (either first-issue, or the cached one had expired) gets
+    // its own ref/qr/expiry — always write when the ref changed.
+    if (charge.ref !== existing?.ref) {
       await db
         .update(orders)
-        .set({ payment_ref: charge.ref, payment_qr: charge.qrString })
+        .set({
+          payment_ref: charge.ref,
+          payment_qr: charge.qrString,
+          payment_qr_expires_at: charge.expiresAt ?? null,
+        })
         .where(eq(orders.id, order.id));
     }
 
@@ -41,6 +47,7 @@ export const startPayment = createServerFn({ method: "POST" })
       ref: charge.ref,
       amount: order.total,
       mock: charge.mock,
+      expiresAt: charge.expiresAt,
     };
   });
 

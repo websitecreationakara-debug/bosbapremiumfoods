@@ -172,6 +172,9 @@ export const orders = sqliteTable("orders", {
   // baked in, which changes its content-hash (payment_ref), which would
   // silently orphan a QR the customer already scanned/paid against.
   payment_qr: text("payment_qr"),
+  // When the cached payment_qr above stops being valid — once past, /pay
+  // regenerates a fresh charge instead of re-serving the expired one.
+  payment_qr_expires_at: text("payment_qr_expires_at"),
   paid_at: text("paid_at"),
   total: real("total").notNull(),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
