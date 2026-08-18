@@ -150,7 +150,7 @@ export function ComparisonSection() {
               style={{
                 fontFamily: isKm
                   ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                  : "'Cormorant Garamond', serif",
+                  : "'DM Sans', sans-serif",
                 fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
                 fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
@@ -251,7 +251,7 @@ export function ComparisonSection() {
             >
               <span
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "1.1rem",
                   color: "var(--wagyu-gold)",
                   letterSpacing: "0.05em",
@@ -273,7 +273,7 @@ export function ComparisonSection() {
             >
               <span
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "1.1rem",
                   color: "var(--wagyu-gold-light)",
                   letterSpacing: "0.05em",
@@ -359,7 +359,7 @@ export function ComparisonSection() {
                   <div>
                     <div
                       style={{
-                        fontFamily: "'Cormorant Garamond', serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "clamp(3rem, 6vw, 4.5rem)",
                         fontWeight: 400,
                         color: "var(--wagyu-gold)",
@@ -384,7 +384,7 @@ export function ComparisonSection() {
                   <div style={{ textAlign: "right" }}>
                     <div
                       style={{
-                        fontFamily: "'Cormorant Garamond', serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "1.8rem",
                         fontWeight: 400,
                         color: "var(--wagyu-text)",
@@ -476,7 +476,7 @@ export function ComparisonSection() {
                     </div>
                     <div
                       style={{
-                        fontFamily: "'Cormorant Garamond', serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "1.05rem",
                         color: "var(--wagyu-text)",
                       }}

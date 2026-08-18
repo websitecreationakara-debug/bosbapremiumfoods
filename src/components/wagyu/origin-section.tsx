@@ -63,7 +63,7 @@ export function OriginSection() {
             style={{
               fontFamily: isKm
                 ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                : "'Cormorant Garamond', serif",
+                : "'DM Sans', sans-serif",
               fontSize: isKm ? "clamp(2.1rem, 5vw, 3.6rem)" : "clamp(2.5rem, 6vw, 4.5rem)",
               fontWeight: isKm ? 700 : 400,
               color: "var(--wagyu-text)",
@@ -141,7 +141,7 @@ export function OriginSection() {
                     )}
                     <span
                       style={{
-                        fontFamily: "'Cormorant Garamond', serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "clamp(1.05rem, 3vw, 1.35rem)",
                         color: step.active ? "var(--wagyu-gold)" : "var(--wagyu-text)",
                       }}
@@ -209,7 +209,7 @@ export function OriginSection() {
                 style={{
                   fontFamily: isKm
                     ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                    : "'Cormorant Garamond', serif",
+                    : "'DM Sans', sans-serif",
                   fontSize: isKm ? "1.3rem" : "1.4rem",
                   fontWeight: isKm ? 700 : 500,
                   color: "var(--wagyu-text)",

@@ -124,7 +124,7 @@ function StepPanel({ num, image }: { num: string; image?: string }) {
       </div>
       <span
         style={{
-          fontFamily: "'Cormorant Garamond', serif",
+          fontFamily: "'DM Sans', sans-serif",
           fontSize: "clamp(6rem, 12vw, 9rem)",
           fontWeight: 300,
           color: "rgba(var(--wagyu-gold-rgb),0.35)",
@@ -181,7 +181,7 @@ export function CookingGuideSection() {
           <Reveal delay={100}>
             <h2
               style={{
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: "'DM Sans', sans-serif",
                 fontSize: "clamp(2.2rem, 4.5vw, 3.5rem)",
                 fontWeight: 400,
                 color: "var(--wagyu-text)",
@@ -232,7 +232,7 @@ export function CookingGuideSection() {
                 <div style={{ direction: "ltr" }}>
                   <div
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "5rem",
                       fontWeight: 300,
                       color: "rgba(var(--wagyu-gold-rgb),0.08)",
@@ -248,7 +248,7 @@ export function CookingGuideSection() {
                       fontFamily:
                         isKm && !step.titleAlwaysEn
                           ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                          : "'Cormorant Garamond', serif",
+                          : "'DM Sans', sans-serif",
                       fontSize:
                         isKm && !step.titleAlwaysEn
                           ? "clamp(1.3rem, 2.6vw, 1.9rem)"
@@ -360,7 +360,7 @@ export function CookingGuideSection() {
                 <h3
                   lang="en"
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "1.5rem",
                     fontWeight: 500,
                     color: "var(--wagyu-text)",

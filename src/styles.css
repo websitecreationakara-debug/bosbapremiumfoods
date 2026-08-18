@@ -46,7 +46,7 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --font-display: "Cormorant Garamond", ui-serif, Georgia, serif;
+  --font-display: "DM Sans", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
 }
 

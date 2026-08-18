@@ -114,7 +114,7 @@ export function FinalCTASection() {
             style={{
               fontFamily: isKm
                 ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                : "'Cormorant Garamond', serif",
+                : "'DM Sans', sans-serif",
               fontSize: isKm ? "clamp(2.1rem, 5vw, 3.8rem)" : "clamp(2.5rem, 6vw, 5rem)",
               fontWeight: isKm ? 700 : 300,
               color: "var(--wagyu-text)",

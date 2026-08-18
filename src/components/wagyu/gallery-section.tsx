@@ -88,7 +88,7 @@ export function GallerySection() {
               style={{
                 fontFamily: isKm
                   ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                  : "'Cormorant Garamond', serif",
+                  : "'DM Sans', sans-serif",
                 fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
                 fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",

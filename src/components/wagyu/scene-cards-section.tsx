@@ -80,7 +80,7 @@ export function SceneCardsSection() {
                     position: "absolute",
                     top: "0.5rem",
                     right: "1rem",
-                    fontFamily: "'Cormorant Garamond', serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "5rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-gold-rgb),0.06)",
@@ -97,7 +97,7 @@ export function SceneCardsSection() {
                     style={{
                       fontFamily: isKm
                         ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                        : "'Cormorant Garamond', serif",
+                        : "'DM Sans', sans-serif",
                       fontSize: isKm ? "1.3rem" : "1.5rem",
                       fontWeight: isKm ? 700 : 500,
                       color: "var(--wagyu-text)",

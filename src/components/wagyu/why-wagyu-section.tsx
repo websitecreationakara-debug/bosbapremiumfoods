@@ -135,7 +135,7 @@ export function WhyWagyuSection() {
                 style={{
                   fontFamily: isKm
                     ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                    : "'Cormorant Garamond', serif",
+                    : "'DM Sans', sans-serif",
                   fontSize: isKm ? "clamp(2.1rem, 4.3vw, 3.4rem)" : "clamp(2.5rem, 5vw, 4rem)",
                   fontWeight: isKm ? 700 : 400,
                   color: "var(--wagyu-text)",

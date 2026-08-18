@@ -259,7 +259,7 @@ export function WagyuHeader() {
                 <span style={{ display: "flex", flexDirection: "column", lineHeight: 1.15 }}>
                   <span
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "1.05rem",
                       fontWeight: 500,
                       letterSpacing: "0.08em",

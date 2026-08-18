@@ -32,7 +32,7 @@ export function ChapterBeginningSection() {
                 position: "absolute",
                 top: "-1.5rem",
                 left: "-0.5rem",
-                fontFamily: "'Cormorant Garamond', serif",
+                fontFamily: "'DM Sans', sans-serif",
                 fontSize: "clamp(8rem, 16vw, 13rem)",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-gold-rgb),0.06)",
@@ -82,7 +82,7 @@ export function ChapterBeginningSection() {
                   style={{
                     fontFamily: isKm
                       ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                      : "'Cormorant Garamond', serif",
+                      : "'DM Sans', sans-serif",
                     fontSize: isKm ? "clamp(2.1rem, 4.3vw, 3.2rem)" : "clamp(2.5rem, 5vw, 3.8rem)",
                     fontWeight: isKm ? 700 : 400,
                     color: "var(--wagyu-text)",
@@ -152,7 +152,7 @@ export function ChapterBeginningSection() {
                 >
                   <p
                     style={{
-                      fontFamily: "'Cormorant Garamond', serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontStyle: "italic",
                       fontSize: "1.3rem",
                       fontWeight: 400,

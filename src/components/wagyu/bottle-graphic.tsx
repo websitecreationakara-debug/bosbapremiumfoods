@@ -102,7 +102,7 @@ export function BottleGraphic({
         y="368"
         textAnchor="middle"
         fontSize="30"
-        fontFamily="'Cormorant Garamond', serif"
+        fontFamily="'DM Sans', sans-serif"
         fill={p.rule}
         opacity="0.9"
       >

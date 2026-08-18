@@ -216,7 +216,7 @@ export function TrustSection() {
             <Reveal delay={150}>
               <h2
                 style={{
-                  fontFamily: "'Cormorant Garamond', serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "clamp(2rem, 4vw, 3.2rem)",
                   fontWeight: 400,
                   color: "var(--wagyu-text)",
@@ -291,7 +291,7 @@ export function TrustSection() {
                 </div>
                 <h3
                   style={{
-                    fontFamily: "'Cormorant Garamond', serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "1.2rem",
                     fontWeight: 500,
                     color: "var(--wagyu-text)",

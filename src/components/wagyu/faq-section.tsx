@@ -68,7 +68,7 @@ export function FAQSection() {
               style={{
                 fontFamily: isKm
                   ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                  : "'Cormorant Garamond', serif",
+                  : "'DM Sans', sans-serif",
                 fontSize: isKm ? "clamp(1.9rem, 4vw, 3rem)" : "clamp(2.2rem, 4.5vw, 3.5rem)",
                 fontWeight: isKm ? 700 : 400,
                 color: "var(--wagyu-text)",
@@ -113,7 +113,7 @@ export function FAQSection() {
                     style={{
                       fontFamily: isKm
                         ? "'Kantumruy Pro', 'Battambang', sans-serif"
-                        : "'Cormorant Garamond', serif",
+                        : "'DM Sans', sans-serif",
                       fontSize: isKm ? "1.05rem" : "1.15rem",
                       fontWeight: isKm ? 700 : 500,
                       color: open === i ? "var(--wagyu-gold)" : "var(--wagyu-text)",
