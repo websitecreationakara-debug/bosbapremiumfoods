@@ -1,7 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { listOrders, updateOrderStatus, updateOrderTracking, deleteOrder } from "@/data/orders";
+import {
+  listOrders,
+  updateOrderStatus,
+  updateOrderTracking,
+  deleteOrder,
+  markOrderPaidByStaff,
+} from "@/data/orders";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -54,6 +60,17 @@ function OrdersAdmin() {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to generate invoice");
     }
+  };
+
+  const markPaid = async (id: string) => {
+    if (!confirm("Confirm you've verified this payment in your bank/Bakong app?")) return;
+    try {
+      await markOrderPaidByStaff({ data: { id } });
+    } catch (err) {
+      return toast.error(err instanceof Error ? err.message : "Failed to mark as paid");
+    }
+    qc.invalidateQueries({ queryKey: ["orders-admin"] });
+    toast.success("Order marked as paid");
   };
 
   const removeOrder = async (id: string) => {
@@ -164,6 +181,24 @@ function OrdersAdmin() {
                       {o.promo_code ? `${o.promo_code}: ` : ""}−${Number(o.discount).toFixed(2)}
                     </span>
                   )}
+                  {o.payment_method === "khqr" &&
+                    (o.payment_status === "paid" ? (
+                      <span className="block mt-1 text-[10px] font-bold uppercase tracking-wide text-success">
+                        Paid
+                      </span>
+                    ) : (
+                      <div className="mt-1.5">
+                        <span className="block text-[10px] font-bold uppercase tracking-wide text-warning">
+                          Unpaid (KHQR)
+                        </span>
+                        <button
+                          onClick={() => markPaid(o.id)}
+                          className="mt-1 text-[11px] font-medium text-brand hover:underline"
+                        >
+                          Mark as paid
+                        </button>
+                      </div>
+                    ))}
                 </td>
                 <td className="px-6 py-3">
                   <div className="flex items-center gap-2">

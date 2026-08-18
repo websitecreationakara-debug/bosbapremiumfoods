@@ -383,3 +383,13 @@ export const deleteOrder = createServerFn({ method: "POST" })
     await getDb().delete(orders).where(eq(orders.id, data.id));
     return { ok: true };
   });
+
+// Manual override for online orders — staff checks the receiving bank app
+// themselves and confirms here. Same effect as automated confirmation
+// (markOrderPaid): flips payment_status, stamps paid_at, notifies the store.
+export const markOrderPaidByStaff = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    await requireStaff();
+    return markOrderPaid(data.id);
+  });
