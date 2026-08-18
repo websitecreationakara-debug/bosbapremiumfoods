@@ -167,7 +167,7 @@ export function CookingGuideSection() {
               />
               <span
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "0.65rem",
                   letterSpacing: "0.3em",
                   textTransform: "uppercase",
@@ -198,7 +198,7 @@ export function CookingGuideSection() {
             <p
               lang={locale}
               style={{
-                fontFamily: "'Jost', 'Battambang', sans-serif",
+                fontFamily: "'DM Sans', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -264,7 +264,7 @@ export function CookingGuideSection() {
                   <p
                     lang={locale}
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontFamily: "'DM Sans', 'Battambang', sans-serif",
                       fontSize: "0.95rem",
                       fontWeight: 300,
                       color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -285,7 +285,7 @@ export function CookingGuideSection() {
                     <p
                       lang={locale}
                       style={{
-                        fontFamily: "'Jost', 'Battambang', sans-serif",
+                        fontFamily: "'DM Sans', 'Battambang', sans-serif",
                         fontSize: "0.8rem",
                         fontWeight: 400,
                         color: "var(--wagyu-gold)",
@@ -347,7 +347,7 @@ export function CookingGuideSection() {
                 <div
                   lang="en"
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.6rem",
                     letterSpacing: "0.2em",
                     textTransform: "uppercase",
@@ -372,7 +372,7 @@ export function CookingGuideSection() {
                 <p
                   lang="en"
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.9rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -391,7 +391,7 @@ export function CookingGuideSection() {
                   <div
                     lang="en"
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "0.6rem",
                       letterSpacing: "0.15em",
                       textTransform: "uppercase",
@@ -404,7 +404,7 @@ export function CookingGuideSection() {
                   <div
                     lang="en"
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "0.8rem",
                       fontStyle: "italic",
                       color: "rgba(var(--wagyu-text-rgb),0.7)",

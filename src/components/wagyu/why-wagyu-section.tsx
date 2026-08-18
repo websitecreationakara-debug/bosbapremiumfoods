@@ -108,7 +108,7 @@ export function WhyWagyuSection() {
             />
             <span
               style={{
-                fontFamily: "'Jost', sans-serif",
+                fontFamily: "'DM Sans', sans-serif",
                 fontSize: "0.65rem",
                 letterSpacing: "0.3em",
                 textTransform: "uppercase",
@@ -158,7 +158,7 @@ export function WhyWagyuSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -176,7 +176,7 @@ export function WhyWagyuSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -201,7 +201,7 @@ export function WhyWagyuSection() {
                     >
                       <span
                         style={{
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                           fontSize: "0.8rem",
                           color: tier.color,
                           letterSpacing: "0.05em",
@@ -211,7 +211,7 @@ export function WhyWagyuSection() {
                       </span>
                       <span
                         style={{
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                           fontSize: "0.7rem",
                           color: "rgba(var(--wagyu-text-rgb),0.45)",
                         }}

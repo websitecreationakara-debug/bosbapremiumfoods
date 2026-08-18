@@ -46,7 +46,7 @@ export function OriginSection() {
           />
           <span
             style={{
-              fontFamily: "'Jost', sans-serif",
+              fontFamily: "'DM Sans', sans-serif",
               fontSize: "0.65rem",
               letterSpacing: "0.3em",
               textTransform: "uppercase",
@@ -80,7 +80,7 @@ export function OriginSection() {
           <p
             lang={locale}
             style={{
-              fontFamily: "'Jost', 'Battambang', sans-serif",
+              fontFamily: "'DM Sans', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -151,7 +151,7 @@ export function OriginSection() {
                   </div>
                   <span
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "0.62rem",
                       letterSpacing: "0.2em",
                       textTransform: "uppercase",
@@ -222,7 +222,7 @@ export function OriginSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "0.9rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.6)",

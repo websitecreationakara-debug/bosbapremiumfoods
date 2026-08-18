@@ -125,7 +125,7 @@ export function ComparisonSection() {
               <span
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: isKm ? "0.75rem" : "0.65rem",
                   letterSpacing: isKm ? "normal" : "0.3em",
                   textTransform: isKm ? "none" : "uppercase",
@@ -165,7 +165,7 @@ export function ComparisonSection() {
             <p
               lang={locale}
               style={{
-                fontFamily: "'Jost', 'Battambang', sans-serif",
+                fontFamily: "'DM Sans', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -370,7 +370,7 @@ export function ComparisonSection() {
                     </div>
                     <div
                       style={{
-                        fontFamily: "'Jost', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "0.65rem",
                         letterSpacing: "0.2em",
                         textTransform: "uppercase",
@@ -393,7 +393,7 @@ export function ComparisonSection() {
                       {g.price}
                       <span
                         style={{
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                           fontSize: "0.9rem",
                           color: "rgba(var(--wagyu-text-rgb),0.5)",
                         }}
@@ -403,7 +403,7 @@ export function ComparisonSection() {
                     </div>
                     <div
                       style={{
-                        fontFamily: "'Jost', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "0.65rem",
                         letterSpacing: "0.15em",
                         textTransform: "uppercase",
@@ -418,7 +418,7 @@ export function ComparisonSection() {
 
                 <p
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.95rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -448,7 +448,7 @@ export function ComparisonSection() {
                     <div key={attr.labelKey}>
                       <div
                         style={{
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                           fontSize: "0.65rem",
                           letterSpacing: "0.15em",
                           textTransform: "uppercase",
@@ -464,7 +464,7 @@ export function ComparisonSection() {
                   <div>
                     <div
                       style={{
-                        fontFamily: "'Jost', sans-serif",
+                        fontFamily: "'DM Sans', sans-serif",
                         fontSize: "0.65rem",
                         letterSpacing: "0.15em",
                         textTransform: "uppercase",

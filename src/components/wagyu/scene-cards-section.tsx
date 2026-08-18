@@ -110,7 +110,7 @@ export function SceneCardsSection() {
                   <p
                     lang={locale}
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontFamily: "'DM Sans', 'Battambang', sans-serif",
                       fontSize: "0.9rem",
                       fontWeight: 300,
                       color: "rgba(var(--wagyu-text-rgb),0.6)",

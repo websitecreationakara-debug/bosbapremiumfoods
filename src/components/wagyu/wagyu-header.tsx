@@ -41,7 +41,7 @@ function LanguageSwitch() {
             padding: "0.35rem 0.7rem",
             borderRadius: 999,
             border: "none",
-            fontFamily: l.code === "km" ? "'Battambang', sans-serif" : "'Jost', sans-serif",
+            fontFamily: l.code === "km" ? "'Battambang', sans-serif" : "'DM Sans', sans-serif",
             fontSize: l.code === "km" ? "0.75rem" : "0.68rem",
             fontWeight: l.code === "km" ? 700 : 500,
             letterSpacing: l.code === "km" ? "normal" : "0.04em",
@@ -141,7 +141,7 @@ export function WagyuHeader() {
                 href={link.href}
                 className="wagyu-nav-link"
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "0.68rem",
                   fontWeight: 400,
                   letterSpacing: "0.06em",
@@ -270,7 +270,7 @@ export function WagyuHeader() {
                   </span>
                   <span
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "0.55rem",
                       fontWeight: 400,
                       letterSpacing: "0.25em",
@@ -299,7 +299,7 @@ export function WagyuHeader() {
                 <a
                   href={link.href}
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.85rem",
                     letterSpacing: "0.04em",
                     color: "rgba(var(--wagyu-text-rgb),0.85)",

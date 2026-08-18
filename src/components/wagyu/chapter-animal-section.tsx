@@ -69,7 +69,7 @@ export function ChapterAnimalSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -85,7 +85,7 @@ export function ChapterAnimalSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -101,7 +101,7 @@ export function ChapterAnimalSection() {
               <p
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: "1rem",
                   fontWeight: 300,
                   color: "rgba(var(--wagyu-text-rgb),0.7)",

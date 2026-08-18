@@ -62,7 +62,7 @@ export function SupplyChainSection() {
           <p
             lang={locale}
             style={{
-              fontFamily: "'Jost', 'Battambang', sans-serif",
+              fontFamily: "'DM Sans', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.65)",
@@ -134,7 +134,7 @@ export function SupplyChainSection() {
                   <span
                     lang={locale}
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontFamily: "'DM Sans', 'Battambang', sans-serif",
                       fontSize: "0.8rem",
                       color: "var(--wagyu-text)",
                       marginTop: "0.75rem",
@@ -145,7 +145,7 @@ export function SupplyChainSection() {
                   <span
                     lang={locale}
                     style={{
-                      fontFamily: "'Jost', 'Battambang', sans-serif",
+                      fontFamily: "'DM Sans', 'Battambang', sans-serif",
                       fontSize: isKm ? "0.68rem" : "0.62rem",
                       letterSpacing: isKm ? "normal" : "0.15em",
                       textTransform: isKm ? "none" : "uppercase",

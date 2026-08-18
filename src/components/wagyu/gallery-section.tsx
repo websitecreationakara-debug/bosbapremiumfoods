@@ -63,7 +63,7 @@ export function GallerySection() {
               />
               <span
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "0.65rem",
                   letterSpacing: "0.3em",
                   textTransform: "uppercase",
@@ -149,7 +149,7 @@ export function GallerySection() {
                 >
                   <span
                     style={{
-                      fontFamily: "'Jost', sans-serif",
+                      fontFamily: "'DM Sans', sans-serif",
                       fontSize: "0.7rem",
                       color: "rgba(var(--wagyu-text-rgb),0.8)",
                       letterSpacing: "0.03em",

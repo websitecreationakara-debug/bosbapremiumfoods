@@ -202,7 +202,7 @@ export function TrustSection() {
                 />
                 <span
                   style={{
-                    fontFamily: "'Jost', sans-serif",
+                    fontFamily: "'DM Sans', sans-serif",
                     fontSize: "0.65rem",
                     letterSpacing: "0.3em",
                     textTransform: "uppercase",
@@ -238,7 +238,7 @@ export function TrustSection() {
             <p
               lang={locale}
               style={{
-                fontFamily: "'Jost', 'Battambang', sans-serif",
+                fontFamily: "'DM Sans', 'Battambang', sans-serif",
                 fontSize: "1rem",
                 fontWeight: 300,
                 color: "rgba(var(--wagyu-text-rgb),0.6)",
@@ -304,7 +304,7 @@ export function TrustSection() {
                 <p
                   lang={locale}
                   style={{
-                    fontFamily: "'Jost', 'Battambang', sans-serif",
+                    fontFamily: "'DM Sans', 'Battambang', sans-serif",
                     fontSize: "0.85rem",
                     fontWeight: 300,
                     color: "rgba(var(--wagyu-text-rgb),0.55)",

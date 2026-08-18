@@ -43,7 +43,7 @@ export function FAQSection() {
               />
               <span
                 style={{
-                  fontFamily: "'Jost', sans-serif",
+                  fontFamily: "'DM Sans', sans-serif",
                   fontSize: "0.65rem",
                   letterSpacing: "0.3em",
                   textTransform: "uppercase",
@@ -149,7 +149,7 @@ export function FAQSection() {
                     <p
                       lang={locale}
                       style={{
-                        fontFamily: "'Jost', 'Battambang', sans-serif",
+                        fontFamily: "'DM Sans', 'Battambang', sans-serif",
                         fontSize: "0.9rem",
                         fontWeight: 300,
                         color: "rgba(var(--wagyu-text-rgb),0.65)",

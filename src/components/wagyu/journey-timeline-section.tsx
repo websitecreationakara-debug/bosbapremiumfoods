@@ -36,7 +36,7 @@ export function JourneyTimelineSection() {
               <span
                 lang={locale}
                 style={{
-                  fontFamily: "'Jost', 'Battambang', sans-serif",
+                  fontFamily: "'DM Sans', 'Battambang', sans-serif",
                   fontSize: isKm ? "0.75rem" : "0.65rem",
                   letterSpacing: isKm ? "normal" : "0.3em",
                   textTransform: isKm ? "none" : "uppercase",
@@ -73,7 +73,7 @@ export function JourneyTimelineSection() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          fontFamily: "'Jost', sans-serif",
+                          fontFamily: "'DM Sans', sans-serif",
                           fontSize: "0.85rem",
                           color: active ? "var(--wagyu-gold)" : "var(--wagyu-text)",
                         }}
@@ -83,7 +83,7 @@ export function JourneyTimelineSection() {
                       <span
                         lang={locale}
                         style={{
-                          fontFamily: "'Jost', 'Battambang', sans-serif",
+                          fontFamily: "'DM Sans', 'Battambang', sans-serif",
                           fontSize: "0.75rem",
                           color: active ? "var(--wagyu-text)" : "rgba(var(--wagyu-text-rgb),0.6)",
                           marginTop: "0.6rem",

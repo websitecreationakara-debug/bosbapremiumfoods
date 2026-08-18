@@ -33,7 +33,7 @@
 
 /*
  * Battambang is the Khmer-script member of every font stack below. Latin
- * fonts on this page (Cormorant Garamond, Jost, DM Mono) don't cover Khmer
+ * fonts on this page (Cormorant Garamond, DM Sans) don't cover Khmer
  * glyphs, so the browser silently falls through to Battambang per-character
  * — Latin text keeps its display typeface, Khmer text renders in a typeface
  * actually drawn for the script instead of a generic system fallback.
@@ -42,11 +42,11 @@
   font-family: "Cormorant Garamond", "Battambang", Georgia, serif;
 }
 .wagyu-obsidian .font-mono-label {
-  font-family: "DM Mono", "Battambang", monospace;
+  font-family: "DM Sans", "Battambang", sans-serif;
 }
 .wagyu-obsidian .btn-gold,
 .wagyu-obsidian .btn-outline-gold {
-  font-family: "Jost", "Battambang", sans-serif;
+  font-family: "DM Sans", "Battambang", sans-serif;
 }
 
 /*
@@ -75,7 +75,7 @@
 /*
  * Battambang reads well for running body copy, but it's a plain UI grotesk —
  * on the headline and gold CTA (both display/branding moments, set in the
- * elegant Cormorant Garamond / Jost pairing for Latin) it looked generic and
+ * elegant Cormorant Garamond / DM Sans pairing for Latin) it looked generic and
  * its glyphs sat too close together at "normal" tracking. Kantumruy Pro is a
  * more refined, higher-contrast Khmer sans built for exactly that kind of
  * branding use, so it takes over for headline + buttons; Battambang stays
@@ -195,7 +195,7 @@
   background: linear-gradient(135deg, var(--wagyu-gold), var(--wagyu-gold-light));
   /* Gold buttons always take dark ink, regardless of page theme. */
   color: #1a1610;
-  font-family: "Jost", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -217,7 +217,7 @@
   display: inline-block;
   background: transparent;
   color: var(--wagyu-gold);
-  font-family: "Jost", sans-serif;
+  font-family: "DM Sans", sans-serif;
   font-weight: 500;
   letter-spacing: 0.12em;
   text-transform: uppercase;

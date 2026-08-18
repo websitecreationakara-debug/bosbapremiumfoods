@@ -88,7 +88,7 @@ export function FinalCTASection() {
             <span
               lang={locale}
               style={{
-                fontFamily: "'Jost', 'Battambang', sans-serif",
+                fontFamily: "'DM Sans', 'Battambang', sans-serif",
                 fontSize: isKm ? "0.75rem" : "0.65rem",
                 letterSpacing: isKm ? "normal" : "0.3em",
                 textTransform: isKm ? "none" : "uppercase",
@@ -135,7 +135,7 @@ export function FinalCTASection() {
           <p
             lang={locale}
             style={{
-              fontFamily: "'Jost', 'Battambang', sans-serif",
+              fontFamily: "'DM Sans', 'Battambang', sans-serif",
               fontSize: "1rem",
               fontWeight: 300,
               color: "rgba(var(--wagyu-text-rgb),0.7)",
@@ -192,7 +192,7 @@ export function FinalCTASection() {
                 <span
                   lang={locale}
                   style={{
-                    fontFamily: "'Jost', 'Battambang', sans-serif",
+                    fontFamily: "'DM Sans', 'Battambang', sans-serif",
                     fontSize: "0.7rem",
                     letterSpacing: isKm ? "normal" : "0.1em",
                     color: "rgba(var(--wagyu-text-rgb),0.6)",
