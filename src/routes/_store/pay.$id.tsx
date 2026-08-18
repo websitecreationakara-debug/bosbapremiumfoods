@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { startPayment, checkPayment, mockPay } from "@/data/payments";
 import { Button } from "@/components/ui/button";
-import { Loader2, ShieldCheck, CheckCircle2, Smartphone } from "lucide-react";
+import { Loader2, ShieldCheck, CheckCircle2, Smartphone, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pay/$id")({
@@ -27,6 +27,7 @@ function PayScreen() {
   const [paid, setPaid] = useState(false);
   const [confirming, setConfirming] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const [quotaExceeded, setQuotaExceeded] = useState(false);
   const goneToThankYou = useRef(false);
   const refreshing = useRef(false);
 
@@ -96,12 +97,23 @@ function PayScreen() {
       try {
         const r = await checkPayment({ data: { orderId: id } });
         if (r.status === "paid" && !stop) finish();
-      } catch {
-        // transient — keep polling
+      } catch (e) {
+        // A quota-exhausted Bakong account can't confirm payment at all —
+        // surface that plainly instead of spinning "Waiting for payment…"
+        // forever, and stop burning further requests against it.
+        if (e instanceof Error && e.message.includes("quota exceeded") && !stop) {
+          setQuotaExceeded(true);
+          clearInterval(t);
+        }
+        // otherwise transient — keep polling
       }
     };
     tick();
-    const t = setInterval(tick, 3000);
+    // Bakong's personal-account Open API caps at 100 requests/day — at the
+    // old 3s interval, a single order's 3-minute wait alone burned ~60 of
+    // them. 10s keeps one checkout under 20 requests, leaving room for
+    // several orders/day instead of one.
+    const t = setInterval(tick, 10000);
     return () => {
       stop = true;
       clearInterval(t);
@@ -183,10 +195,23 @@ function PayScreen() {
         )}
       </div>
 
-      <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="size-4 animate-spin" />
-        Waiting for payment…
-      </div>
+      {quotaExceeded ? (
+        <div className="mt-6 rounded-2xl border border-dashed border-destructive/60 bg-destructive/10 p-5 text-left">
+          <p className="flex items-center gap-2 text-sm font-semibold text-destructive">
+            <AlertTriangle className="size-4" /> Can&rsquo;t confirm payment right now
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            The payment gateway has hit its daily limit for checking transactions. If you&rsquo;ve
+            already paid, your order is still reserved — contact us and we&rsquo;ll confirm it
+            manually, or check back once the limit resets.
+          </p>
+        </div>
+      ) : (
+        <div className="mt-6 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="size-4 animate-spin" />
+          Waiting for payment…
+        </div>
+      )}
 
       {charge.mock && (
         <div className="mt-8 rounded-2xl border border-dashed border-warning/60 bg-warning/10 p-5 text-left">

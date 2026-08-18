@@ -142,7 +142,14 @@ export async function retrieveBakongPaymentResult(
     externalRef?: string;
   }>("/v1/check_transaction_by_md5", { md5 });
 
-  // responseCode 0 = found (paid). errorCode 1 = not found yet (still waiting).
+  // responseCode 0 = found (paid). errorCode 1 = not found yet (still
+  // waiting) — the common, expected case while polling. errorCode 17 = daily
+  // request quota exhausted (100/day on a personal-account token) — surfaced
+  // distinctly rather than swallowed as "not paid yet", since that would
+  // otherwise look identical to a genuinely unpaid order forever.
+  if (r.errorCode === 17) {
+    throw new Error("Bakong daily API quota exceeded — payment status can't be checked until it resets.");
+  }
   if (r.responseCode === 0 && r.data) {
     return { paid: true, referenceNo: r.data.externalRef || r.data.hash };
   }
