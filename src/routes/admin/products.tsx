@@ -14,6 +14,7 @@ import {
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { groupVariations } from "@/lib/variants";
+import { downloadProductsXlsx } from "@/lib/products-export";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -41,6 +42,7 @@ import {
   ChevronLeft,
   ChevronRight,
   GripVertical,
+  FileDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -110,6 +112,7 @@ function ProductsAdmin() {
   const [page, setPage] = useState(1);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   const variationsByProduct = groupVariations(allVariations);
 
@@ -136,6 +139,17 @@ function ProductsAdmin() {
       setter(v);
       setPage(1);
     };
+  const exportXlsx = async () => {
+    setExporting(true);
+    try {
+      await downloadProductsXlsx(filtered, categories, promos, variationsByProduct);
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to export products");
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const resetFilters = () => {
     setQuery("");
     setCatFilter("all");
@@ -412,9 +426,24 @@ function ProductsAdmin() {
               : `${products.length} total`}
           </p>
         </div>
-        <Button onClick={openNew} className="rounded-full">
-          <Plus className="size-4 mr-1.5" /> New Product
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            className="rounded-full"
+            disabled={exporting || filtered.length === 0}
+            onClick={exportXlsx}
+          >
+            {exporting ? (
+              <Loader2 className="size-4 mr-1.5 animate-spin" />
+            ) : (
+              <FileDown className="size-4 mr-1.5" />
+            )}
+            Export
+          </Button>
+          <Button onClick={openNew} className="rounded-full">
+            <Plus className="size-4 mr-1.5" /> New Product
+          </Button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
