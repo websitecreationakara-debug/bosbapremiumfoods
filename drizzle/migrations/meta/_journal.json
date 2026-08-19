@@ -253,6 +253,13 @@
       "when": 1787130878490,
       "tag": "0035_heavy_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "6",
+      "when": 1787140564444,
+      "tag": "0036_tense_ricochet",
+      "breakpoints": true
     }
   ]
 }
