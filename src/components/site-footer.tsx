@@ -17,7 +17,7 @@ export function SiteFooter() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-12">
         <div className="col-span-2 md:col-span-1 space-y-4">
           <div className="flex items-center gap-2">
             <img
@@ -66,32 +66,6 @@ export function SiteFooter() {
               <Link to="/shop" className="hover:text-secondary-accent transition-colors">
                 {t("footer.roeUni")}
               </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.company")}</h4>
-          <ul className="space-y-3 text-sm text-muted-foreground">
-            <li>
-              <a className="hover:text-secondary-accent transition-colors" href="#">
-                {t("footer.mission")}
-              </a>
-            </li>
-            <li>
-              <a className="hover:text-secondary-accent transition-colors" href="#">
-                {t("footer.fisheries")}
-              </a>
-            </li>
-            <li>
-              <a className="hover:text-secondary-accent transition-colors" href="#">
-                {t("footer.sustainability")}
-              </a>
-            </li>
-            <li>
-              <a className="hover:text-secondary-accent transition-colors" href="#">
-                {t("footer.careers")}
-              </a>
             </li>
           </ul>
         </div>
