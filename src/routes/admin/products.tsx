@@ -81,8 +81,16 @@ type VarRow = {
   sale_price: string;
   stock: string;
   pcs: string;
+  image_url: string;
 };
-const blankVar = (): VarRow => ({ weight: "", price: "0", sale_price: "", stock: "", pcs: "" });
+const blankVar = (): VarRow => ({
+  weight: "",
+  price: "0",
+  sale_price: "",
+  stock: "",
+  pcs: "",
+  image_url: "",
+});
 
 function ProductsAdmin() {
   const { data: products = [] } = useProducts({ all: true });
@@ -107,6 +115,10 @@ function ProductsAdmin() {
   const [gallery, setGallery] = useState<string[]>([]);
   const [galleryUploading, setGalleryUploading] = useState(false);
   const [galleryPicker, setGalleryPicker] = useState(false);
+  // Per-variation photo upload: one shared hidden input, tracked by which row triggered it.
+  const varFileRef = useRef<HTMLInputElement>(null);
+  const [varUploadTarget, setVarUploadTarget] = useState<number | null>(null);
+  const [varUploading, setVarUploading] = useState<number | null>(null);
   const [query, setQuery] = useState("");
   const [catFilter, setCatFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -227,6 +239,24 @@ function ProductsAdmin() {
     }
   };
 
+  const onVariationUpload = async (index: number, file: File | undefined) => {
+    if (!file) return;
+    setVarUploading(index);
+    try {
+      const fd = new FormData();
+      fd.append("file", await compressImage(file, { maxDim: 800 }));
+      const { url } = await uploadMedia({ data: fd });
+      setVars((rows) => rows.map((r, j) => (j === index ? { ...r, image_url: url } : r)));
+      qc.invalidateQueries({ queryKey: ["media"] });
+      toast.success("Image uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setVarUploading(null);
+      if (varFileRef.current) varFileRef.current.value = "";
+    }
+  };
+
   const openNew = () => {
     setForm(empty);
     setVars([]);
@@ -271,6 +301,7 @@ function ProductsAdmin() {
           sale_price: v.sale_price != null ? String(v.sale_price) : "",
           stock: v.stock != null ? String(v.stock) : "",
           pcs: v.pcs != null ? String(v.pcs) : "",
+          image_url: v.image_url ?? "",
         })),
       );
     } else {
@@ -289,6 +320,7 @@ function ProductsAdmin() {
         stock: v.stock.trim() === "" ? null : Number(v.stock),
         pcs: v.pcs.trim() === "" ? null : Number(v.pcs),
         sort_order: i,
+        image_url: v.image_url.trim() === "" ? null : v.image_url.trim(),
       }));
 
   const save = async (e: React.FormEvent) => {
@@ -391,6 +423,7 @@ function ProductsAdmin() {
               stock: v.stock,
               pcs: v.pcs,
               sort_order: i,
+              image_url: v.image_url,
             })),
           },
         });
@@ -898,7 +931,7 @@ function ProductsAdmin() {
                     Add at least one weight, each with its own price and stock.
                   </p>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2 text-[11px] uppercase tracking-wider text-muted-foreground">
                       <span>Weight</span>
                       <span>Price</span>
@@ -908,74 +941,127 @@ function ProductsAdmin() {
                       <span></span>
                     </div>
                     {vars.map((v, i) => (
-                      <div key={i} className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2">
-                        <Input
-                          placeholder="250g"
-                          value={v.weight}
-                          onChange={(e) =>
-                            setVars((rows) =>
-                              rows.map((r, j) => (j === i ? { ...r, weight: e.target.value } : r)),
-                            )
-                          }
-                        />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          value={v.price}
-                          onChange={(e) =>
-                            setVars((rows) =>
-                              rows.map((r, j) => (j === i ? { ...r, price: e.target.value } : r)),
-                            )
-                          }
-                        />
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="—"
-                          value={v.sale_price}
-                          onChange={(e) =>
-                            setVars((rows) =>
-                              rows.map((r, j) =>
-                                j === i ? { ...r, sale_price: e.target.value } : r,
-                              ),
-                            )
-                          }
-                        />
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="∞"
-                          value={v.stock}
-                          onChange={(e) =>
-                            setVars((rows) =>
-                              rows.map((r, j) => (j === i ? { ...r, stock: e.target.value } : r)),
-                            )
-                          }
-                        />
-                        <Input
-                          type="number"
-                          min="0"
-                          placeholder="—"
-                          value={v.pcs}
-                          onChange={(e) =>
-                            setVars((rows) =>
-                              rows.map((r, j) => (j === i ? { ...r, pcs: e.target.value } : r)),
-                            )
-                          }
-                        />
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => setVars((rows) => rows.filter((_, j) => j !== i))}
-                          aria-label="Remove variation"
-                        >
-                          <Trash2 className="size-4 text-destructive" />
-                        </Button>
+                      <div key={i} className="space-y-1.5 pb-2 border-b last:border-b-0 last:pb-0">
+                        <div className="grid grid-cols-[1.3fr_1fr_1fr_1fr_1fr_auto] gap-2">
+                          <Input
+                            placeholder="250g"
+                            value={v.weight}
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) =>
+                                  j === i ? { ...r, weight: e.target.value } : r,
+                                ),
+                              )
+                            }
+                          />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            value={v.price}
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) => (j === i ? { ...r, price: e.target.value } : r)),
+                              )
+                            }
+                          />
+                          <Input
+                            type="number"
+                            step="0.01"
+                            placeholder="—"
+                            value={v.sale_price}
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) =>
+                                  j === i ? { ...r, sale_price: e.target.value } : r,
+                                ),
+                              )
+                            }
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="∞"
+                            value={v.stock}
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) => (j === i ? { ...r, stock: e.target.value } : r)),
+                              )
+                            }
+                          />
+                          <Input
+                            type="number"
+                            min="0"
+                            placeholder="—"
+                            value={v.pcs}
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) => (j === i ? { ...r, pcs: e.target.value } : r)),
+                              )
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setVars((rows) => rows.filter((_, j) => j !== i))}
+                            aria-label="Remove variation"
+                          >
+                            <Trash2 className="size-4 text-destructive" />
+                          </Button>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="size-8 rounded border bg-muted overflow-hidden shrink-0">
+                            {v.image_url && (
+                              <img
+                                src={v.image_url}
+                                alt=""
+                                className="w-full h-full object-cover"
+                              />
+                            )}
+                          </div>
+                          <Input
+                            value={v.image_url}
+                            placeholder="Photo for this size (optional — falls back to the product image)"
+                            className="text-xs h-8"
+                            onChange={(e) =>
+                              setVars((rows) =>
+                                rows.map((r, j) =>
+                                  j === i ? { ...r, image_url: e.target.value } : r,
+                                ),
+                              )
+                            }
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2 shrink-0"
+                            disabled={varUploading === i}
+                            onClick={() => {
+                              setVarUploadTarget(i);
+                              varFileRef.current?.click();
+                            }}
+                          >
+                            {varUploading === i ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              <Upload className="size-3.5" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 )}
+                <input
+                  ref={varFileRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    if (varUploadTarget != null) onVariationUpload(varUploadTarget, e.target.files?.[0]);
+                  }}
+                />
               </div>
             )}
 
