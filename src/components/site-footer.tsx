@@ -17,7 +17,7 @@ export function SiteFooter() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-10 md:gap-12">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
         <div className="col-span-2 md:col-span-1 space-y-4">
           <div className="flex items-center gap-2">
             <img
@@ -70,6 +70,42 @@ export function SiteFooter() {
           </ul>
         </div>
 
+        <div>
+          <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.otherStores")}</h4>
+          <div className="space-y-2">
+            <a
+              href="https://bosbadrinksnack.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
+            >
+              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-medium">BOSBA Drink Snack</span>
+                <span className="block text-xs text-muted-foreground">
+                  {t("nav.sisterSiteHint")}
+                </span>
+              </span>
+              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+            </a>
+            <a
+              href="https://sorasake.wine"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
+            >
+              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
+              <span className="flex-1 min-w-0">
+                <span className="block text-sm font-medium">SORA SAKE</span>
+                <span className="block text-xs text-muted-foreground">
+                  {t("nav.sisterSiteHintSora")}
+                </span>
+              </span>
+              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
+            </a>
+          </div>
+        </div>
+
         <div className="col-span-2 md:col-span-1">
           <div className="rounded-2xl bg-muted p-6">
             <h4 className="font-display font-semibold mb-2">{t("footer.followTitle")}</h4>
@@ -115,39 +151,6 @@ export function SiteFooter() {
               <svg viewBox="0 0 24 24" fill="currentColor" className="size-4">
                 <path d="M21.9 4.3 18.6 19.5c-.2 1.1-.9 1.4-1.8.9l-4.9-3.6-2.4 2.3c-.3.3-.5.5-1 .5l.4-5 9.1-8.2c.4-.4-.1-.6-.6-.2L6.7 13.5l-4.8-1.5c-1.1-.3-1.1-1 .2-1.5l18.7-7.2c.9-.3 1.6.2 1.3 1z" />
               </svg>
-            </a>
-          </div>
-
-          <div className="mt-5 space-y-2">
-            <a
-              href="https://bosbadrinksnack.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
-            >
-              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">BOSBA Drink Snack</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("nav.sisterSiteHint")}
-                </span>
-              </span>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
-            </a>
-            <a
-              href="https://sorasake.wine"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
-            >
-              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">SORA SAKE</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("nav.sisterSiteHintSora")}
-                </span>
-              </span>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
             </a>
           </div>
         </div>
