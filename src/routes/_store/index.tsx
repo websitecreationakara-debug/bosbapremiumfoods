@@ -3,7 +3,6 @@ import { HeroSlider } from "@/components/hero-slider";
 import { ProductCard } from "@/components/product-card";
 import { OfferSection } from "@/components/offer-section";
 import {
-  useCategories,
   useProducts,
   usePromotions,
   useStoreSettings,
@@ -40,7 +39,6 @@ export const Route = createFileRoute("/_store/")({
 function Home() {
   const heroSlides = Route.useLoaderData();
   const { data: products = [], isLoading } = useProducts();
-  const { data: categories = [] } = useCategories();
   const { data: promotions = [] } = usePromotions();
   const { data: settings } = useStoreSettings();
   const { data: variations = [] } = useAllVariations();
@@ -58,6 +56,11 @@ function Home() {
   const offerSections = promotions
     .map((promo) => ({ promo, items: products.filter((p) => p.promotion_id === promo.id) }))
     .filter((s) => s.items.length > 0);
+  // Star Picks: any product with an admin-set Badge (HOT/NEW/ORGANIC/SALE), newest first.
+  const starProducts = products
+    .filter((p) => !!p.badge)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at))
+    .slice(0, 8);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const features = [
@@ -88,38 +91,28 @@ function Home() {
         </div>
       </section>
 
-      {/* Categories */}
-      <section className="mx-auto max-w-6xl px-6">
-        <div className="text-center mb-12">
-          <h2 className="font-display font-semibold text-4xl md:text-5xl tracking-tight">
-            {t("home.shopByCategory")}
-          </h2>
-          <p className="text-lg text-muted-foreground mt-3">{t("home.shopByCategorySub")}</p>
-        </div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-          {categories.map((c, i) => (
-            <Link
-              key={c.id}
-              to="/shop"
-              search={{ category: c.slug }}
-              className="group flex flex-col items-center justify-center text-center aspect-square rounded-3xl bg-muted p-5 transition-colors hover:bg-accent"
-            >
-              <div className="relative mb-4 size-24 overflow-hidden rounded-full bg-background grid place-items-center">
-                {c.image_url ? (
-                  <img
-                    src={c.image_url}
-                    alt=""
-                    className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  />
-                ) : (
-                  <span className="text-4xl">{["🐟", "🍣", "🦐", "🦀", "🦑", "🐙"][i % 6]}</span>
-                )}
-              </div>
-              <p className="font-display font-semibold text-base text-foreground">{c.name}</p>
-            </Link>
-          ))}
-        </div>
-      </section>
+      {/* Star Picks — products with an admin-set Badge */}
+      {starProducts.length > 0 && (
+        <section className="mx-auto max-w-6xl px-6">
+          <div className="text-center mb-12">
+            <h2 className="font-display font-semibold text-4xl md:text-5xl tracking-tight">
+              Shop Our Star Picks
+            </h2>
+            <p className="text-lg text-muted-foreground mt-3">
+              Hand-picked favorites, hot right now.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+            {starProducts.map((p) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                fromPrice={productFromPrice(p, variationsByProduct.get(p.id) ?? [])}
+              />
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Offers */}
       {offerSections.length > 0 && (

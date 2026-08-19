@@ -14,7 +14,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
 import { productFromPrice, groupVariations } from "@/lib/variants";
-import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart } from "lucide-react";
+import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart, Flame } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
 
 const RELATED_COUNT = 4;
@@ -186,13 +186,18 @@ function ProductDetail() {
               {product.badge && (
                 <span
                   className={cn(
-                    "px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md",
-                    product.badge === "HOT" && "bg-warning text-foreground",
+                    "flex items-center gap-1 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md",
+                    product.badge === "HOT" &&
+                      "bg-gradient-to-r from-orange-500 to-red-500 text-white shadow-[0_0_10px_rgba(249,115,22,0.65)] animate-pulse",
+                    product.badge === "STAR" &&
+                      "bg-gradient-to-r from-violet-500 to-indigo-500 text-white shadow-[0_0_10px_rgba(139,92,246,0.65)]",
                     product.badge === "NEW" && "bg-accent text-accent-foreground",
                     product.badge === "ORGANIC" && "bg-brand text-brand-foreground",
                     product.badge === "SALE" && "bg-destructive text-destructive-foreground",
                   )}
                 >
+                  {product.badge === "HOT" && <Flame className="size-3 fill-current" />}
+                  {product.badge === "STAR" && <Star className="size-3 fill-current" />}
                   {product.badge}
                 </span>
               )}

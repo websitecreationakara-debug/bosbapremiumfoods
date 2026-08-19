@@ -826,6 +826,7 @@ function ProductsAdmin() {
                     <SelectItem value="HOT">HOT</SelectItem>
                     <SelectItem value="SALE">SALE</SelectItem>
                     <SelectItem value="ORGANIC">ORGANIC</SelectItem>
+                    <SelectItem value="STAR">STAR</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

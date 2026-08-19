@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, SlidersHorizontal, Heart } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal, Heart, Flame, Star } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n } from "@/lib/i18n";
@@ -29,6 +29,9 @@ export function ProductCard({
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
     : 0;
+  const isHot = product.badge === "HOT";
+  const isStar = product.badge === "STAR";
+  const otherBadge = product.badge && !isHot && !isStar ? product.badge : null;
 
   return (
     <Link
@@ -49,11 +52,36 @@ export function ProductCard({
             {t("product.noImage")}
           </div>
         )}
-        {(offerLabel || hasSale || soldOut) && (
+        {(offerLabel || hasSale || soldOut || isHot || isStar || otherBadge) && (
           <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
             {soldOut && (
               <span className="rounded-full bg-foreground/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-background">
                 Sold out
+              </span>
+            )}
+            {isHot && !soldOut && (
+              <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-orange-500 to-red-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-[0_0_10px_rgba(249,115,22,0.65)] animate-pulse">
+                <Flame className="size-3 fill-current" />
+                Hot
+              </span>
+            )}
+            {isStar && !soldOut && (
+              <span className="flex items-center gap-1 rounded-full bg-gradient-to-r from-violet-500 to-indigo-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-[0_0_10px_rgba(139,92,246,0.65)]">
+                <Star className="size-3 fill-current" />
+                Star
+              </span>
+            )}
+            {otherBadge && !soldOut && (
+              <span
+                className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                  otherBadge === "NEW"
+                    ? "bg-accent text-accent-foreground"
+                    : otherBadge === "ORGANIC"
+                      ? "bg-brand text-brand-foreground"
+                      : "bg-destructive text-destructive-foreground"
+                }`}
+              >
+                {otherBadge}
               </span>
             )}
             {offerLabel && !soldOut && (
