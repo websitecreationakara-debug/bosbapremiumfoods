@@ -16,8 +16,9 @@ type AuthCtx = {
   isAdmin: boolean;
   isSales: boolean;
   isMarketing: boolean;
+  isStock: boolean;
   isStaff: boolean;
-  // Anyone allowed into the /admin area: admin, sales, or marketing.
+  // Anyone allowed into the /admin area: admin, sales, marketing, or stock.
   canAccessAdmin: boolean;
   // `twoFactorRequired` is true when the password was correct but a TOTP code is
   // still needed — the caller should prompt for it and call verifyTotp.
@@ -140,9 +141,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isAdmin: user?.role === "admin",
         isSales: user?.role === "sales",
         isMarketing: user?.role === "marketing",
+        isStock: user?.role === "stock",
         isStaff: user?.role === "admin" || user?.role === "sales",
         canAccessAdmin:
-          user?.role === "admin" || user?.role === "sales" || user?.role === "marketing",
+          user?.role === "admin" ||
+          user?.role === "sales" ||
+          user?.role === "marketing" ||
+          user?.role === "stock",
         signIn,
         verifyTotp,
         signUp,
