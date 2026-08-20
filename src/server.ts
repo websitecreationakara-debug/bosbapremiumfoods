@@ -14,7 +14,8 @@ type ServerEntry = {
 // scripts/connect/frame, and frame-ancestors/base-uri/object-src close the
 // clickjacking and base-tag vectors. Origins map to real usage: google/gstatic
 // = reCAPTCHA, analytics.tiktok = pixel, cloudflareinsights = CF Web Analytics
-// (edge-injected), nominatim = checkout address lookup, fonts.* = Google Fonts.
+// (edge-injected), nominatim = checkout address lookup, fonts.* = Google Fonts,
+// youtube.com = product video embeds (src/lib/youtube.ts).
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
@@ -26,7 +27,7 @@ const CSP = [
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
   "connect-src 'self' https://nominatim.openstreetmap.org https://www.google.com https://analytics.tiktok.com https://static.cloudflareinsights.com https://cloudflareinsights.com",
-  "frame-src 'self' https://www.google.com",
+  "frame-src 'self' https://www.google.com https://www.youtube.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
   "upgrade-insecure-requests",
