@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useStoreSettings,
   useProductVariations,
@@ -143,6 +143,19 @@ function ProductDetail() {
   useEffect(() => {
     setNativeShareAvailable(canNativeShare());
   }, []);
+  // "Read more" only appears once the description actually overflows 3 lines —
+  // re-measured on resize since line-wrapping depends on the viewport width.
+  const descRef = useRef<HTMLParagraphElement>(null);
+  const [descExpanded, setDescExpanded] = useState(false);
+  const [descOverflows, setDescOverflows] = useState(false);
+  useEffect(() => {
+    const el = descRef.current;
+    if (!el) return;
+    const check = () => setDescOverflows(el.scrollHeight > el.clientHeight + 1);
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, [product?.description]);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const variable = product?.type === "variable";
@@ -366,7 +379,26 @@ function ProductDetail() {
           )}
 
           {product.description && (
-            <p className="text-muted-foreground mt-5 leading-relaxed">{product.description}</p>
+            <div className="mt-5">
+              <p
+                ref={descRef}
+                className={cn(
+                  "text-muted-foreground leading-relaxed",
+                  !descExpanded && "line-clamp-3",
+                )}
+              >
+                {product.description}
+              </p>
+              {(descOverflows || descExpanded) && (
+                <button
+                  type="button"
+                  onClick={() => setDescExpanded((v) => !v)}
+                  className="text-sm font-bold text-brand mt-1 hover:underline"
+                >
+                  {descExpanded ? "Read less" : "Read more"}
+                </button>
+              )}
+            </div>
           )}
 
           <div className="flex flex-wrap items-center gap-3 mt-8">
