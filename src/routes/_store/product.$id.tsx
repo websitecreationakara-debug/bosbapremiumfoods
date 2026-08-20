@@ -369,7 +369,7 @@ function ProductDetail() {
             <p className="text-muted-foreground mt-5 leading-relaxed">{product.description}</p>
           )}
 
-          <div className="flex items-center gap-3 mt-8">
+          <div className="flex flex-wrap items-center gap-3 mt-8">
             <div className="flex items-center border rounded-full">
               <button
                 type="button"
@@ -399,63 +399,67 @@ function ProductDetail() {
               <ShoppingBag className="size-4 mr-2" />
               {soldOut ? "Out of Stock" : "Add to Cart"}
             </Button>
-            <button
-              type="button"
-              onClick={() => toggleWishlist(product.id)}
-              aria-pressed={inWishlist(product.id)}
-              aria-label={inWishlist(product.id) ? "Remove from wishlist" : "Save to wishlist"}
-              className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
-            >
-              <Heart
-                className={cn(
-                  "size-5 transition-colors",
-                  inWishlist(product.id) && "fill-brand text-brand",
-                )}
-              />
-            </button>
-            {nativeShareAvailable ? (
+            {/* Grouped so the pair wraps to its own line together on narrow
+                screens instead of the share icon alone overflowing past it. */}
+            <div className="flex items-center gap-3">
               <button
                 type="button"
-                onClick={() => nativeShare({ title: product.title, url: window.location.href })}
-                aria-label="Share this product"
+                onClick={() => toggleWishlist(product.id)}
+                aria-pressed={inWishlist(product.id)}
+                aria-label={inWishlist(product.id) ? "Remove from wishlist" : "Save to wishlist"}
                 className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
               >
-                <Share2 className="size-5" />
+                <Heart
+                  className={cn(
+                    "size-5 transition-colors",
+                    inWishlist(product.id) && "fill-brand text-brand",
+                  )}
+                />
               </button>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label="Share this product"
-                    className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
-                  >
-                    <Share2 className="size-5" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem
-                    onClick={() =>
-                      window.open(
-                        facebookShareUrl(window.location.href),
-                        "_blank",
-                        "noopener,noreferrer,width=600,height=400",
-                      )
-                    }
-                  >
-                    <Facebook className="size-4 mr-2" /> Share on Facebook
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      await copyLink(window.location.href);
-                      toast.success("Link copied");
-                    }}
-                  >
-                    <LinkIcon className="size-4 mr-2" /> Copy link
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+              {nativeShareAvailable ? (
+                <button
+                  type="button"
+                  onClick={() => nativeShare({ title: product.title, url: window.location.href })}
+                  aria-label="Share this product"
+                  className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
+                >
+                  <Share2 className="size-5" />
+                </button>
+              ) : (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label="Share this product"
+                      className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
+                    >
+                      <Share2 className="size-5" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                      onClick={() =>
+                        window.open(
+                          facebookShareUrl(window.location.href),
+                          "_blank",
+                          "noopener,noreferrer,width=600,height=400",
+                        )
+                      }
+                    >
+                      <Facebook className="size-4 mr-2" /> Share on Facebook
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={async () => {
+                        await copyLink(window.location.href);
+                        toast.success("Link copied");
+                      }}
+                    >
+                      <LinkIcon className="size-4 mr-2" /> Copy link
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
