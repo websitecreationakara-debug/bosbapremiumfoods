@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   useStoreSettings,
   useProductVariations,
@@ -13,10 +13,31 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { productFromPrice, groupVariations } from "@/lib/variants";
-import { Star, ShoppingBag, Minus, Plus, ArrowLeft, Truck, Heart, Flame, Play } from "lucide-react";
+import {
+  Star,
+  ShoppingBag,
+  Minus,
+  Plus,
+  ArrowLeft,
+  Truck,
+  Heart,
+  Flame,
+  Play,
+  Share2,
+  Facebook,
+  Link as LinkIcon,
+} from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
 import { extractYoutubeId, youtubeThumbnail, youtubeEmbedSrc } from "@/lib/youtube";
+import { canNativeShare, nativeShare, facebookShareUrl, copyLink } from "@/lib/share";
+import { toast } from "sonner";
 
 const RELATED_COUNT = 4;
 
@@ -116,6 +137,12 @@ function ProductDetail() {
   const [activeImage, setActiveImage] = useState<string | null>(null);
   // True when the video thumbnail is selected instead of a photo.
   const [showVideo, setShowVideo] = useState(false);
+  // Starts false to match SSR (no `navigator` on the server) — flips after
+  // mount so mobile browsers get the native OS share sheet, desktop the menu.
+  const [nativeShareAvailable, setNativeShareAvailable] = useState(false);
+  useEffect(() => {
+    setNativeShareAvailable(canNativeShare());
+  }, []);
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const variable = product?.type === "variable";
@@ -386,6 +413,49 @@ function ProductDetail() {
                 )}
               />
             </button>
+            {nativeShareAvailable ? (
+              <button
+                type="button"
+                onClick={() => nativeShare({ title: product.title, url: window.location.href })}
+                aria-label="Share this product"
+                className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
+              >
+                <Share2 className="size-5" />
+              </button>
+            ) : (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="Share this product"
+                    className="grid size-12 shrink-0 place-items-center rounded-full border transition-colors hover:bg-muted"
+                  >
+                    <Share2 className="size-5" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem
+                    onClick={() =>
+                      window.open(
+                        facebookShareUrl(window.location.href),
+                        "_blank",
+                        "noopener,noreferrer,width=600,height=400",
+                      )
+                    }
+                  >
+                    <Facebook className="size-4 mr-2" /> Share on Facebook
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={async () => {
+                      await copyLink(window.location.href);
+                      toast.success("Link copied");
+                    }}
+                  >
+                    <LinkIcon className="size-4 mr-2" /> Copy link
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </div>
 
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
