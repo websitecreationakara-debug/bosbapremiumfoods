@@ -1,9 +1,10 @@
 import { Link } from "@tanstack/react-router";
-import { ShoppingBag, SlidersHorizontal, Heart, Flame, Star } from "lucide-react";
+import { ShoppingBag, SlidersHorizontal, Heart, Flame, Star, MessageCircle } from "lucide-react";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useI18n } from "@/lib/i18n";
 import { slugify } from "@/lib/utils";
+import { preOrderChatUrl } from "@/lib/sales-chat";
 import type { Product } from "@/lib/types";
 
 export function ProductCard({
@@ -24,7 +25,7 @@ export function ProductCard({
   const variable = product.type === "variable";
   // Simple products track their own stock; 0 = out of stock. Variable products
   // carry stock on their variations, so the grid card never blocks them here.
-  const soldOut = !variable && product.stock === 0;
+  const soldOut = !variable && product.stock === 0 && !product.pre_order;
   const hasSale = product.sale_price != null && product.sale_price < product.price;
   const discount = hasSale
     ? Math.round(((product.price - product.sale_price!) / product.price) * 100)
@@ -52,8 +53,13 @@ export function ProductCard({
             {t("product.noImage")}
           </div>
         )}
-        {(offerLabel || hasSale || soldOut || isHot || isStar || otherBadge) && (
+        {(product.pre_order || offerLabel || hasSale || soldOut || isHot || isStar || otherBadge) && (
           <div className="absolute left-2.5 top-2.5 flex flex-col items-start gap-1">
+            {product.pre_order && (
+              <span className="rounded-full bg-brand px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-brand-foreground">
+                Pre-Order
+              </span>
+            )}
             {soldOut && (
               <span className="rounded-full bg-foreground/80 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-background">
                 Sold out
@@ -147,6 +153,19 @@ export function ProductCard({
             >
               <SlidersHorizontal className="size-4" />
             </span>
+          ) : product.pre_order ? (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(preOrderChatUrl(product.title), "_blank", "noopener,noreferrer");
+              }}
+              aria-label="Chat to pre-order"
+              className="grid size-9 shrink-0 place-items-center rounded-full border border-brand bg-background text-brand transition-colors hover:bg-brand hover:text-brand-foreground"
+            >
+              <MessageCircle className="size-4" />
+            </button>
           ) : (
             <button
               disabled={soldOut}

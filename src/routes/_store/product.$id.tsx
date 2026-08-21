@@ -34,10 +34,12 @@ import {
   Share2,
   Facebook,
   Link as LinkIcon,
+  MessageCircle,
 } from "lucide-react";
 import { cn, slugify } from "@/lib/utils";
 import { extractYoutubeId, youtubeThumbnail, youtubeEmbedSrc } from "@/lib/youtube";
 import { canNativeShare, nativeShare, facebookShareUrl, copyLink } from "@/lib/share";
+import { preOrderChatUrl } from "@/lib/sales-chat";
 import { toast } from "sonner";
 
 const RELATED_COUNT = 4;
@@ -113,8 +115,11 @@ function ProductJsonLd({ product }: { product: Product }) {
       "@type": "Offer",
       priceCurrency: "USD",
       price: price.toFixed(2),
-      availability:
-        product.stock === 0 ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+      availability: product.pre_order
+        ? "https://schema.org/PreOrder"
+        : product.stock === 0
+          ? "https://schema.org/OutOfStock"
+          : "https://schema.org/InStock",
       url: `${SITE}/product/${slugify(product.title) || product.id}`,
     };
   }
@@ -184,7 +189,8 @@ function ProductDetail() {
   const salePrice = variable ? (selected?.sale_price ?? null) : product.sale_price;
   // null = untracked (always available); 0 = out of stock; >0 = tracked count.
   const activeStock = variable ? (selected?.stock ?? null) : product.stock;
-  const soldOut = activeStock === 0;
+  const preOrder = product.pre_order;
+  const soldOut = activeStock === 0 && !preOrder;
   const weightLabel = variable ? selected?.weight : product.weight;
   const pcs = variable ? (selected?.pcs ?? null) : product.pcs;
   const hasSale = salePrice != null && salePrice < basePrice;
@@ -320,7 +326,9 @@ function ProductDetail() {
               {product.rating ?? 4.5}
             </span>
             <span className="opacity-50">·</span>
-            {soldOut ? (
+            {preOrder ? (
+              <span className="text-brand font-medium">Available for Pre-Order</span>
+            ) : soldOut ? (
               <span className="text-destructive font-medium">Out of stock</span>
             ) : (
               <span className="text-success font-medium">
@@ -403,35 +411,50 @@ function ProductDetail() {
           )}
 
           <div className="flex flex-wrap items-center gap-3 mt-8">
-            <div className="flex items-center border rounded-full">
-              <button
-                type="button"
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
-                className="size-10 grid place-items-center text-muted-foreground hover:text-foreground disabled:opacity-40"
-                disabled={qty <= 1}
-                aria-label="Decrease quantity"
+            {!preOrder && (
+              <div className="flex items-center border rounded-full">
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.max(1, q - 1))}
+                  className="size-10 grid place-items-center text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  disabled={qty <= 1}
+                  aria-label="Decrease quantity"
+                >
+                  <Minus className="size-4" />
+                </button>
+                <span className="w-10 text-center font-bold">{qty}</span>
+                <button
+                  type="button"
+                  onClick={() => setQty((q) => Math.min(activeStock ?? 99, q + 1))}
+                  className="size-10 grid place-items-center text-muted-foreground hover:text-foreground"
+                  aria-label="Increase quantity"
+                >
+                  <Plus className="size-4" />
+                </button>
+              </div>
+            )}
+            {preOrder ? (
+              <Button asChild size="lg" className="flex-1 rounded-full font-bold">
+                <a
+                  href={preOrderChatUrl(product.title, weightLabel)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle className="size-4 mr-2" />
+                  Chat to Pre-Order
+                </a>
+              </Button>
+            ) : (
+              <Button
+                size="lg"
+                disabled={addDisabled}
+                onClick={() => add(product, variable ? selected : null, qty)}
+                className="flex-1 rounded-full font-bold"
               >
-                <Minus className="size-4" />
-              </button>
-              <span className="w-10 text-center font-bold">{qty}</span>
-              <button
-                type="button"
-                onClick={() => setQty((q) => Math.min(activeStock ?? 99, q + 1))}
-                className="size-10 grid place-items-center text-muted-foreground hover:text-foreground"
-                aria-label="Increase quantity"
-              >
-                <Plus className="size-4" />
-              </button>
-            </div>
-            <Button
-              size="lg"
-              disabled={addDisabled}
-              onClick={() => add(product, variable ? selected : null, qty)}
-              className="flex-1 rounded-full font-bold"
-            >
-              <ShoppingBag className="size-4 mr-2" />
-              {soldOut ? "Out of Stock" : "Add to Cart"}
-            </Button>
+                <ShoppingBag className="size-4 mr-2" />
+                {soldOut ? "Out of Stock" : "Add to Cart"}
+              </Button>
+            )}
             {/* Grouped so the pair wraps to its own line together on narrow
                 screens instead of the share icon alone overflowing past it. */}
             <div className="flex items-center gap-3">

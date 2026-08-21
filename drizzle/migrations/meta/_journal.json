@@ -260,6 +260,13 @@
       "when": 1787140564444,
       "tag": "0036_tense_ricochet",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "6",
+      "when": 1787310381596,
+      "tag": "0037_lovely_eternals",
+      "breakpoints": true
     }
   ]
 }
