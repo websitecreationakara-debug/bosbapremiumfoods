@@ -8,6 +8,7 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct } from "@/data/products";
+import { renderFormattedDescription } from "@/lib/format-description";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
@@ -383,11 +384,11 @@ function ProductDetail() {
               <p
                 ref={descRef}
                 className={cn(
-                  "text-muted-foreground leading-relaxed",
+                  "text-muted-foreground leading-relaxed whitespace-pre-line",
                   !descExpanded && "line-clamp-3",
                 )}
               >
-                {product.description}
+                {renderFormattedDescription(product.description)}
               </p>
               {(descOverflows || descExpanded) && (
                 <button
