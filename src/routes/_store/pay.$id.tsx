@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { startPayment, checkPayment, mockPay } from "@/data/payments";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShieldCheck, CheckCircle2, Smartphone, AlertTriangle } from "lucide-react";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pay/$id")({
@@ -148,7 +149,9 @@ function PayScreen() {
         <h1 className="font-display font-semibold text-2xl">Payment unavailable</h1>
         <p className="mt-2 text-muted-foreground">{error}</p>
         <Button asChild variant="outline" className="mt-6 rounded-full">
-          <Link to="/shop">Back to shop</Link>
+          <Link to="/shop" onClick={() => trackShopButtonClick("pay_error_back_to_shop")}>
+            Back to shop
+          </Link>
         </Button>
       </div>
     );
@@ -221,11 +224,7 @@ function PayScreen() {
           <p className="mt-1 text-xs text-muted-foreground">
             It&rsquo;s no longer scannable. Generate a new one to continue paying.
           </p>
-          <Button
-            onClick={regenerate}
-            disabled={regenerating}
-            className="mt-3 w-full rounded-full"
-          >
+          <Button onClick={regenerate} disabled={regenerating} className="mt-3 w-full rounded-full">
             {regenerating ? "Generating…" : "Generate new code"}
           </Button>
         </div>
@@ -253,8 +252,8 @@ function PayScreen() {
             <Smartphone className="size-4" /> Test mode
           </p>
           <p className="mt-1 text-xs text-muted-foreground">
-            The Bakong gateway isn&rsquo;t connected yet, so this QR isn&rsquo;t chargeable. Use
-            the button below to simulate a successful payment.
+            The Bakong gateway isn&rsquo;t connected yet, so this QR isn&rsquo;t chargeable. Use the
+            button below to simulate a successful payment.
           </p>
           <Button onClick={simulate} disabled={confirming} className="mt-3 w-full rounded-full">
             {confirming ? "Confirming…" : "Simulate successful payment"}

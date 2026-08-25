@@ -9,6 +9,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { useStoreSettings } from "@/hooks/use-products";
 
 export function SiteFooter() {
@@ -48,22 +49,38 @@ export function SiteFooter() {
           <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.marketplace")}</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li>
-              <Link to="/shop" className="hover:text-secondary-accent transition-colors">
+              <Link
+                to="/shop"
+                onClick={() => trackShopButtonClick("footer_all_products")}
+                className="hover:text-secondary-accent transition-colors"
+              >
                 {t("nav.allProducts")}
               </Link>
             </li>
             <li>
-              <Link to="/shop" className="hover:text-secondary-accent transition-colors">
+              <Link
+                to="/shop"
+                onClick={() => trackShopButtonClick("footer_sashimi_fillets")}
+                className="hover:text-secondary-accent transition-colors"
+              >
                 {t("footer.sashimiFillets")}
               </Link>
             </li>
             <li>
-              <Link to="/shop" className="hover:text-secondary-accent transition-colors">
+              <Link
+                to="/shop"
+                onClick={() => trackShopButtonClick("footer_shellfish")}
+                className="hover:text-secondary-accent transition-colors"
+              >
                 {t("footer.shellfish")}
               </Link>
             </li>
             <li>
-              <Link to="/shop" className="hover:text-secondary-accent transition-colors">
+              <Link
+                to="/shop"
+                onClick={() => trackShopButtonClick("footer_roe_uni")}
+                className="hover:text-secondary-accent transition-colors"
+              >
                 {t("footer.roeUni")}
               </Link>
             </li>

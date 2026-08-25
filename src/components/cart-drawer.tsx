@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 import { Link } from "@tanstack/react-router";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 
 export function CartDrawer() {
   const { items, drawerOpen, setDrawerOpen, setQty, remove, subtotal } = useCart();
@@ -32,7 +33,9 @@ export function CartDrawer() {
               </p>
             </div>
             <Button onClick={() => setDrawerOpen(false)} asChild>
-              <Link to="/shop">Return to Shop</Link>
+              <Link to="/shop" onClick={() => trackShopButtonClick("cart_drawer_empty")}>
+                Return to Shop
+              </Link>
             </Button>
           </div>
         ) : (

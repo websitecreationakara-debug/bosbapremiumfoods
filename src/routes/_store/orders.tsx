@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/hooks/use-auth";
 import { useMyOrders } from "@/hooks/use-products";
 import { downloadInvoice } from "@/lib/invoice";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import type { Order } from "@/lib/types";
 import { toast } from "sonner";
 
@@ -95,6 +96,7 @@ function MyOrders() {
           </p>
           <Link
             to="/shop"
+            onClick={() => trackShopButtonClick("orders_empty")}
             className="inline-flex mt-6 items-center gap-2 rounded-full bg-brand text-brand-foreground px-6 py-3 text-sm font-semibold hover:bg-secondary-accent transition-colors"
           >
             Start shopping
