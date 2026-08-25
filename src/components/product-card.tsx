@@ -124,25 +124,27 @@ export function ProductCard({
         </h3>
 
         <div className="mt-auto flex items-end justify-between gap-2">
-          <div className="flex items-baseline gap-1.5">
-            {variable ? (
-              <span className="text-[15px] font-medium text-brand">
-                {t("product.from")} ${(fromPrice ?? product.price).toFixed(2)}
-              </span>
-            ) : (
-              <>
+          <div className="flex flex-col gap-0.5">
+            <div className="flex items-baseline gap-1.5">
+              {variable ? (
                 <span className="text-[15px] font-medium text-brand">
-                  ${(product.sale_price ?? product.price).toFixed(2)}
+                  {t("product.from")} ${(fromPrice ?? product.price).toFixed(2)}
                 </span>
-                {product.weight && (
-                  <span className="text-xs text-muted-foreground">/ {product.weight}</span>
-                )}
-                {hasSale && (
-                  <span className="text-xs text-muted-foreground line-through">
-                    ${product.price.toFixed(2)}
+              ) : (
+                <>
+                  <span className="text-[15px] font-medium text-brand">
+                    ${(product.sale_price ?? product.price).toFixed(2)}
                   </span>
-                )}
-              </>
+                  {hasSale && (
+                    <span className="text-xs text-muted-foreground line-through">
+                      ${product.price.toFixed(2)}
+                    </span>
+                  )}
+                </>
+              )}
+            </div>
+            {!variable && product.weight && (
+              <span className="text-xs text-muted-foreground">{product.weight}</span>
             )}
           </div>
 
