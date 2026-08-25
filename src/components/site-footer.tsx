@@ -45,7 +45,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.marketplace")}</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li>
@@ -87,7 +87,7 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div>
+        <div className="col-span-2 md:col-span-1">
           <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.otherStores")}</h4>
           <div className="space-y-2">
             <a
