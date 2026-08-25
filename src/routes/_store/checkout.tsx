@@ -7,6 +7,7 @@ import type { Address } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import {
   Select,
   SelectContent,
@@ -350,7 +351,9 @@ function Checkout() {
       <div className="mx-auto max-w-3xl px-6 py-20 text-center">
         <h1 className="font-display font-semibold tracking-tight text-3xl">Your cart is empty</h1>
         <Button asChild className="mt-6 rounded-full">
-          <Link to="/shop">Continue shopping</Link>
+          <Link to="/shop" onClick={() => trackShopButtonClick("checkout_empty_cart")}>
+            Continue shopping
+          </Link>
         </Button>
       </div>
     );

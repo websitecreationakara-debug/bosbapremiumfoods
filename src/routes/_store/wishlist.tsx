@@ -3,6 +3,7 @@ import { Heart } from "lucide-react";
 import { ProductCard } from "@/components/product-card";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { useProducts, useAllVariations } from "@/hooks/use-products";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { groupVariations, productFromPrice } from "@/lib/variants";
 
 export const Route = createFileRoute("/_store/wishlist")({ component: Wishlist });
@@ -30,6 +31,7 @@ function Wishlist() {
         <p className="text-muted-foreground mt-2">Save items you love for later.</p>
         <Link
           to="/shop"
+          onClick={() => trackShopButtonClick("wishlist_empty")}
           className="inline-flex mt-6 items-center gap-2 rounded-full bg-brand text-brand-foreground px-6 py-3 text-sm font-semibold hover:bg-secondary-accent transition-colors"
         >
           Browse the shop

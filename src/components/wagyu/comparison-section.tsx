@@ -2,6 +2,7 @@ import { useRef, useState, useCallback } from "react";
 import { Link } from "@tanstack/react-router";
 import { Reveal } from "@/components/wagyu/reveal";
 import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import A4 from "../../image/a4.jpg";
 import A5 from "../../image/a5.jpg";
 import { SupplyChainSection } from "@/components/wagyu/supply-chain-section";
@@ -489,6 +490,9 @@ export function ComparisonSection() {
                 <div style={{ marginTop: "2rem" }}>
                   <Link
                     to={g.link}
+                    onClick={() =>
+                      trackShopButtonClick(`wagyu_comparison_${g.grade.toLowerCase()}`)
+                    }
                     className="btn-gold rounded-sm"
                     style={{ display: "inline-block", textDecoration: "none" }}
                   >

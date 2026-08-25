@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
 import { useWagyuI18n, wagyuEn, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import image1 from "../../image/cookingguide1.jpg";
 import image2 from "../../image/cooking2.jpg";
 import image3 from "../../image/cookingguide3.jpg";
@@ -299,6 +300,7 @@ export function CookingGuideSection() {
                   {step.showShopBtn && (
                     <a
                       href="/shop?category=cook-yourself"
+                      onClick={() => trackShopButtonClick("wagyu_cooking_guide")}
                       className="btn-gold"
                       lang={locale}
                       style={{

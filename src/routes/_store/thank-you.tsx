@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/use-auth";
 import { downloadInvoice } from "@/lib/invoice";
+import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { toast } from "sonner";
 
 type LastOrder = {
@@ -98,7 +99,9 @@ function ThankYou() {
       />
 
       <Button asChild size="lg" variant="outline" className="mt-8 rounded-full">
-        <Link to="/shop">Continue shopping</Link>
+        <Link to="/shop" onClick={() => trackShopButtonClick("thank_you_continue_shopping")}>
+          Continue shopping
+        </Link>
       </Button>
     </div>
   );
