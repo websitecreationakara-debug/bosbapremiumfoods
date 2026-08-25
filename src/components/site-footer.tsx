@@ -18,8 +18,8 @@ export function SiteFooter() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
-        <div className="col-span-2 md:col-span-1 space-y-4">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
+        <div className="col-span-2 lg:col-span-1 space-y-4">
           <div className="flex items-center gap-2">
             <img
               src="/logo.png"
@@ -45,7 +45,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="col-span-2 md:col-span-1">
+        <div className="col-span-2 lg:col-span-1">
           <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.marketplace")}</h4>
           <ul className="space-y-3 text-sm text-muted-foreground">
             <li>
@@ -87,7 +87,10 @@ export function SiteFooter() {
           </ul>
         </div>
 
-        <div className="col-span-2 md:col-span-1">
+        {/* Hidden below lg: the mobile/tablet hamburger sidebar already has this
+            same "Also Visit" block, so showing it here too would be redundant.
+            Desktop's nav has no sidebar equivalent, so it stays in the footer. */}
+        <div className="hidden lg:block">
           <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.otherStores")}</h4>
           <div className="space-y-2">
             <a
@@ -123,7 +126,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="col-span-2 md:col-span-1">
+        <div className="col-span-2 lg:col-span-1">
           <div className="rounded-2xl bg-muted p-6">
             <h4 className="font-display font-semibold mb-2">{t("footer.followTitle")}</h4>
             <p className="text-xs text-muted-foreground">{t("footer.followSub")}</p>
