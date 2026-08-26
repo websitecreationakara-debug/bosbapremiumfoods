@@ -11,7 +11,6 @@ import {
 import { ArrowRight, Truck, Fish, ShieldCheck, Snowflake } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useI18n } from "@/lib/i18n";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { groupVariations, productFromPrice } from "@/lib/variants";
 import { listHeroSlides } from "@/data/banners";
 import type { HeroSlide } from "@/lib/types";
@@ -160,7 +159,6 @@ function Home() {
         <div className="mt-12 text-center">
           <Link
             to="/shop"
-            onClick={() => trackShopButtonClick("home_view_all")}
             className="inline-flex items-center gap-1.5 text-base font-medium text-brand transition-all hover:gap-2.5"
           >
             {t("home.viewAll")} <ArrowRight className="size-4" />

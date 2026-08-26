@@ -12,7 +12,6 @@ import { renderFormattedDescription } from "@/lib/format-description";
 import type { Product } from "@/lib/types";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
 import {
@@ -182,7 +181,6 @@ function ProductDetail() {
         <p className="text-muted-foreground mt-2">It may have been removed or is unavailable.</p>
         <Link
           to="/shop"
-          onClick={() => trackShopButtonClick("product_not_found")}
           className="inline-flex mt-6 items-center gap-2 rounded-full bg-brand text-brand-foreground px-6 py-3 text-sm font-bold"
         >
           <ArrowLeft className="size-4" /> Back to shop
@@ -225,7 +223,6 @@ function ProductDetail() {
       <ProductJsonLd product={product} />
       <Link
         to="/shop"
-        onClick={() => trackShopButtonClick("product_breadcrumb")}
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
       >
         <ArrowLeft className="size-4" /> Back to shop

@@ -8,15 +8,15 @@ type ServerEntry = {
 };
 
 // Content-Security-Policy. 'unsafe-inline' is required for scripts because the
-// app ships inline scripts (TikTok/Meta pixels, install-prompt capture, JSON-LD)
+// app ships inline scripts (TikTok pixel, install-prompt capture, JSON-LD)
 // plus TanStack Start's hydration scripts — a nonce-based policy would be a
 // larger change. The host allowlists still constrain which external origins may
 // load scripts/connect/frame, and frame-ancestors/base-uri/object-src close the
 // clickjacking and base-tag vectors. Origins map to real usage: google/gstatic
 // = reCAPTCHA, analytics.tiktok = TikTok pixel, connect.facebook.net/facebook.com
-// = Meta pixel, cloudflareinsights = CF Web Analytics (edge-injected), nominatim
-// = checkout address lookup, fonts.* = Google Fonts, youtube.com = product video
-// embeds (src/lib/youtube.ts).
+// = Meta Pixel (@adkit/meta-pixel-react in routes/__root.tsx), cloudflareinsights
+// = CF Web Analytics (edge-injected), nominatim = checkout address lookup,
+// fonts.* = Google Fonts, youtube.com = product video embeds (src/lib/youtube.ts).
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",

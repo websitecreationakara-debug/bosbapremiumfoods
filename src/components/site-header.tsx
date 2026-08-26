@@ -25,7 +25,6 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { useCategories, useStoreSettings, usePromotions } from "@/hooks/use-products";
 import {
   DropdownMenu,
@@ -80,11 +79,7 @@ export function SiteHeader() {
 
           {/* Centered category links */}
           <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-x-5 xl:gap-x-7 px-2 text-[13px] text-foreground/80">
-            <Link
-              to="/shop"
-              onClick={() => trackShopButtonClick("header_nav_all_products")}
-              className="hover:text-foreground transition-colors whitespace-nowrap"
-            >
+            <Link to="/shop" className="hover:text-foreground transition-colors whitespace-nowrap">
               {t("nav.allProducts")}
             </Link>
             {hasOffers && (
@@ -100,7 +95,6 @@ export function SiteHeader() {
                 key={c.id}
                 to="/shop"
                 search={{ category: c.slug }}
-                onClick={() => trackShopButtonClick(`header_nav_category_${c.slug}`)}
                 className="hover:text-foreground transition-colors whitespace-nowrap"
               >
                 {c.name}
@@ -256,7 +250,6 @@ export function SiteHeader() {
               <SheetClose asChild>
                 <Link
                   to="/shop"
-                  onClick={() => trackShopButtonClick("header_mobile_all_products")}
                   className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
                 >
                   {t("nav.allProducts")}
@@ -277,7 +270,6 @@ export function SiteHeader() {
                   <Link
                     to="/shop"
                     search={{ category: c.slug }}
-                    onClick={() => trackShopButtonClick(`header_mobile_category_${c.slug}`)}
                     className="block rounded-lg px-3 py-2.5 text-sm hover:bg-muted"
                   >
                     {c.name}

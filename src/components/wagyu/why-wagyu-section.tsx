@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Reveal } from "@/components/wagyu/reveal";
 import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import eduimage from "../../image/eduimage.jpg";
 
 const BullMon = ({ size = 50, opacity = 0.4 }: { size?: number; opacity?: number }) => (
@@ -293,7 +292,6 @@ export function WhyWagyuSection() {
 
             <a
               href="/shop?category=cook-yourself"
-              onClick={() => trackShopButtonClick("wagyu_why_wagyu")}
               className="btn-gold !rounded-sm"
               lang={locale}
               style={{

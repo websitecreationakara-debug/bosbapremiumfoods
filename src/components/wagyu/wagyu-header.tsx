@@ -4,7 +4,6 @@ import { Menu, Moon, Sun } from "lucide-react";
 import { useTheme } from "@/hooks/use-theme";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { useWagyuI18n, WAGYU_LOCALES } from "./wagyu-i18n";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import logo from "../../image/BOSBA2-Logo.png";
 
 const NAV_LINKS = [
@@ -198,7 +197,6 @@ export function WagyuHeader() {
 
             <Link
               to="/shop"
-              onClick={() => trackShopButtonClick("wagyu_header_nav")}
               className="btn-gold !rounded-sm"
               style={{
                 textDecoration: "none",
@@ -358,7 +356,6 @@ export function WagyuHeader() {
             <SheetClose asChild>
               <Link
                 to="/shop?category=cook-yourself"
-                onClick={() => trackShopButtonClick("wagyu_header_mobile_nav")}
                 className="btn-gold"
                 style={{
                   flex: 1,

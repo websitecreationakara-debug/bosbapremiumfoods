@@ -4,7 +4,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { startPayment, checkPayment, mockPay } from "@/data/payments";
 import { Button } from "@/components/ui/button";
 import { Loader2, ShieldCheck, CheckCircle2, Smartphone, AlertTriangle } from "lucide-react";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_store/pay/$id")({
@@ -149,9 +148,7 @@ function PayScreen() {
         <h1 className="font-display font-semibold text-2xl">Payment unavailable</h1>
         <p className="mt-2 text-muted-foreground">{error}</p>
         <Button asChild variant="outline" className="mt-6 rounded-full">
-          <Link to="/shop" onClick={() => trackShopButtonClick("pay_error_back_to_shop")}>
-            Back to shop
-          </Link>
+          <Link to="/shop">Back to shop</Link>
         </Button>
       </div>
     );
