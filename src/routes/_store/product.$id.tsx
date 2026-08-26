@@ -21,7 +21,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { productFromPrice, groupVariations } from "@/lib/variants";
+import { productFromPrice, groupVariations, hasValidPrice } from "@/lib/variants";
 import {
   Star,
   ShoppingBag,
@@ -166,8 +166,14 @@ function ProductDetail() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const variable = product?.type === "variable";
-  // Default to the first (cheapest) variation until the customer picks one.
-  const selected = variations.find((v) => v.id === selectedId) ?? variations[0] ?? null;
+  // Default to the first *priced* variation until the customer picks one —
+  // skips over any variation an admin added but hasn't set a Sale Price for
+  // yet, so the page doesn't open on a $0 option.
+  const selected =
+    variations.find((v) => v.id === selectedId) ??
+    variations.find(hasValidPrice) ??
+    variations[0] ??
+    null;
 
   if (!product) {
     return (
@@ -198,7 +204,10 @@ function ProductDetail() {
   const hasSale = salePrice != null && salePrice < basePrice;
   const price = salePrice ?? basePrice;
   const discount = hasSale ? Math.round(((basePrice - salePrice!) / basePrice) * 100) : 0;
-  const addDisabled = (variable && !selected) || soldOut;
+  // A variation the admin added but never priced (0, no Sale Price) — block
+  // the sale rather than let it check out for free.
+  const unpriced = variable && (!selected || !hasValidPrice(selected));
+  const addDisabled = (variable && !selected) || soldOut || unpriced;
 
   const related = relatedProducts(product, allProducts);
   const variationsByProduct = groupVariations(allVariations);
@@ -351,7 +360,9 @@ function ProductDetail() {
           </div>
 
           <div className="flex items-baseline gap-3 mt-5">
-            <span className="font-display font-bold text-3xl text-brand">${price.toFixed(2)}</span>
+            <span className="font-display font-bold text-3xl text-brand">
+              {unpriced ? "Price unavailable" : `$${price.toFixed(2)}`}
+            </span>
             {hasSale && (
               <span className="text-lg text-muted-foreground line-through">
                 ${basePrice.toFixed(2)}
@@ -379,9 +390,11 @@ function ProductDetail() {
                       v.id === selected?.id
                         ? "border-brand bg-brand text-brand-foreground"
                         : "hover:border-brand",
+                      !hasValidPrice(v) && "opacity-40",
                     )}
                   >
                     {v.weight}
+                    {!hasValidPrice(v) && " (unavailable)"}
                   </button>
                 ))}
               </div>
@@ -453,7 +466,7 @@ function ProductDetail() {
                 className="flex-1 rounded-full font-bold"
               >
                 <ShoppingBag className="size-4 mr-2" />
-                {soldOut ? "Out of Stock" : "Add to Cart"}
+                {soldOut ? "Out of Stock" : unpriced ? "Unavailable" : "Add to Cart"}
               </Button>
             )}
             {/* Grouped so the pair wraps to its own line together on narrow
