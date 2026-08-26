@@ -125,8 +125,8 @@ export default {
     // single host (BETTER_AUTH_URL is the non-www origin). Without this, signing in
     // on www sets the cookie on the apex and the user appears logged out on www.
     const url = new URL(request.url);
-    if (url.hostname === "www.camitc.com") {
-      url.hostname = "camitc.com";
+    if (url.hostname === "www.bosbapremiumfoods.com") {
+      url.hostname = "bosbapremiumfoods.com";
       return withSecurityHeaders(Response.redirect(url.toString(), 301));
     }
 
