@@ -8,8 +8,6 @@
   "routes": [
     { "pattern": "bosbapremiumfoods.com", "custom_domain": true },
     { "pattern": "www.bosbapremiumfoods.com", "custom_domain": true },
-    { "pattern": "camitc.com", "custom_domain": true },
-    { "pattern": "www.camitc.com", "custom_domain": true },
   ],
   "d1_databases": [
     {
