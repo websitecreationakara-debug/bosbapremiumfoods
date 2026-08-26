@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { useHeroSlides } from "@/hooks/use-products";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 import type { HeroSlide } from "@/lib/types";
 
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1617196034796-73dfa7b1fd56?w=1600&q=80";
@@ -72,7 +71,6 @@ export function HeroSlider({ initialSlides }: { initialSlides?: HeroSlide[] }) {
         <div className="absolute inset-x-0 bottom-0 flex flex-col items-center gap-5 pb-10 md:pb-14">
           <a
             href={ctaLink}
-            onClick={() => trackShopButtonClick("home_hero_slider")}
             className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-semibold text-brand-foreground shadow-lg transition-colors hover:bg-secondary-accent sm:px-8 sm:py-3.5"
           >
             {ctaLabel} <ArrowRight className="size-4" />

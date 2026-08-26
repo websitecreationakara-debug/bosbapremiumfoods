@@ -1,6 +1,5 @@
 import { Reveal } from "@/components/wagyu/reveal";
 import { useWagyuI18n, type WagyuI18nKey } from "@/components/wagyu/wagyu-i18n";
-import { trackShopButtonClick } from "@/lib/meta-pixel";
 
 const PARTICLES = Array.from({ length: 24 }, (_, i) => ({
   id: i,
@@ -153,7 +152,6 @@ export function FinalCTASection() {
           <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
             <a
               href="/shop"
-              onClick={() => trackShopButtonClick("wagyu_final_cta")}
               className="btn-gold rounded-sm"
               lang={locale}
               style={{ textDecoration: "none" }}
