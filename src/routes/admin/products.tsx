@@ -108,6 +108,8 @@ function ProductsAdmin() {
   });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  // Full-size preview when a list-row thumbnail is clicked.
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
   const [vars, setVars] = useState<VarRow[]>([]);
   const editing = !!form.id;
@@ -681,7 +683,17 @@ function ProductsAdmin() {
                   <div className="flex items-center gap-3">
                     <div className="size-10 rounded-lg bg-muted overflow-hidden shrink-0">
                       {p.image_url && (
-                        <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setLightboxUrl(p.image_url!);
+                          }}
+                          className="block size-full cursor-zoom-in"
+                          aria-label={`View full-size image of ${p.title}`}
+                        >
+                          <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                        </button>
                       )}
                     </div>
                     <span className="font-medium">{p.title}</span>
@@ -1453,6 +1465,21 @@ function ProductsAdmin() {
               {editing ? "Save changes" : "Create product"}
             </Button>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={lightboxUrl != null} onOpenChange={(o) => !o && setLightboxUrl(null)}>
+        <DialogContent className="max-w-3xl p-2 bg-transparent border-none shadow-none">
+          <DialogHeader className="sr-only">
+            <DialogTitle>Product image preview</DialogTitle>
+          </DialogHeader>
+          {lightboxUrl && (
+            <img
+              src={lightboxUrl}
+              alt=""
+              className="w-full max-h-[85vh] object-contain rounded-lg"
+            />
+          )}
         </DialogContent>
       </Dialog>
     </div>
