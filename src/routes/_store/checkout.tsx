@@ -70,9 +70,9 @@ const slotMinutes = (t: string) => {
 // pick a slot that's already passed, or one that's only minutes away).
 const LEAD_MINUTES = 30;
 
-// Temporarily hide the KHQR/COD payment selector until online payment goes live.
-// When false, every order is Cash on Delivery. Flip back to true to re-enable.
-const PAYMENT_METHODS_ENABLED = true;
+// KHQR pulled 2026-08-27 pending a new Bakong token — every order is Cash on
+// Delivery until this is flipped back to true (and BAKONG_TOKEN is updated).
+const PAYMENT_METHODS_ENABLED = false;
 const localToday = () => {
   const d = new Date();
   return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
