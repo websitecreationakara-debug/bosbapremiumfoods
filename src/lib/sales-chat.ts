@@ -8,3 +8,10 @@ export function preOrderChatUrl(productTitle: string, variationLabel?: string | 
   const text = encodeURIComponent(`I'd like to pre-order: ${title}`);
   return `https://t.me/${SALES_TELEGRAM_HANDLE}?text=${text}`;
 }
+
+// "Message us" link shown on regular (non-pre-order) product pages for
+// customers who want to ask something before buying, e.g. portion sizing.
+export function productQuestionChatUrl(productTitle: string): string {
+  const text = encodeURIComponent(`I have a question about: ${productTitle}`);
+  return `https://t.me/${SALES_TELEGRAM_HANDLE}?text=${text}`;
+}

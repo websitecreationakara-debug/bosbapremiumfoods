@@ -8,8 +8,14 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct } from "@/data/products";
-import { renderFormattedDescription } from "@/lib/format-description";
+import { renderFormattedDescription, renderTabBody, parseProductContent } from "@/lib/format-description";
 import type { Product } from "@/lib/types";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
@@ -39,7 +45,7 @@ import {
 import { cn, slugify } from "@/lib/utils";
 import { extractYoutubeId, youtubeThumbnail, youtubeEmbedSrc } from "@/lib/youtube";
 import { canNativeShare, nativeShare, facebookShareUrl, copyLink } from "@/lib/share";
-import { preOrderChatUrl } from "@/lib/sales-chat";
+import { preOrderChatUrl, productQuestionChatUrl } from "@/lib/sales-chat";
 import { toast } from "sonner";
 
 const RELATED_COUNT = 4;
@@ -189,6 +195,10 @@ function ProductDetail() {
     );
   }
 
+  // A description can opt into a hero tagline/badges, offer callouts, and
+  // accordion tabs via lightweight markers — see parseProductContent.
+  const content = parseProductContent(product.description ?? "");
+
   // Price/stock/weight come from the chosen variation for variable products,
   // otherwise from the product itself.
   const basePrice = variable ? (selected?.price ?? 0) : product.price;
@@ -219,7 +229,7 @@ function ProductDetail() {
   const videoId = product.video_url ? extractYoutubeId(product.video_url) : null;
 
   return (
-    <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10">
+    <div className="mx-auto max-w-6xl px-4 md:px-6 py-8 md:py-10 pb-28 md:pb-10">
       <ProductJsonLd product={product} />
       <Link
         to="/shop"
@@ -227,6 +237,26 @@ function ProductDetail() {
       >
         <ArrowLeft className="size-4" /> Back to shop
       </Link>
+
+      {content.tagline && (
+        <div className="mb-6 rounded-2xl bg-brand/10 px-5 py-4 text-center">
+          <p className="font-display font-semibold text-brand text-base md:text-lg">
+            {content.tagline}
+          </p>
+          {content.badges.length > 0 && (
+            <div className="mt-2 flex flex-wrap justify-center gap-2">
+              {content.badges.map((b, i) => (
+                <span
+                  key={i}
+                  className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted-foreground"
+                >
+                  {b}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6 md:gap-10">
         <div>
@@ -398,7 +428,17 @@ function ProductDetail() {
             </div>
           )}
 
-          {product.description && (
+          {content.offers.length > 0 && (
+            <ul className="mt-5 space-y-1.5 text-sm">
+              {content.offers.map((offer, i) => (
+                <li key={i} className="flex items-start gap-2">
+                  <span>{offer}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {content.intro && (
             <div className="mt-5">
               <p
                 ref={descRef}
@@ -407,7 +447,7 @@ function ProductDetail() {
                   !descExpanded && "line-clamp-3",
                 )}
               >
-                {renderFormattedDescription(product.description)}
+                {renderFormattedDescription(content.intro)}
               </p>
               {(descOverflows || descExpanded) && (
                 <button
@@ -419,6 +459,21 @@ function ProductDetail() {
                 </button>
               )}
             </div>
+          )}
+
+          {content.tabs.length > 0 && (
+            <Accordion type="single" collapsible defaultValue="tab-0" className="mt-5">
+              {content.tabs.map((tab, i) => (
+                <AccordionItem key={i} value={`tab-${i}`}>
+                  <AccordionTrigger className="font-display font-semibold text-base">
+                    {tab.title}
+                  </AccordionTrigger>
+                  <AccordionContent className="space-y-2 text-muted-foreground">
+                    {renderTabBody(tab.body)}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           )}
 
           <div className="flex flex-wrap items-center gap-3 mt-8">
@@ -529,6 +584,18 @@ function ProductDetail() {
             </div>
           </div>
 
+          {!preOrder && (
+            <a
+              href={productQuestionChatUrl(product.title)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline mt-3 w-fit"
+            >
+              <MessageCircle className="size-3.5" />
+              Unsure about portion sizes? Message us on Telegram
+            </a>
+          )}
+
           <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
             <Truck className="size-4 text-brand" />
             {`Free chilled delivery on orders over $${shipThreshold}.`}
@@ -552,6 +619,30 @@ function ProductDetail() {
           </div>
         </section>
       )}
+
+      {/* Mobile-only sticky buy bar, mirrors the main CTA above so it stays
+          usable while scrolling the description/gallery on a phone. */}
+      <div className="md:hidden fixed inset-x-0 bottom-0 z-40 flex items-center gap-3 border-t bg-background/95 backdrop-blur px-4 py-3 shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
+        <span className="font-display font-bold text-lg text-brand shrink-0">
+          {unpriced ? "—" : `$${price.toFixed(2)}`}
+        </span>
+        {preOrder ? (
+          <Button asChild size="lg" className="flex-1 rounded-full font-bold">
+            <a href={preOrderChatUrl(product.title, weightLabel)} target="_blank" rel="noopener noreferrer">
+              Chat to Pre-Order
+            </a>
+          </Button>
+        ) : (
+          <Button
+            size="lg"
+            disabled={addDisabled}
+            onClick={() => add(product, variable ? selected : null, qty)}
+            className="flex-1 rounded-full font-bold"
+          >
+            {soldOut ? "Out of Stock" : unpriced ? "Unavailable" : "Order Now"}
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

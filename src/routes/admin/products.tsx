@@ -52,6 +52,7 @@ import {
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { extractYoutubeId, youtubeThumbnail } from "@/lib/youtube";
+import { splitDescriptionTabs, composeDescription } from "@/lib/format-description";
 import type { Product, Media } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/products")({
@@ -112,6 +113,13 @@ function ProductsAdmin() {
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [form, setForm] = useState(empty);
   const [vars, setVars] = useState<VarRow[]>([]);
+  // Structured "## Title" sections, edited as Header + Content rows rather
+  // than typed inline in the description textarea — see splitDescriptionTabs.
+  const [tabs, setTabs] = useState<{ title: string; body: string }[]>([]);
+  const addTab = () => setTabs((t) => [...t, { title: "", body: "" }]);
+  const updateTab = (i: number, patch: Partial<{ title: string; body: string }>) =>
+    setTabs((t) => t.map((tab, j) => (j === i ? { ...tab, ...patch } : tab)));
+  const removeTab = (i: number) => setTabs((t) => t.filter((_, j) => j !== i));
   const editing = !!form.id;
   const isVariable = form.type === "variable";
   const videoId = form.video_url.trim() ? extractYoutubeId(form.video_url) : null;
@@ -277,6 +285,7 @@ function ProductsAdmin() {
   const openNew = () => {
     setForm(empty);
     setVars([]);
+    setTabs([]);
     setGallery([]);
     setPicker(false);
     setGalleryPicker(false);
@@ -289,10 +298,12 @@ function ProductsAdmin() {
     getProductImages({ data: { productId: p.id } }).then((rows) =>
       setGallery(rows.map((r) => r.url)),
     );
+    const { core, tabs: parsedTabs } = splitDescriptionTabs(p.description ?? "");
+    setTabs(parsedTabs);
     setForm({
       id: p.id,
       title: p.title,
-      description: p.description ?? "",
+      description: core,
       price: String(p.price),
       sale_price: p.sale_price != null ? String(p.sale_price) : "",
       category_id: p.category_id ?? "",
@@ -370,7 +381,7 @@ function ProductsAdmin() {
     const variable = form.type === "variable";
     const payload = {
       title: form.title,
-      description: form.description || null,
+      description: composeDescription(form.description, tabs) || null,
       // Variable products carry price/stock/weight on their variations, not here.
       price: variable ? 0 : Number(form.price),
       sale_price: variable || !form.sale_price ? null : Number(form.sale_price),
@@ -887,6 +898,58 @@ function ProductsAdmin() {
                 rows={6}
                 placeholder="Use **bold** for emphasis. Leave a blank line between paragraphs."
               />
+              <p className="mt-1.5 text-xs text-muted-foreground leading-relaxed">
+                Optional extras, each on its own line:{" "}
+                <code className="rounded bg-muted px-1 py-0.5">{"> Tagline text"}</code> for a
+                hero banner (add more <code className="rounded bg-muted px-1 py-0.5">{">"}</code>{" "}
+                lines for small badges under it), and{" "}
+                <code className="rounded bg-muted px-1 py-0.5">{"- Offer callout"}</code> for a
+                buy-box callout row.
+              </p>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between">
+                <Label>Tabs</Label>
+                <Button type="button" variant="outline" size="sm" onClick={addTab} className="gap-1.5">
+                  <Plus className="size-3.5" /> Add tab
+                </Button>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Shown as an accordion under the description on the product page (e.g. "What Makes
+                It Special?", "Preparation").
+              </p>
+              {tabs.length > 0 && (
+                <div className="mt-3 space-y-3">
+                  {tabs.map((tab, i) => (
+                    <div key={i} className="rounded-lg border p-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={tab.title}
+                          onChange={(e) => updateTab(i, { title: e.target.value })}
+                          placeholder="Header, e.g. What Makes A4 Special?"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeTab(i)}
+                          aria-label="Remove tab"
+                        >
+                          <X className="size-4" />
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={tab.body}
+                        onChange={(e) => updateTab(i, { body: e.target.value })}
+                        rows={3}
+                        placeholder={"Content for this tab. Start a line with \"- \" for a bullet list."}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
