@@ -303,12 +303,13 @@ export const createOrder = createServerFn({ method: "POST" })
       }),
     );
 
-    // Phase 7 stock sync: only top-level products can be linked to a POS
-    // product (variations aren't modeled in POS), and only fires for tracked
-    // (non-null stock) lines -- matches the deduction guard just above.
+    // Phase 7 stock sync: fires for both plain products and size/variant
+    // lines -- POS links to whichever id it was given either way (see
+    // product_site_links) -- only skipped for untracked (null-stock) lines,
+    // matching the deduction guard just above.
     await Promise.all(
       [...neededById].map(([id, need]) => {
-        if (!productIdSet.has(id) || stockById.get(id) == null) return null;
+        if (stockById.get(id) == null) return null;
         return notifyPosOfSale(id, need);
       }),
     );

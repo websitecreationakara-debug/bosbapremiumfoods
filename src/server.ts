@@ -5,7 +5,7 @@ import { eq, like } from "drizzle-orm";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { getDb } from "./db";
-import { products } from "./db/schema";
+import { products, product_variations } from "./db/schema";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -107,10 +107,22 @@ async function handleStockSync(request: Request): Promise<Response> {
     });
   }
 
-  await getDb()
+  const stock = Math.max(0, Math.floor(body.stock));
+  const db = getDb();
+  const updated = await db
     .update(products)
-    .set({ stock: Math.max(0, Math.floor(body.stock)) })
-    .where(eq(products.id, body.productId));
+    .set({ stock })
+    .where(eq(products.id, body.productId))
+    .returning({ id: products.id });
+
+  // POS links to a size-variant's id the same way it links to a plain
+  // product's id -- if it wasn't a top-level product, try variations.
+  if (updated.length === 0) {
+    await db
+      .update(product_variations)
+      .set({ stock })
+      .where(eq(product_variations.id, body.productId));
+  }
 
   return new Response(JSON.stringify({ ok: true }), {
     status: 200,
@@ -140,13 +152,37 @@ async function handleProductSearch(request: Request): Promise<Response> {
     });
   }
 
-  const rows = await getDb()
+  const db = getDb();
+  const matches = await db
     .select({ id: products.id, title: products.title, stock: products.stock, type: products.type })
     .from(products)
     .where(like(products.title, `%${q}%`))
     .limit(10);
 
-  return new Response(JSON.stringify({ results: rows }), {
+  // A variable product's own price/stock are unused (see schema comment on
+  // products.type) -- expand it into its real, individually linkable
+  // variations instead of returning the unsellable container row.
+  const results: { id: string; title: string; stock: number | null; type: string }[] = [];
+  for (const p of matches) {
+    if (p.type !== "variable") {
+      results.push(p);
+      continue;
+    }
+    const variations = await db
+      .select({ id: product_variations.id, weight: product_variations.weight, stock: product_variations.stock })
+      .from(product_variations)
+      .where(eq(product_variations.product_id, p.id));
+    for (const v of variations) {
+      results.push({
+        id: v.id,
+        title: `${p.title} (${v.weight ?? "variant"})`,
+        stock: v.stock,
+        type: "simple",
+      });
+    }
+  }
+
+  return new Response(JSON.stringify({ results: results.slice(0, 10) }), {
     status: 200,
     headers: { "content-type": "application/json" },
   });

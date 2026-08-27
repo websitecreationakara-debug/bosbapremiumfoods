@@ -171,9 +171,14 @@ export const saveVariations = createServerFn({ method: "POST" })
         sort_order: v.sort_order,
         image_url: v.image_url,
       };
-      if (v.id)
+      if (v.id) {
         await db.update(product_variations).set(fields).where(eq(product_variations.id, v.id));
-      else await db.insert(product_variations).values({ product_id: data.productId, ...fields });
+        // Only an edit to an existing variation can already be linked to a
+        // POS product -- a brand-new one (no id yet) has nothing to sync to.
+        if (v.stock != null) await notifyPosOfStockEdit(v.id, v.stock);
+      } else {
+        await db.insert(product_variations).values({ product_id: data.productId, ...fields });
+      }
     }
     return { ok: true };
   });
