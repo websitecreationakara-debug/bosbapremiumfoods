@@ -68,6 +68,27 @@ export type Category = {
   created_at: string;
 };
 
+export type Collection = {
+  id: string;
+  slug: string;
+  title: string;
+  sub_label: string | null;
+  description: string | null;
+  image_url: string | null;
+  nav_group: string | null;
+  nav_column: string | null;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type ProductCollection = {
+  id: string;
+  product_id: string;
+  collection_id: string;
+  sort_order: number;
+};
+
 export type HeroSlide = {
   id: string;
   eyebrow: string | null;

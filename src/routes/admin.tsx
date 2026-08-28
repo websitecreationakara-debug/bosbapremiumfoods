@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   Package,
   Tag,
+  Layers,
   ShoppingCart,
   Users,
   Settings,
@@ -38,6 +39,7 @@ const nav = [
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
+  { to: "/admin/collections", label: "Collections", icon: Layers },
   { to: "/admin/orders", label: "Orders", icon: ShoppingCart },
   { to: "/admin/users", label: "Users", icon: Users },
   { to: "/admin/settings", label: "Settings", icon: Settings },
@@ -101,13 +103,20 @@ function AdminLayout() {
     "/admin/products",
     "/admin/marketing",
     "/admin/categories",
+    "/admin/collections",
     "/admin/media",
   ];
   const marketingBlocked =
     isMarketing && !isAdmin && path !== "/admin" && !marketingPaths.some((p) => path.startsWith(p));
   // Stock manages the catalog (products/categories/media) and can view orders,
   // but not the marketing/promotions page.
-  const stockPaths = ["/admin/products", "/admin/categories", "/admin/media", "/admin/orders"];
+  const stockPaths = [
+    "/admin/products",
+    "/admin/categories",
+    "/admin/collections",
+    "/admin/media",
+    "/admin/orders",
+  ];
   const stockBlocked =
     isStock && !isAdmin && path !== "/admin" && !stockPaths.some((p) => path.startsWith(p));
   const visibleNav = isAdmin

@@ -267,6 +267,13 @@
       "when": 1787310381596,
       "tag": "0037_lovely_eternals",
       "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "6",
+      "when": 1787887502576,
+      "tag": "0038_cold_raza",
+      "breakpoints": true
     }
   ]
 }

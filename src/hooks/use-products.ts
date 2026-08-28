@@ -7,6 +7,7 @@ import {
   getProductImages,
 } from "@/data/products";
 import { listCategories } from "@/data/categories";
+import { listCollections, listProductCollections } from "@/data/collections";
 import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
 import { getSettings } from "@/data/settings";
@@ -17,6 +18,8 @@ import type {
   ProductImage,
   ProductVariation,
   Category,
+  Collection,
+  ProductCollection,
   HeroSlide,
   Promotion,
   StoreSettings,
@@ -66,6 +69,20 @@ export function useCategories() {
   return useQuery({
     queryKey: ["categories"],
     queryFn: () => listCategories() as Promise<Category[]>,
+  });
+}
+
+export function useCollections() {
+  return useQuery({
+    queryKey: ["collections"],
+    queryFn: () => listCollections() as Promise<Collection[]>,
+  });
+}
+
+export function useProductCollections() {
+  return useQuery({
+    queryKey: ["product_collections"],
+    queryFn: () => listProductCollections() as Promise<ProductCollection[]>,
   });
 }
 

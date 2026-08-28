@@ -1,6 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { useProducts, useCategories, useAllVariations, usePromotions } from "@/hooks/use-products";
+import {
+  useProducts,
+  useCategories,
+  useAllVariations,
+  usePromotions,
+  useCollections,
+  useProductCollections,
+} from "@/hooks/use-products";
 import {
   createProduct,
   updateProduct,
@@ -13,6 +20,7 @@ import {
   setProductStatus,
   setProductStock,
 } from "@/data/products";
+import { setProductCollections } from "@/data/collections";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { groupVariations } from "@/lib/variants";
@@ -103,6 +111,9 @@ function ProductsAdmin() {
   const { data: categories = [] } = useCategories();
   const { data: promos = [] } = usePromotions({ all: true });
   const { data: allVariations = [] } = useAllVariations();
+  const { data: collections = [] } = useCollections();
+  const { data: productCollections = [] } = useProductCollections();
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const { data: mediaItems = [] } = useQuery({
     queryKey: ["media"],
     queryFn: () => listMedia() as Promise<Media[]>,
@@ -287,6 +298,7 @@ function ProductsAdmin() {
     setVars([]);
     setTabs([]);
     setGallery([]);
+    setSelectedCollections([]);
     setPicker(false);
     setGalleryPicker(false);
     setOpen(true);
@@ -295,6 +307,9 @@ function ProductsAdmin() {
     setPicker(false);
     setGalleryPicker(false);
     setGallery([]);
+    setSelectedCollections(
+      productCollections.filter((pc) => pc.product_id === p.id).map((pc) => pc.collection_id),
+    );
     getProductImages({ data: { productId: p.id } }).then((rows) =>
       setGallery(rows.map((r) => r.url)),
     );
@@ -405,6 +420,7 @@ function ProductsAdmin() {
       else productId = (await createProduct({ data: payload })).id;
       if (variable) await saveVariations({ data: { productId, variations: variationPayload() } });
       await saveProductImages({ data: { productId, urls: gallery } });
+      await setProductCollections({ data: { productId, collectionIds: selectedCollections } });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save product");
       return;
@@ -413,6 +429,7 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["products"] });
     qc.invalidateQueries({ queryKey: ["variations"] });
     qc.invalidateQueries({ queryKey: ["product_images"] });
+    qc.invalidateQueries({ queryKey: ["product_collections"] });
     setOpen(false);
   };
 
@@ -1119,6 +1136,30 @@ function ProductsAdmin() {
                 />
               </div>
             </div>
+
+            {collections.length > 0 && (
+              <div>
+                <Label>Collections</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Storefront mega-menu placement — a product can belong to several at once.
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 max-h-40 overflow-y-auto border rounded-lg p-3">
+                  {collections.map((c) => (
+                    <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={selectedCollections.includes(c.id)}
+                        onCheckedChange={(v) =>
+                          setSelectedCollections((ids) =>
+                            v === true ? [...ids, c.id] : ids.filter((id) => id !== c.id),
+                          )
+                        }
+                      />
+                      {c.title}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {isVariable && (
               <div className="space-y-3 border rounded-xl p-4">

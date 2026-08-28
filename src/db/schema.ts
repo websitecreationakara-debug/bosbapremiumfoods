@@ -17,6 +17,38 @@ export const categories = sqliteTable("categories", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
+// Storefront marketing taxonomy for the mega-menu (Wagyu & Meats, Seafood &
+// Sashimi, Shop by Occasion, Pantry & Sake). Separate from `categories`, which
+// stays as the internal/back-office classification used by /shop's filter
+// sidebar. nav_group/nav_column key into the static heading map in
+// src/lib/nav.ts; a collection with nav_group = null isn't shown in the menu.
+export const collections = sqliteTable("collections", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  slug: text("slug").notNull().unique(),
+  title: text("title").notNull(),
+  sub_label: text("sub_label"),
+  description: text("description"),
+  image_url: text("image_url"),
+  nav_group: text("nav_group"),
+  nav_column: text("nav_column"),
+  sort_order: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// Many-to-many: a product can belong to several collections at once (e.g. a
+// Wagyu cut under both "By Cut & Preparation Style" and a "Shop by Occasion" set).
+export const product_collections = sqliteTable("product_collections", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  collection_id: text("collection_id")
+    .notNull()
+    .references(() => collections.id, { onDelete: "cascade" }),
+  sort_order: integer("sort_order").notNull().default(0),
+});
+
 export const hero_slides = sqliteTable("hero_slides", {
   id: text("id").primaryKey().$defaultFn(uuid),
   eyebrow: text("eyebrow"),

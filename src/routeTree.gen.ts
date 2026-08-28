@@ -26,6 +26,7 @@ import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
+import { Route as AdminCollectionsRouteImport } from './routes/admin/collections'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
@@ -33,6 +34,7 @@ import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminRestoreRouteImport } from './routes/admin/restore'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as StoreCollectionsSlugRouteImport } from './routes/_store/collections.$slug'
 import { Route as StorePayIdRouteImport } from './routes/_store/pay.$id'
 import { Route as StoreProductIdRouteImport } from './routes/_store/product.$id'
 
@@ -120,6 +122,11 @@ const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
   path: '/categories',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCollectionsRoute = AdminCollectionsRouteImport.update({
+  id: '/collections',
+  path: '/collections',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
@@ -155,6 +162,11 @@ const AdminUsersRoute = AdminUsersRouteImport.update({
   path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
+const StoreCollectionsSlugRoute = StoreCollectionsSlugRouteImport.update({
+  id: '/collections/$slug',
+  path: '/collections/$slug',
+  getParentRoute: () => StoreRoute,
+} as any)
 const StorePayIdRoute = StorePayIdRouteImport.update({
   id: '/pay/$id',
   path: '/pay/$id',
@@ -182,6 +194,7 @@ export interface FileRoutesByFullPath {
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/collections': typeof AdminCollectionsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -190,6 +203,7 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/collections/$slug': typeof StoreCollectionsSlugRoute
   '/pay/$id': typeof StorePayIdRoute
   '/product/$id': typeof StoreProductIdRoute
 }
@@ -207,6 +221,7 @@ export interface FileRoutesByTo {
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/collections': typeof AdminCollectionsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -216,6 +231,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
+  '/collections/$slug': typeof StoreCollectionsSlugRoute
   '/pay/$id': typeof StorePayIdRoute
   '/product/$id': typeof StoreProductIdRoute
 }
@@ -236,6 +252,7 @@ export interface FileRoutesById {
   '/_store/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
+  '/admin/collections': typeof AdminCollectionsRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -245,6 +262,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
+  '/_store/collections/$slug': typeof StoreCollectionsSlugRoute
   '/_store/pay/$id': typeof StorePayIdRoute
   '/_store/product/$id': typeof StoreProductIdRoute
 }
@@ -266,6 +284,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
+    | '/admin/collections'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -274,6 +293,7 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/users'
     | '/admin/'
+    | '/collections/$slug'
     | '/pay/$id'
     | '/product/$id'
   fileRoutesByTo: FileRoutesByTo
@@ -291,6 +311,7 @@ export interface FileRouteTypes {
     | '/wishlist'
     | '/admin/banners'
     | '/admin/categories'
+    | '/admin/collections'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -300,6 +321,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/'
     | '/admin'
+    | '/collections/$slug'
     | '/pay/$id'
     | '/product/$id'
   id:
@@ -319,6 +341,7 @@ export interface FileRouteTypes {
     | '/_store/wishlist'
     | '/admin/banners'
     | '/admin/categories'
+    | '/admin/collections'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -328,6 +351,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/_store/'
     | '/admin/'
+    | '/_store/collections/$slug'
     | '/_store/pay/$id'
     | '/_store/product/$id'
   fileRoutesById: FileRoutesById
@@ -460,6 +484,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCategoriesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/collections': {
+      id: '/admin/collections'
+      path: '/collections'
+      fullPath: '/admin/collections'
+      preLoaderRoute: typeof AdminCollectionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/marketing': {
       id: '/admin/marketing'
       path: '/marketing'
@@ -509,6 +540,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/_store/collections/$slug': {
+      id: '/_store/collections/$slug'
+      path: '/collections/$slug'
+      fullPath: '/collections/$slug'
+      preLoaderRoute: typeof StoreCollectionsSlugRouteImport
+      parentRoute: typeof StoreRoute
+    }
     '/_store/pay/$id': {
       id: '/_store/pay/$id'
       path: '/pay/$id'
@@ -537,6 +575,7 @@ interface StoreRouteChildren {
   StoreThankYouRoute: typeof StoreThankYouRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
+  StoreCollectionsSlugRoute: typeof StoreCollectionsSlugRoute
   StorePayIdRoute: typeof StorePayIdRoute
   StoreProductIdRoute: typeof StoreProductIdRoute
 }
@@ -552,6 +591,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreThankYouRoute: StoreThankYouRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
+  StoreCollectionsSlugRoute: StoreCollectionsSlugRoute,
   StorePayIdRoute: StorePayIdRoute,
   StoreProductIdRoute: StoreProductIdRoute,
 }
@@ -561,6 +601,7 @@ const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 interface AdminRouteChildren {
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
+  AdminCollectionsRoute: typeof AdminCollectionsRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -574,6 +615,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
+  AdminCollectionsRoute: AdminCollectionsRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminOrdersRoute: AdminOrdersRoute,

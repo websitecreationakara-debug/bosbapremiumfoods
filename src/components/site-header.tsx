@@ -18,6 +18,7 @@ import {
   Check,
   ArrowLeftRight,
   ExternalLink,
+  Flame,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/use-cart";
@@ -25,7 +26,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { useCategories, useStoreSettings, usePromotions } from "@/hooks/use-products";
+import { useCollections, useStoreSettings, usePromotions } from "@/hooks/use-products";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,12 +36,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { MegaMenu } from "@/components/mega-menu";
+import { TOP_NAV, SORA_SAKE_LINK } from "@/lib/nav";
 
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
   const { count: wishlistCount } = useWishlist();
   const { user, isAdmin, signOut } = useAuth();
-  const { data: categories = [] } = useCategories();
+  const { data: collections = [] } = useCollections();
   const { data: promotions = [] } = usePromotions();
   const hasOffers = promotions.length > 0;
   const { data: settings } = useStoreSettings();
@@ -77,30 +81,8 @@ export function SiteHeader() {
             />
           </Link>
 
-          {/* Centered category links */}
-          <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-x-5 xl:gap-x-7 px-2 text-[13px] text-foreground/80">
-            <Link to="/shop" className="hover:text-foreground transition-colors whitespace-nowrap">
-              {t("nav.allProducts")}
-            </Link>
-            {hasOffers && (
-              <Link
-                to="/offers"
-                className="font-medium text-brand hover:text-brand/80 transition-colors whitespace-nowrap"
-              >
-                {t("nav.offers")}
-              </Link>
-            )}
-            {categories.map((c) => (
-              <Link
-                key={c.id}
-                to="/shop"
-                search={{ category: c.slug }}
-                className="hover:text-foreground transition-colors whitespace-nowrap"
-              >
-                {c.name}
-              </Link>
-            ))}
-          </nav>
+          {/* Centered mega-menu nav */}
+          <MegaMenu hasOffers={hasOffers} />
 
           {/* Right icons */}
           <div className="flex items-center gap-0.5 ml-auto lg:ml-0">
@@ -255,27 +237,64 @@ export function SiteHeader() {
                   {t("nav.allProducts")}
                 </Link>
               </SheetClose>
+
+              <Accordion type="multiple" className="w-full">
+                {TOP_NAV.filter((item) => item.type === "mega").map((item) => {
+                  const items = collections
+                    .filter((c) => c.nav_group === item.group && c.active)
+                    .sort((a, b) => a.sort_order - b.sort_order);
+                  const showSora = item.group === SORA_SAKE_LINK.navGroup;
+                  if (items.length === 0 && !showSora) return null;
+                  return (
+                    <AccordionItem key={item.labelKey} value={item.group} className="border-none">
+                      <AccordionTrigger className="px-3 py-2.5 text-sm font-medium hover:no-underline hover:bg-muted rounded-lg">
+                        {t(item.labelKey)}
+                      </AccordionTrigger>
+                      <AccordionContent className="pb-1">
+                        <div className="pl-3 space-y-1">
+                          {items.map((c) => (
+                            <SheetClose asChild key={c.id}>
+                              <Link
+                                to="/collections/$slug"
+                                params={{ slug: c.slug }}
+                                className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                              >
+                                {c.title}
+                                {c.sub_label && (
+                                  <span className="block text-xs">{c.sub_label}</span>
+                                )}
+                              </Link>
+                            </SheetClose>
+                          ))}
+                          {showSora && (
+                            <a
+                              href={SORA_SAKE_LINK.href}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                            >
+                              <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
+                              {SORA_SAKE_LINK.label}
+                              <ExternalLink className="size-3 shrink-0 ml-auto" />
+                            </a>
+                          )}
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  );
+                })}
+              </Accordion>
+
               {hasOffers && (
                 <SheetClose asChild>
                   <Link
                     to="/offers"
-                    className="block rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
+                    className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
                   >
-                    {t("nav.offers")}
+                    <Flame className="size-4" /> {t("nav.offers")}
                   </Link>
                 </SheetClose>
               )}
-              {categories.map((c) => (
-                <SheetClose asChild key={c.id}>
-                  <Link
-                    to="/shop"
-                    search={{ category: c.slug }}
-                    className="block rounded-lg px-3 py-2.5 text-sm hover:bg-muted"
-                  >
-                    {c.name}
-                  </Link>
-                </SheetClose>
-              ))}
             </nav>
 
             <nav className="space-y-1 border-t pt-4">
