@@ -63,7 +63,7 @@ export function MegaMenu() {
               <NavigationMenuItem key={item.id}>
                 <NavigationMenuTrigger className={triggerClass}>{item.label}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <div className="p-6 flex gap-8 min-w-[420px]">
+                  <div className="mx-auto max-w-7xl p-6 md:p-10 flex gap-8 md:gap-14">
                     {sections.map((section) => {
                       const links = linksFor(section.id);
 

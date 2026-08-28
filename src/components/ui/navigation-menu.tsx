@@ -9,9 +9,10 @@ const NavigationMenu = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Root>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Root>
 >(({ className, children, ...props }, ref) => (
+  // Deliberately not `position: relative` — see NavigationMenuItem below.
   <NavigationMenuPrimitive.Root
     ref={ref}
-    className={cn("relative z-10 flex max-w-max flex-1 items-center justify-center", className)}
+    className={cn("z-10 flex max-w-max flex-1 items-center justify-center", className)}
     {...props}
   >
     {children}
@@ -31,13 +32,12 @@ const NavigationMenuList = React.forwardRef<
 ));
 NavigationMenuList.displayName = NavigationMenuPrimitive.List.displayName;
 
-const NavigationMenuItem = React.forwardRef<
-  React.ElementRef<typeof NavigationMenuPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Item>
->(({ className, ...props }, ref) => (
-  <NavigationMenuPrimitive.Item ref={ref} className={cn("relative", className)} {...props} />
-));
-NavigationMenuItem.displayName = NavigationMenuPrimitive.Item.displayName;
+// Deliberately NOT `position: relative` — NavigationMenuContent below is sized
+// to span its nearest positioned ancestor edge-to-edge (the header row, see
+// site-header.tsx), not just this one trigger, so every dropdown renders as a
+// wide panel matching the page's content width rather than a narrow
+// content-sized box.
+const NavigationMenuItem = NavigationMenuPrimitive.Item;
 
 const navigationMenuTriggerStyle = cva(
   "group inline-flex h-9 w-max items-center justify-center rounded-md bg-background px-4 py-2 text-sm font-medium cursor-pointer transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none disabled:pointer-events-none disabled:opacity-50 disabled:cursor-not-allowed data-[state=open]:text-accent-foreground data-[state=open]:bg-accent/50 data-[state=open]:hover:bg-accent data-[state=open]:focus:bg-accent",
@@ -65,10 +65,19 @@ const NavigationMenuContent = React.forwardRef<
   React.ElementRef<typeof NavigationMenuPrimitive.Content>,
   React.ComponentPropsWithoutRef<typeof NavigationMenuPrimitive.Content>
 >(({ className, ...props }, ref) => (
+  // `fixed` (not `absolute`) is deliberate: Radix's NavigationMenu.Root
+  // internally renders its own `position: relative` wrapper div that we can't
+  // remove, which would otherwise force this panel to size/position itself
+  // against that narrow inner wrapper instead of the page. `fixed` skips that
+  // — and because the <header> in site-header.tsx uses `backdrop-blur-xl`
+  // (a CSS backdrop-filter), it becomes this element's containing block per
+  // spec, so `inset-x-0` resolves against the full-bleed header (no max-width
+  // on it) rather than the viewport-relative default. Net effect: the panel
+  // spans the entire header width, flush under it.
   <NavigationMenuPrimitive.Content
     ref={ref}
     className={cn(
-      "left-0 top-full mt-1.5 w-full rounded-md border bg-popover text-popover-foreground shadow data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:absolute md:w-auto",
+      "inset-x-0 top-full mt-1.5 rounded-md border bg-popover text-popover-foreground shadow data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:fixed",
       className,
     )}
     {...props}
