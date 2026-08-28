@@ -255,6 +255,12 @@ function Checkout() {
   const placeOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) return;
+    // Pickup has no ASAP option — without a chosen time we'd have no idea
+    // when the customer is actually coming to collect the order.
+    if (deliveryMethod === "pickup" && !scheduledAt) {
+      toast.error("Please pick a date and time for your pickup.");
+      return;
+    }
     // Guard against a scheduled time that has already passed (e.g. the slot
     // lapsed while the form sat open).
     if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
@@ -374,7 +380,12 @@ function Checkout() {
               <button
                 key={opt.key}
                 type="button"
-                onClick={() => setDeliveryMethod(opt.key)}
+                onClick={() => {
+                  setDeliveryMethod(opt.key);
+                  // Pickup has no ASAP option — we'd otherwise have no idea
+                  // when the customer is actually coming to collect it.
+                  if (opt.key === "pickup") setSchedMode("schedule");
+                }}
                 className={cn(
                   "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
                   deliveryMethod === opt.key
@@ -539,32 +550,34 @@ function Checkout() {
               </>
             )}
             <div className="sm:col-span-2">
-              <Label>Delivery time</Label>
-              <div className="mt-1.5 grid grid-cols-2 gap-2">
-                {(
-                  [
-                    { key: "asap", label: "As soon as possible", icon: Zap },
-                    { key: "schedule", label: "Schedule (pre-order)", icon: CalendarClock },
-                  ] as const
-                ).map((opt) => (
-                  <button
-                    key={opt.key}
-                    type="button"
-                    onClick={() => setSchedMode(opt.key)}
-                    className={cn(
-                      "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
-                      schedMode === opt.key
-                        ? "border-brand bg-brand/10 text-brand"
-                        : "border-border hover:bg-background",
-                    )}
-                  >
-                    <opt.icon className="size-4" />
-                    {opt.label}
-                  </button>
-                ))}
-              </div>
+              <Label>{deliveryMethod === "pickup" ? "Pickup time" : "Delivery time"}</Label>
+              {deliveryMethod === "delivery" && (
+                <div className="mt-1.5 grid grid-cols-2 gap-2">
+                  {(
+                    [
+                      { key: "asap", label: "As soon as possible", icon: Zap },
+                      { key: "schedule", label: "Schedule (pre-order)", icon: CalendarClock },
+                    ] as const
+                  ).map((opt) => (
+                    <button
+                      key={opt.key}
+                      type="button"
+                      onClick={() => setSchedMode(opt.key)}
+                      className={cn(
+                        "flex items-center justify-center gap-2 rounded-xl border px-3 py-3 text-sm font-medium transition-colors",
+                        schedMode === opt.key
+                          ? "border-brand bg-brand/10 text-brand"
+                          : "border-border hover:bg-background",
+                      )}
+                    >
+                      <opt.icon className="size-4" />
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              )}
 
-              {schedMode === "schedule" && (
+              {(schedMode === "schedule" || deliveryMethod === "pickup") && (
                 <div className="mt-3 grid grid-cols-2 gap-3">
                   <div>
                     <Label className="text-xs text-muted-foreground">Date</Label>
@@ -605,12 +618,15 @@ function Checkout() {
                   </div>
                   {isToday && availableSlots.length === 0 ? (
                     <p className="col-span-2 text-xs text-destructive">
-                      No more delivery slots today — please choose another date.
+                      No more {deliveryMethod === "pickup" ? "pickup" : "delivery"} slots today —
+                      please choose another date.
                     </p>
                   ) : (
                     (!schedDate || !schedTime) && (
                       <p className="col-span-2 text-xs text-muted-foreground">
-                        Pick a date and time, or switch back to “As soon as possible.”
+                        {deliveryMethod === "pickup"
+                          ? "Pick a date and time for your pickup."
+                          : 'Pick a date and time, or switch back to "As soon as possible."'}
                       </p>
                     )
                   )}
