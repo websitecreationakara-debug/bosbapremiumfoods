@@ -16,7 +16,6 @@ import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import { notifyPosOfSale } from "@/lib/pos-sync";
 import {
   getSessionUser,
-  requireAdmin,
   requireOrderViewer,
   requireStaff,
   requireUser,
@@ -391,7 +390,7 @@ export const updateOrderTracking = createServerFn({ method: "POST" })
 export const deleteOrder = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
-    await requireAdmin();
+    await requireStaff();
     await getDb().delete(orders).where(eq(orders.id, data.id));
     return { ok: true };
   });
