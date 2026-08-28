@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  useStoreSettings,
   useProductVariations,
   useProductImages,
   useProducts,
@@ -33,7 +32,6 @@ import {
   Minus,
   Plus,
   ArrowLeft,
-  Truck,
   Heart,
   Flame,
   Play,
@@ -140,7 +138,6 @@ function ProductDetail() {
   const { data: galleryImages = [] } = useProductImages(product?.id ?? "");
   const { data: allProducts = [] } = useProducts();
   const { data: allVariations = [] } = useAllVariations();
-  const { data: settings } = useStoreSettings();
   const { add } = useCart();
   const { has: inWishlist, toggle: toggleWishlist } = useWishlist();
   const [qty, setQty] = useState(1);
@@ -168,7 +165,6 @@ function ProductDetail() {
     window.addEventListener("resize", check);
     return () => window.removeEventListener("resize", check);
   }, [product?.description]);
-  const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
 
   const variable = product?.type === "variable";
   // Default to the first *priced* variation until the customer picks one —
@@ -595,11 +591,6 @@ function ProductDetail() {
               Unsure about portion sizes? Message us on Telegram
             </a>
           )}
-
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mt-6 border-t pt-6">
-            <Truck className="size-4 text-brand" />
-            {`Free chilled delivery on orders over $${shipThreshold}.`}
-          </div>
         </div>
       </div>
 
