@@ -20,8 +20,6 @@ export const createCollection = createServerFn({ method: "POST" })
       sub_label?: string | null;
       description?: string | null;
       image_url?: string | null;
-      nav_group?: string | null;
-      nav_column?: string | null;
       sort_order?: number;
     }) => d,
   )
@@ -40,8 +38,6 @@ export const updateCollection = createServerFn({ method: "POST" })
       sub_label?: string | null;
       description?: string | null;
       image_url?: string | null;
-      nav_group?: string | null;
-      nav_column?: string | null;
       sort_order?: number;
       active?: boolean;
     }) => d,

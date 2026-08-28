@@ -26,7 +26,7 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { useCollections, useStoreSettings, usePromotions } from "@/hooks/use-products";
+import { useCollections, useStoreSettings, useNavItems, useNavSections, useNavLinks } from "@/hooks/use-products";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,15 +38,15 @@ import {
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { MegaMenu } from "@/components/mega-menu";
-import { TOP_NAV, SORA_SAKE_LINK } from "@/lib/nav";
 
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
   const { count: wishlistCount } = useWishlist();
   const { user, isAdmin, signOut } = useAuth();
   const { data: collections = [] } = useCollections();
-  const { data: promotions = [] } = usePromotions();
-  const hasOffers = promotions.length > 0;
+  const { data: navItems = [] } = useNavItems();
+  const { data: navSections = [] } = useNavSections();
+  const { data: navLinks = [] } = useNavLinks();
   const { data: settings } = useStoreSettings();
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,7 +82,7 @@ export function SiteHeader() {
           </Link>
 
           {/* Centered mega-menu nav */}
-          <MegaMenu hasOffers={hasOffers} />
+          <MegaMenu />
 
           {/* Right icons */}
           <div className="flex items-center gap-0.5 ml-auto lg:ml-0">
@@ -229,72 +229,101 @@ export function SiteHeader() {
               <p className="px-2 pb-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">
                 {t("nav.browse")}
               </p>
-              <SheetClose asChild>
-                <Link
-                  to="/shop"
-                  className="block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                >
-                  {t("nav.allProducts")}
-                </Link>
-              </SheetClose>
+              {navItems
+                .filter((i) => i.active)
+                .sort((a, b) => a.sort_order - b.sort_order)
+                .map((item) => {
+                  if (item.type === "link") {
+                    return (
+                      <SheetClose asChild key={item.id}>
+                        <Link
+                          to={item.direct_url ?? "/shop"}
+                          className={
+                            item.accent
+                              ? "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
+                              : "block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                          }
+                        >
+                          {item.accent && <Flame className="size-4" />}
+                          {item.label}
+                        </Link>
+                      </SheetClose>
+                    );
+                  }
 
-              <Accordion type="multiple" className="w-full">
-                {TOP_NAV.filter((item) => item.type === "mega").map((item) => {
-                  const items = collections
-                    .filter((c) => c.nav_group === item.group && c.active)
+                  const sections = navSections
+                    .filter((s) => s.nav_item_id === item.id && s.active)
                     .sort((a, b) => a.sort_order - b.sort_order);
-                  const showSora = item.group === SORA_SAKE_LINK.navGroup;
-                  if (items.length === 0 && !showSora) return null;
+                  const links = sections.flatMap((s) =>
+                    navLinks
+                      .filter((l) => l.nav_section_id === s.id && l.active)
+                      .sort((a, b) => a.sort_order - b.sort_order),
+                  );
+                  if (links.length === 0) return null;
+
                   return (
-                    <AccordionItem key={item.labelKey} value={item.group} className="border-none">
-                      <AccordionTrigger className="px-3 py-2.5 text-sm font-medium hover:no-underline hover:bg-muted rounded-lg">
-                        {t(item.labelKey)}
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-1">
-                        <div className="pl-3 space-y-1">
-                          {items.map((c) => (
-                            <SheetClose asChild key={c.id}>
-                              <Link
-                                to="/collections/$slug"
-                                params={{ slug: c.slug }}
-                                className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                              >
-                                {c.title}
-                                {c.sub_label && (
-                                  <span className="block text-xs">{c.sub_label}</span>
-                                )}
-                              </Link>
-                            </SheetClose>
-                          ))}
-                          {showSora && (
-                            <a
-                              href={SORA_SAKE_LINK.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                            >
-                              <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
-                              {SORA_SAKE_LINK.label}
-                              <ExternalLink className="size-3 shrink-0 ml-auto" />
-                            </a>
-                          )}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
+                    <Accordion key={item.id} type="multiple">
+                      <AccordionItem value={item.id} className="border-none">
+                        <AccordionTrigger className="px-3 py-2.5 text-sm font-medium hover:no-underline hover:bg-muted rounded-lg">
+                          {item.label}
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-1">
+                          <div className="pl-3 space-y-1">
+                            {links.map((l) => {
+                              const slug = collections.find((c) => c.id === l.collection_id)?.slug;
+                              const isExternal = !slug && !!l.custom_url?.startsWith("http");
+                              const subLabel =
+                                l.sub_label ?? collections.find((c) => c.id === l.collection_id)?.sub_label;
+                              if (slug) {
+                                return (
+                                  <SheetClose asChild key={l.id}>
+                                    <Link
+                                      to="/collections/$slug"
+                                      params={{ slug }}
+                                      className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                                    >
+                                      {l.label}
+                                      {subLabel && <span className="block text-xs">{subLabel}</span>}
+                                    </Link>
+                                  </SheetClose>
+                                );
+                              }
+                              if (isExternal) {
+                                return (
+                                  <a
+                                    key={l.id}
+                                    href={l.custom_url ?? "#"}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  >
+                                    <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
+                                    <span className="flex-1 min-w-0">
+                                      {l.label}
+                                      {subLabel && <span className="block text-xs">{subLabel}</span>}
+                                    </span>
+                                    <ExternalLink className="size-3 shrink-0" />
+                                  </a>
+                                );
+                              }
+                              return (
+                                <SheetClose asChild key={l.id}>
+                                  <Link
+                                    to={l.custom_url ?? "/shop"}
+                                    className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  >
+                                    {l.label}
+                                    {subLabel && <span className="block text-xs">{subLabel}</span>}
+                                  </Link>
+                                </SheetClose>
+                              );
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
                   );
                 })}
-              </Accordion>
-
-              {hasOffers && (
-                <SheetClose asChild>
-                  <Link
-                    to="/offers"
-                    className="flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
-                  >
-                    <Flame className="size-4" /> {t("nav.offers")}
-                  </Link>
-                </SheetClose>
-              )}
             </nav>
 
             <nav className="space-y-1 border-t pt-4">

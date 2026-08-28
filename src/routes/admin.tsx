@@ -9,6 +9,7 @@ import {
   Package,
   Tag,
   Layers,
+  Compass,
   ShoppingCart,
   Users,
   Settings,
@@ -34,6 +35,7 @@ const SIDEBAR_KEY = "bosba:admin-sidebar-collapsed";
 
 const nav = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, exact: true },
+  { to: "/admin/main-navigator", label: "Main Navigator", icon: Compass },
   { to: "/admin/banners", label: "Hero Banner", icon: GalleryHorizontalEnd },
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
@@ -100,6 +102,7 @@ function AdminLayout() {
   const salesBlocked = isSales && !isAdmin && !path.startsWith("/admin/orders");
   // Marketing is scoped to the catalog/marketing sections.
   const marketingPaths = [
+    "/admin/main-navigator",
     "/admin/products",
     "/admin/marketing",
     "/admin/categories",

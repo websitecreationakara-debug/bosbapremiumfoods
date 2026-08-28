@@ -17,11 +17,10 @@ export const categories = sqliteTable("categories", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
-// Storefront marketing taxonomy for the mega-menu (Wagyu & Meats, Seafood &
-// Sashimi, Shop by Occasion, Pantry & Sake). Separate from `categories`, which
-// stays as the internal/back-office classification used by /shop's filter
-// sidebar. nav_group/nav_column key into the static heading map in
-// src/lib/nav.ts; a collection with nav_group = null isn't shown in the menu.
+// Storefront marketing taxonomy (Wagyu & Meats, Seafood & Sashimi, etc.).
+// Separate from `categories`, which stays as the internal/back-office
+// classification used by /shop's filter sidebar. Whether/where a collection
+// shows up in the mega-menu is decided by `nav_links` below, not by this table.
 export const collections = sqliteTable("collections", {
   id: text("id").primaryKey().$defaultFn(uuid),
   slug: text("slug").notNull().unique(),
@@ -29,8 +28,55 @@ export const collections = sqliteTable("collections", {
   sub_label: text("sub_label"),
   description: text("description"),
   image_url: text("image_url"),
-  nav_group: text("nav_group"),
-  nav_column: text("nav_column"),
+  sort_order: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// Top-level mega-menu buttons (All Products, Wagyu & Meats, Promotions, ...),
+// fully admin-managed from /admin/main-navigator.
+export const nav_items = sqliteTable("nav_items", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  label: text("label").notNull(),
+  // "mega" = dropdown built from nav_sections; "link" = plain link (direct_url).
+  type: text("type").notNull().default("mega"),
+  direct_url: text("direct_url"),
+  // Highlight styling (e.g. gold "Promotions" button).
+  accent: integer("accent", { mode: "boolean" }).notNull().default(false),
+  sort_order: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// A column inside a mega-menu dropdown. A section with no links and an
+// image_url renders as a visual promo card instead of a link list.
+export const nav_sections = sqliteTable("nav_sections", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  nav_item_id: text("nav_item_id")
+    .notNull()
+    .references(() => nav_items.id, { onDelete: "cascade" }),
+  // null = flat list, no column heading (e.g. Shop by Occasion).
+  title: text("title"),
+  image_url: text("image_url"),
+  cta_label: text("cta_label"),
+  cta_link: text("cta_link"),
+  sort_order: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// A single link inside a section — either an existing collection (resolves to
+// /collections/$slug) or a custom URL (e.g. the Sora Sake sister-site link).
+export const nav_links = sqliteTable("nav_links", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  nav_section_id: text("nav_section_id")
+    .notNull()
+    .references(() => nav_sections.id, { onDelete: "cascade" }),
+  label: text("label").notNull(),
+  sub_label: text("sub_label"),
+  collection_id: text("collection_id").references(() => collections.id, { onDelete: "set null" }),
+  // Used when collection_id is null.
+  custom_url: text("custom_url"),
   sort_order: integer("sort_order").notNull().default(0),
   active: integer("active", { mode: "boolean" }).notNull().default(true),
   created_at: text("created_at").notNull().$defaultFn(nowIso),

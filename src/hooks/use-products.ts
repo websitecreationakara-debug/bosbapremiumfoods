@@ -8,6 +8,7 @@ import {
 } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listCollections, listProductCollections } from "@/data/collections";
+import { listNavItems, listNavSections, listNavLinks } from "@/data/nav";
 import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
 import { getSettings } from "@/data/settings";
@@ -20,6 +21,9 @@ import type {
   Category,
   Collection,
   ProductCollection,
+  NavMenuItem,
+  NavMenuSection,
+  NavMenuLink,
   HeroSlide,
   Promotion,
   StoreSettings,
@@ -83,6 +87,27 @@ export function useProductCollections() {
   return useQuery({
     queryKey: ["product_collections"],
     queryFn: () => listProductCollections() as Promise<ProductCollection[]>,
+  });
+}
+
+export function useNavItems() {
+  return useQuery({
+    queryKey: ["nav_items"],
+    queryFn: () => listNavItems() as Promise<NavMenuItem[]>,
+  });
+}
+
+export function useNavSections() {
+  return useQuery({
+    queryKey: ["nav_sections"],
+    queryFn: () => listNavSections() as Promise<NavMenuSection[]>,
+  });
+}
+
+export function useNavLinks() {
+  return useQuery({
+    queryKey: ["nav_links"],
+    queryFn: () => listNavLinks() as Promise<NavMenuLink[]>,
   });
 }
 

@@ -27,6 +27,7 @@ import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminCollectionsRouteImport } from './routes/admin/collections'
+import { Route as AdminMainNavigatorRouteImport } from './routes/admin/main-navigator'
 import { Route as AdminMarketingRouteImport } from './routes/admin/marketing'
 import { Route as AdminMediaRouteImport } from './routes/admin/media'
 import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
@@ -127,6 +128,11 @@ const AdminCollectionsRoute = AdminCollectionsRouteImport.update({
   path: '/collections',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminMainNavigatorRoute = AdminMainNavigatorRouteImport.update({
+  id: '/main-navigator',
+  path: '/main-navigator',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminMarketingRoute = AdminMarketingRouteImport.update({
   id: '/marketing',
   path: '/marketing',
@@ -195,6 +201,7 @@ export interface FileRoutesByFullPath {
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/main-navigator': typeof AdminMainNavigatorRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -222,6 +229,7 @@ export interface FileRoutesByTo {
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/main-navigator': typeof AdminMainNavigatorRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -253,6 +261,7 @@ export interface FileRoutesById {
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
+  '/admin/main-navigator': typeof AdminMainNavigatorRoute
   '/admin/marketing': typeof AdminMarketingRoute
   '/admin/media': typeof AdminMediaRoute
   '/admin/orders': typeof AdminOrdersRoute
@@ -285,6 +294,7 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
+    | '/admin/main-navigator'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -312,6 +322,7 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
+    | '/admin/main-navigator'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -342,6 +353,7 @@ export interface FileRouteTypes {
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
+    | '/admin/main-navigator'
     | '/admin/marketing'
     | '/admin/media'
     | '/admin/orders'
@@ -491,6 +503,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCollectionsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/main-navigator': {
+      id: '/admin/main-navigator'
+      path: '/main-navigator'
+      fullPath: '/admin/main-navigator'
+      preLoaderRoute: typeof AdminMainNavigatorRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/marketing': {
       id: '/admin/marketing'
       path: '/marketing'
@@ -602,6 +621,7 @@ interface AdminRouteChildren {
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCollectionsRoute: typeof AdminCollectionsRoute
+  AdminMainNavigatorRoute: typeof AdminMainNavigatorRoute
   AdminMarketingRoute: typeof AdminMarketingRoute
   AdminMediaRoute: typeof AdminMediaRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
@@ -616,6 +636,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCollectionsRoute: AdminCollectionsRoute,
+  AdminMainNavigatorRoute: AdminMainNavigatorRoute,
   AdminMarketingRoute: AdminMarketingRoute,
   AdminMediaRoute: AdminMediaRoute,
   AdminOrdersRoute: AdminOrdersRoute,

@@ -75,8 +75,6 @@ export type Collection = {
   sub_label: string | null;
   description: string | null;
   image_url: string | null;
-  nav_group: string | null;
-  nav_column: string | null;
   sort_order: number;
   active: boolean;
   created_at: string;
@@ -87,6 +85,41 @@ export type ProductCollection = {
   product_id: string;
   collection_id: string;
   sort_order: number;
+};
+
+export type NavMenuItem = {
+  id: string;
+  label: string;
+  type: string; // "mega" | "link"
+  direct_url: string | null;
+  accent: boolean;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type NavMenuSection = {
+  id: string;
+  nav_item_id: string;
+  title: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  cta_link: string | null;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
+};
+
+export type NavMenuLink = {
+  id: string;
+  nav_section_id: string;
+  label: string;
+  sub_label: string | null;
+  collection_id: string | null;
+  custom_url: string | null;
+  sort_order: number;
+  active: boolean;
+  created_at: string;
 };
 
 export type HeroSlide = {

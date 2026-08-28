@@ -7,7 +7,6 @@ import {
 } from "@/data/collections";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
-import { NAV_GROUPS, NAV_COLUMNS_BY_GROUP } from "@/lib/nav";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,13 +14,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { useRef, useState } from "react";
 import { Trash2, Upload, ImageIcon, Loader2, X, Pencil, Plus } from "lucide-react";
 import { toast } from "sonner";
@@ -41,8 +33,6 @@ const emptyForm = {
   sub_label: "",
   description: "",
   image_url: "",
-  nav_group: "",
-  nav_column: "",
   active: true,
 };
 
@@ -62,7 +52,6 @@ function CollectionsAdmin() {
   const [picker, setPicker] = useState(false);
 
   const open = creating || !!editing;
-  const columnOptions = form.nav_group ? (NAV_COLUMNS_BY_GROUP[form.nav_group] ?? []) : [];
 
   const startCreate = () => {
     setForm(emptyForm);
@@ -76,8 +65,6 @@ function CollectionsAdmin() {
       sub_label: c.sub_label ?? "",
       description: c.description ?? "",
       image_url: c.image_url ?? "",
-      nav_group: c.nav_group ?? "",
-      nav_column: c.nav_column ?? "",
       active: c.active,
     });
     setEditing(c);
@@ -97,8 +84,6 @@ function CollectionsAdmin() {
       sub_label: form.sub_label || null,
       description: form.description || null,
       image_url: form.image_url || null,
-      nav_group: form.nav_group || null,
-      nav_column: form.nav_column || null,
       active: form.active,
     };
     try {
@@ -142,14 +127,7 @@ function CollectionsAdmin() {
     }
   };
 
-  const grouped = [
-    ...NAV_GROUPS.map((g) => ({
-      key: g.value,
-      label: g.label,
-      items: collections.filter((c) => c.nav_group === g.value),
-    })),
-    { key: "__none", label: "Not in nav", items: collections.filter((c) => !c.nav_group) },
-  ];
+  const sorted = [...collections].sort((a, b) => a.title.localeCompare(b.title));
 
   return (
     <div className="max-w-4xl space-y-6">
@@ -160,58 +138,50 @@ function CollectionsAdmin() {
         </Button>
       </div>
       <p className="text-sm text-muted-foreground -mt-4">
-        The storefront mega-menu taxonomy — separate from Categories, which stays internal. A
-        product can belong to several collections at once (set from the product's edit form).
+        The storefront product taxonomy — separate from Categories, which stays internal. A
+        product can belong to several collections at once (set from the product's edit form). To
+        put a collection into the header menu, add it as a link in{" "}
+        <span className="font-medium text-foreground">Main Navigator</span>.
       </p>
 
-      {grouped.map((g) => (
-        <div key={g.key} className="space-y-2">
-          <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground px-1">
-            {g.label}
-          </p>
-          {g.items.length === 0 ? (
-            <p className="text-sm text-muted-foreground px-1">No collections yet.</p>
-          ) : (
-            <div className="bg-card border rounded-2xl divide-y">
-              {g.items.map((c) => (
-                <div key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="size-12 rounded-lg border bg-muted overflow-hidden shrink-0 grid place-items-center text-muted-foreground">
-                      {c.image_url ? (
-                        <img src={c.image_url} alt="" className="w-full h-full object-cover" />
-                      ) : (
-                        <ImageIcon className="size-5" />
-                      )}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-medium truncate flex items-center gap-2">
-                        {c.title}
-                        {!c.active && (
-                          <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
-                            inactive
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {c.slug}
-                        {c.nav_column && ` · ${c.nav_column}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <Button variant="ghost" size="icon" onClick={() => startEdit(c)} aria-label="Edit">
-                      <Pencil className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={() => del(c.id)}>
-                      <Trash2 className="size-4 text-destructive" />
-                    </Button>
-                  </div>
+      {sorted.length === 0 ? (
+        <p className="text-sm text-muted-foreground px-1">No collections yet.</p>
+      ) : (
+        <div className="bg-card border rounded-2xl divide-y">
+          {sorted.map((c) => (
+            <div key={c.id} className="flex items-center justify-between gap-3 px-5 py-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="size-12 rounded-lg border bg-muted overflow-hidden shrink-0 grid place-items-center text-muted-foreground">
+                  {c.image_url ? (
+                    <img src={c.image_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon className="size-5" />
+                  )}
                 </div>
-              ))}
+                <div className="min-w-0">
+                  <p className="font-medium truncate flex items-center gap-2">
+                    {c.title}
+                    {!c.active && (
+                      <span className="text-xs rounded-full bg-muted px-2 py-0.5 text-muted-foreground">
+                        inactive
+                      </span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted-foreground truncate">{c.slug}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1 shrink-0">
+                <Button variant="ghost" size="icon" onClick={() => startEdit(c)} aria-label="Edit">
+                  <Pencil className="size-4" />
+                </Button>
+                <Button variant="ghost" size="icon" onClick={() => del(c.id)}>
+                  <Trash2 className="size-4 text-destructive" />
+                </Button>
+              </div>
             </div>
-          )}
+          ))}
         </div>
-      ))}
+      )}
 
       <Dialog open={open} onOpenChange={(o) => !o && close()}>
         <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
@@ -251,49 +221,6 @@ function CollectionsAdmin() {
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Shown on the collection page"
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Menu group</Label>
-                <Select
-                  value={form.nav_group || "none"}
-                  onValueChange={(v) =>
-                    setForm({ ...form, nav_group: v === "none" ? "" : v, nav_column: "" })
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Not in menu" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Not in menu</SelectItem>
-                    {NAV_GROUPS.map((g) => (
-                      <SelectItem key={g.value} value={g.value}>
-                        {g.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Menu column</Label>
-                <Select
-                  value={form.nav_column || "none"}
-                  onValueChange={(v) => setForm({ ...form, nav_column: v === "none" ? "" : v })}
-                  disabled={columnOptions.length === 0}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Flat list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Flat list</SelectItem>
-                    {columnOptions.map((c) => (
-                      <SelectItem key={c.value} value={c.value}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="flex items-start gap-3">
@@ -381,7 +308,7 @@ function CollectionsAdmin() {
                 checked={form.active}
                 onCheckedChange={(v) => setForm({ ...form, active: v === true })}
               />
-              <span className="text-sm">Active (shown in menu and reachable at /collections/…)</span>
+              <span className="text-sm">Active (reachable at /collections/… and available to add to the menu)</span>
             </label>
 
             <Button type="submit" className="w-full">

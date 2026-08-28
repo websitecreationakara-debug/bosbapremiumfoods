@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeftRight, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -8,10 +8,7 @@ import {
   NavigationMenuList,
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
-import { useCollections } from "@/hooks/use-products";
-import { useI18n } from "@/lib/i18n";
-import { TOP_NAV, NAV_COLUMN_LABELS, WAGYU_PROMO, SORA_SAKE_LINK } from "@/lib/nav";
-import type { Collection } from "@/lib/types";
+import { useCollections, useNavItems, useNavLinks, useNavSections } from "@/hooks/use-products";
 import { cn } from "@/lib/utils";
 
 const triggerClass =
@@ -19,155 +16,146 @@ const triggerClass =
 
 const linkClass = "hover:text-foreground transition-colors whitespace-nowrap";
 
-export function MegaMenu({ hasOffers }: { hasOffers: boolean }) {
+export function MegaMenu() {
+  const { data: navItems = [] } = useNavItems();
+  const { data: navSections = [] } = useNavSections();
+  const { data: navLinks = [] } = useNavLinks();
   const { data: collections = [] } = useCollections();
-  const { t } = useI18n();
 
-  const forGroup = (group: string) =>
-    collections
-      .filter((c) => c.nav_group === group && c.active)
+  const collectionSlug = (id: string | null) => collections.find((c) => c.id === id)?.slug;
+
+  const sectionsFor = (navItemId: string) =>
+    navSections
+      .filter((s) => s.nav_item_id === navItemId && s.active)
       .sort((a, b) => a.sort_order - b.sort_order);
 
-  const columnsFor = (group: string) => {
-    const items = forGroup(group);
-    const columns = new Map<string, Collection[]>();
-    for (const c of items) {
-      const key = c.nav_column ?? "__flat";
-      if (!columns.has(key)) columns.set(key, []);
-      columns.get(key)!.push(c);
-    }
-    return columns;
-  };
+  const linksFor = (navSectionId: string) =>
+    navLinks
+      .filter((l) => l.nav_section_id === navSectionId && l.active)
+      .sort((a, b) => a.sort_order - b.sort_order);
+
+  const items = navItems.filter((i) => i.active).sort((a, b) => a.sort_order - b.sort_order);
 
   return (
     <nav className="hidden lg:flex flex-1 min-w-0 items-center justify-center gap-x-5 xl:gap-x-7 px-2 text-[13px] text-foreground/80">
       <NavigationMenu className="max-w-none flex-none justify-start">
         <NavigationMenuList className="gap-x-5 xl:gap-x-7 space-x-0">
-          {TOP_NAV.map((item) => {
+          {items.map((item) => {
             if (item.type === "link") {
-              if (item.to === "/offers" && !hasOffers) return null;
               return (
-                <NavigationMenuItem key={item.labelKey}>
+                <NavigationMenuItem key={item.id}>
                   <NavigationMenuLink asChild>
                     <Link
-                      to={item.to}
+                      to={item.direct_url ?? "/shop"}
                       className={cn(linkClass, item.accent && "font-medium text-brand hover:text-brand/80")}
                     >
-                      {t(item.labelKey)}
+                      {item.label}
                     </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               );
             }
 
-            const columns = columnsFor(item.group);
-            const flat = columns.get("__flat") ?? [];
-            const structured = [...columns.entries()].filter(([key]) => key !== "__flat");
-            const isEmpty = flat.length === 0 && structured.length === 0;
-            if (isEmpty) return null;
+            const sections = sectionsFor(item.id);
+            if (sections.length === 0) return null;
 
             return (
-              <NavigationMenuItem key={item.labelKey}>
-                <NavigationMenuTrigger className={triggerClass}>{t(item.labelKey)}</NavigationMenuTrigger>
+              <NavigationMenuItem key={item.id}>
+                <NavigationMenuTrigger className={triggerClass}>{item.label}</NavigationMenuTrigger>
                 <NavigationMenuContent>
                   <div className="p-6 flex gap-8 min-w-[420px]">
-                    {structured.map(([columnKey, items]) => (
-                      <div key={columnKey} className="min-w-[180px]">
-                        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
-                          {NAV_COLUMN_LABELS[columnKey] ?? columnKey}
-                        </p>
-                        <ul className="space-y-2.5">
-                          {items.map((c) => (
-                            <li key={c.id}>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  to="/collections/$slug"
-                                  params={{ slug: c.slug }}
-                                  className="block text-sm hover:text-brand transition-colors"
-                                >
-                                  <span className="block">{c.title}</span>
-                                  {c.sub_label && (
-                                    <span className="block text-xs text-muted-foreground">
-                                      {c.sub_label}
-                                    </span>
-                                  )}
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
+                    {sections.map((section) => {
+                      const links = linksFor(section.id);
 
-                    {flat.length > 0 && (
-                      <div className="min-w-[200px]">
-                        <ul className="space-y-2.5">
-                          {flat.map((c) => (
-                            <li key={c.id}>
-                              <NavigationMenuLink asChild>
-                                <Link
-                                  to="/collections/$slug"
-                                  params={{ slug: c.slug }}
-                                  className="block text-sm hover:text-brand transition-colors"
-                                >
-                                  <span className="block font-medium">{c.title}</span>
-                                  {c.description && (
-                                    <span className="block text-xs text-muted-foreground">
-                                      {c.description}
-                                    </span>
-                                  )}
-                                </Link>
-                              </NavigationMenuLink>
-                            </li>
-                          ))}
-                          {item.group === SORA_SAKE_LINK.navGroup && (
-                            <li>
-                              <NavigationMenuLink asChild>
-                                <a
-                                  href={SORA_SAKE_LINK.href}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="flex items-start gap-1.5 text-sm hover:text-brand transition-colors"
-                                >
-                                  <ArrowLeftRight className="size-3.5 shrink-0 mt-0.5 text-brand" />
-                                  <span>
-                                    <span className="block font-medium">{SORA_SAKE_LINK.label}</span>
-                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
-                                      {SORA_SAKE_LINK.sublabel}
-                                      <ExternalLink className="size-3" />
-                                    </span>
-                                  </span>
-                                </a>
-                              </NavigationMenuLink>
-                            </li>
-                          )}
-                        </ul>
-                      </div>
-                    )}
+                      // No links + an image = a visual promo card, not a link column.
+                      if (links.length === 0 && section.image_url) {
+                        return (
+                          <NavigationMenuLink asChild key={section.id}>
+                            <Link
+                              to={section.cta_link ?? "/shop"}
+                              className="block w-56 rounded-xl overflow-hidden border shrink-0 group"
+                            >
+                              <div className="aspect-[4/3] overflow-hidden bg-muted">
+                                <img
+                                  src={section.image_url}
+                                  alt=""
+                                  className="w-full h-full object-cover transition-transform group-hover:scale-105"
+                                />
+                              </div>
+                              {section.cta_label && (
+                                <div className="p-3">
+                                  <p className="text-xs font-medium text-brand">{section.cta_label} →</p>
+                                </div>
+                              )}
+                            </Link>
+                          </NavigationMenuLink>
+                        );
+                      }
 
-                    {item.group === WAGYU_PROMO.navGroup && (
-                      <NavigationMenuLink asChild>
-                        <Link
-                          to={WAGYU_PROMO.ctaLink}
-                          className="block w-56 rounded-xl overflow-hidden border shrink-0 group"
-                        >
-                          <div className="aspect-[4/3] overflow-hidden bg-muted">
-                            <img
-                              src={WAGYU_PROMO.imageUrl}
-                              alt=""
-                              className="w-full h-full object-cover transition-transform group-hover:scale-105"
-                            />
-                          </div>
-                          <div className="p-3">
-                            <p className="text-sm font-semibold">{WAGYU_PROMO.title}</p>
-                            <p className="text-xs text-muted-foreground">{WAGYU_PROMO.subtitle}</p>
-                            <p className="text-xs font-medium text-brand mt-1.5">
-                              {WAGYU_PROMO.ctaLabel} →
+                      if (links.length === 0) return null;
+
+                      return (
+                        <div key={section.id} className="min-w-[180px]">
+                          {section.title && (
+                            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground mb-3">
+                              {section.title}
                             </p>
-                          </div>
-                        </Link>
-                      </NavigationMenuLink>
-                    )}
+                          )}
+                          <ul className="space-y-2.5">
+                            {links.map((l) => {
+                              const slug = collectionSlug(l.collection_id);
+                              const isExternal = !slug && !!l.custom_url?.startsWith("http");
+                              // A link can override the collection's sub_label; otherwise
+                              // it inherits the collection's own (e.g. "Marbling Score 5–7").
+                              const subLabel =
+                                l.sub_label ?? collections.find((c) => c.id === l.collection_id)?.sub_label;
+                              const content = (
+                                <>
+                                  <span className="block font-medium">{l.label}</span>
+                                  {subLabel && (
+                                    <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                                      {subLabel}
+                                      {isExternal && <ExternalLink className="size-3" />}
+                                    </span>
+                                  )}
+                                </>
+                              );
+                              return (
+                                <li key={l.id}>
+                                  <NavigationMenuLink asChild>
+                                    {slug ? (
+                                      <Link
+                                        to="/collections/$slug"
+                                        params={{ slug }}
+                                        className="block text-sm hover:text-brand transition-colors"
+                                      >
+                                        {content}
+                                      </Link>
+                                    ) : isExternal ? (
+                                      <a
+                                        href={l.custom_url ?? "#"}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="block text-sm hover:text-brand transition-colors"
+                                      >
+                                        {content}
+                                      </a>
+                                    ) : (
+                                      <Link
+                                        to={l.custom_url ?? "/shop"}
+                                        className="block text-sm hover:text-brand transition-colors"
+                                      >
+                                        {content}
+                                      </Link>
+                                    )}
+                                  </NavigationMenuLink>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      );
+                    })}
                   </div>
                 </NavigationMenuContent>
               </NavigationMenuItem>
