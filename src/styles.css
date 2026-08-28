@@ -163,11 +163,12 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
-  /* Subtle noise texture on ivory background — the `dark` class lives on
-     <html>, not <body>, so this must check :root, not body itself. */
-  :root:not(.dark) body {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
-  }
+  /* The SVG feTurbulence noise texture that used to live here was cheap on
+     its own, but became expensive once the header's backdrop-blur (see
+     site-header.tsx) started using this page as its live sampling source on
+     every mega-menu open/close — animating a blur through high-frequency
+     noise is a known-costly case for browser compositors, and light mode was
+     the only theme paying for it (dark mode never had this background). */
   h1,
   h2,
   h3,

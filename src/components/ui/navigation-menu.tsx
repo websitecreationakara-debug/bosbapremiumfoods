@@ -69,15 +69,22 @@ const NavigationMenuContent = React.forwardRef<
   // internally renders its own `position: relative` wrapper div that we can't
   // remove, which would otherwise force this panel to size/position itself
   // against that narrow inner wrapper instead of the page. `fixed` skips that
-  // — and because the <header> in site-header.tsx uses `backdrop-blur-xl`
+  // — and because the <header> in site-header.tsx uses `backdrop-blur-md`
   // (a CSS backdrop-filter), it becomes this element's containing block per
   // spec, so `inset-x-0` resolves against the full-bleed header (no max-width
   // on it) rather than the viewport-relative default. Net effect: the panel
   // spans the entire header width, flush under it.
+  //
+  // Shadow blur radius is intentionally modest (16px, not 48px) — this panel
+  // is huge (full viewport width) and animates in/out on every hover, so a
+  // heavy shadow blur is real per-frame compositing cost paid on every open.
   <NavigationMenuPrimitive.Content
     ref={ref}
     className={cn(
-      "inset-x-0 top-full mt-1.5 rounded-md border bg-popover text-popover-foreground shadow data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:fixed",
+      // No top margin/rounded corners/full border here on purpose — this
+      // panel sits flush against the header's bottom edge (border-b only),
+      // not floating below it like a small popover would.
+      "inset-x-0 top-full border-b bg-popover text-popover-foreground shadow-[0_8px_16px_-8px_rgba(0,0,0,0.35)] data-[motion^=from-]:animate-in data-[motion^=to-]:animate-out data-[motion^=from-]:fade-in data-[motion^=to-]:fade-out data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 md:fixed",
       className,
     )}
     {...props}

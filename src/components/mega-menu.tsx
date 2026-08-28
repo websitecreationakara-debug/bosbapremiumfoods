@@ -180,12 +180,19 @@ function MegaDropdown({
           const inner = (
             <>
               <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-                {img && (
+                {img ? (
                   <img
                     src={img}
                     alt=""
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                   />
+                ) : (
+                  // Custom-URL links (e.g. the Sora Sake cross-link) have no
+                  // collection to pull a photo from — a branded placeholder
+                  // reads as intentional, an empty gray box reads as broken.
+                  <div className="grid h-full w-full place-items-center bg-gradient-to-br from-brand/10 to-brand/5">
+                    <ArrowRight className="size-8 text-brand/40 transition-transform duration-300 group-hover:translate-x-1" />
+                  </div>
                 )}
               </div>
               <span className="mt-3 block text-sm font-medium transition-colors group-hover:text-brand">

@@ -63,7 +63,12 @@ export function SiteHeader() {
   return (
     <>
       {/* Apple-style single nav bar */}
-      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b">
+      {/* backdrop-blur-md, not -xl: this header is the containing block the
+          mega-menu panel positions itself against (see navigation-menu.tsx),
+          so every open/close re-samples whatever's behind it — halving the
+          blur radius cuts that compositing cost substantially with a barely
+          perceptible visual difference. */}
+      <header className="sticky top-0 z-40 bg-background/80 backdrop-blur-md border-b">
         <div className="relative mx-auto max-w-7xl px-4 md:px-6 h-14 md:h-16 flex items-center gap-3">
           <button
             onClick={() => setMenuOpen(true)}
