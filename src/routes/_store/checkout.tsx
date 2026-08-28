@@ -67,8 +67,13 @@ const slotMinutes = (t: string) => {
   return h * 60 + m;
 };
 // Minimum lead time before a same-day slot can be booked (so customers can't
-// pick a slot that's already passed, or one that's only minutes away).
-const LEAD_MINUTES = 30;
+// pick a slot that's already passed, or one that's only minutes away). Slots
+// sit on a fixed 30-minute grid, so the real gap to the earliest offered slot
+// varies between this value and this value + 29 minutes depending on where
+// "now" falls in the grid — e.g. at 15 minutes, checking out at 5:42 PM offers
+// 6:00 PM (not 5:57, since slots are on the grid; not 6:30, which is what a
+// 30-minute buffer would have produced here).
+const LEAD_MINUTES = 15;
 
 // KHQR pulled 2026-08-27 pending a new Bakong token — every order is Cash on
 // Delivery until this is flipped back to true (and BAKONG_TOKEN is updated).
