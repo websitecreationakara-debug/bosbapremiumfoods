@@ -57,6 +57,9 @@ import {
   Eye,
   EyeOff,
   Youtube,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -160,6 +163,21 @@ function ProductsAdmin() {
   const [page, setPage] = useState(1);
   const [dragId, setDragId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
+  // Column-header sort — separate from the drag-to-reorder sort_order below.
+  // A column sort is just a view; it doesn't touch the stored order, so
+  // clearing it (third click) goes right back to the manual drag order.
+  const [sortKey, setSortKey] = useState<"title" | "price" | "stock" | null>(null);
+  const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
+  const toggleSort = (key: "title" | "price" | "stock") => {
+    if (sortKey !== key) {
+      setSortKey(key);
+      setSortDir("asc");
+    } else if (sortDir === "asc") {
+      setSortDir("desc");
+    } else {
+      setSortKey(null);
+    }
+  };
   const [exporting, setExporting] = useState(false);
   // Inline stock edit in the list — simple products only. Empty string while
   // editing means "leave untracked" (∞), matching stock == null semantics.
@@ -169,6 +187,25 @@ function ProductsAdmin() {
   const skipStockBlurSave = useRef(false);
 
   const variationsByProduct = groupVariations(allVariations);
+
+  // Numeric sort keys, shared with the priceLabel/stockLabel display strings
+  // further down so both stay in sync with variable-product handling.
+  const priceValue = (p: Product) => {
+    if (p.type !== "variable") return p.sale_price ?? p.price;
+    const vs = variationsByProduct.get(p.id) ?? [];
+    if (!vs.length) return 0;
+    return Math.min(...vs.map((v) => v.sale_price ?? v.price));
+  };
+  // Untracked ("∞") stock sorts as larger than any tracked number — it reads
+  // as "more stock than a finite count" the same way the ∞ symbol implies.
+  const stockValue = (p: Product) => {
+    if (p.type !== "variable") return p.stock ?? Infinity;
+    const vs = variationsByProduct.get(p.id) ?? [];
+    if (!vs.length) return 0;
+    const tracked = vs.filter((v) => v.stock != null);
+    if (tracked.length === 0) return Infinity;
+    return tracked.reduce((a, v) => a + (v.stock ?? 0), 0);
+  };
 
   const filtersActive =
     query.trim() !== "" || catFilter !== "all" || statusFilter !== "all" || typeFilter !== "all";
@@ -180,12 +217,21 @@ function ProductsAdmin() {
     return true;
   });
 
+  const sorted = sortKey
+    ? [...filtered].sort((a, b) => {
+        const dir = sortDir === "asc" ? 1 : -1;
+        if (sortKey === "title") return a.title.localeCompare(b.title) * dir;
+        if (sortKey === "price") return (priceValue(a) - priceValue(b)) * dir;
+        return (stockValue(a) - stockValue(b)) * dir;
+      })
+    : filtered;
+
   // Clamp the page so it stays valid after filters shrink the list.
-  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const totalPages = Math.max(1, Math.ceil(sorted.length / pageSize));
   const safePage = Math.min(page, totalPages);
-  const paged = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
-  const rangeStart = filtered.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
-  const rangeEnd = Math.min(safePage * pageSize, filtered.length);
+  const paged = sorted.slice((safePage - 1) * pageSize, safePage * pageSize);
+  const rangeStart = sorted.length === 0 ? 0 : (safePage - 1) * pageSize + 1;
+  const rangeEnd = Math.min(safePage * pageSize, sorted.length);
   // Any filter change should send the admin back to the first page.
   const onFilterChange =
     <T,>(setter: (v: T) => void) =>
@@ -196,7 +242,7 @@ function ProductsAdmin() {
   const exportXlsx = async () => {
     setExporting(true);
     try {
-      await downloadProductsXlsx(filtered, categories, promos, variationsByProduct);
+      await downloadProductsXlsx(sorted, categories, promos, variationsByProduct);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to export products");
     } finally {
@@ -217,8 +263,10 @@ function ProductsAdmin() {
   // (a drop could land far from where it visually appears), so those still block it.
   // A category filter doesn't have that problem: every visible row keeps its real
   // neighbors from the full list, so dragging within the filtered view still reorders
-  // the underlying global list correctly.
-  const canReorder = query.trim() === "" && statusFilter === "all" && typeFilter === "all";
+  // the underlying global list correctly. A column sort reorders the view itself,
+  // so it blocks dragging the same way.
+  const canReorder =
+    query.trim() === "" && statusFilter === "all" && typeFilter === "all" && sortKey === null;
   const reorder = async (fromId: string, toId: string) => {
     if (fromId === toId) return;
     const ids = products.map((p) => p.id);
@@ -654,7 +702,9 @@ function ProductsAdmin() {
       <p className="text-xs text-muted-foreground">
         {canReorder
           ? "Drag the ⠿ handle to reorder — this sets the order shown in the store."
-          : "Clear filters and search to drag-reorder products."}
+          : sortKey
+            ? "Keep clicking the sorted column header to cycle back to manual order, then drag-reorder products."
+            : "Clear filters and search to drag-reorder products."}
       </p>
 
       <div className="bg-card border rounded-2xl overflow-hidden">
@@ -662,10 +712,61 @@ function ProductsAdmin() {
           <thead className="bg-muted text-xs uppercase tracking-widest text-muted-foreground">
             <tr>
               <th className="w-8 px-2 py-3"></th>
-              <th className="text-left px-6 py-3">Product</th>
-              <th className="text-left px-6 py-3">Price</th>
+              <th className="text-left px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("title")}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Product
+                  {sortKey === "title" ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="size-3 opacity-40" />
+                  )}
+                </button>
+              </th>
+              <th className="text-left px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("price")}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Price
+                  {sortKey === "price" ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="size-3 opacity-40" />
+                  )}
+                </button>
+              </th>
               <th className="text-left px-6 py-3">Weight</th>
-              <th className="text-left px-6 py-3">Stock</th>
+              <th className="text-left px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("stock")}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Stock
+                  {sortKey === "stock" ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="size-3 opacity-40" />
+                  )}
+                </button>
+              </th>
               <th className="text-left px-6 py-3">Status</th>
               <th className="px-6 py-3"></th>
             </tr>
