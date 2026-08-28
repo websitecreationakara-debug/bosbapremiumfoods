@@ -261,6 +261,20 @@ export const setProductStock = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Clears a product's cover image from the list-view preview lightbox —
+// doesn't require the full updateProduct payload, same pattern as the other
+// quick actions above.
+export const setProductImage = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; image_url: string | null }) => d)
+  .handler(async ({ data }) => {
+    await requireManager();
+    await getDb()
+      .update(products)
+      .set({ image_url: data.image_url, updated_at: new Date().toISOString() })
+      .where(eq(products.id, data.id));
+    return { ok: true };
+  });
+
 // Persist a new global product order from admin drag-and-drop: sort_order
 // becomes each id's position in the array. Ids not passed keep their old value.
 export const reorderProducts = createServerFn({ method: "POST" })

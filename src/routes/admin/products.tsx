@@ -19,6 +19,7 @@ import {
   saveProductImages,
   setProductStatus,
   setProductStock,
+  setProductImage,
 } from "@/data/products";
 import { setProductCollections } from "@/data/collections";
 import { listMedia, uploadMedia } from "@/data/media";
@@ -120,8 +121,10 @@ function ProductsAdmin() {
   });
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
-  // Full-size preview when a list-row thumbnail is clicked.
-  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
+  // Full-size preview when a list-row thumbnail is clicked — keeps the
+  // product too, not just the URL, so the preview can offer to remove it.
+  const [lightboxProduct, setLightboxProduct] = useState<Product | null>(null);
+  const [removingImage, setRemovingImage] = useState(false);
   const [form, setForm] = useState(empty);
   const [vars, setVars] = useState<VarRow[]>([]);
   // Structured "## Title" sections, edited as Header + Content rows rather
@@ -715,7 +718,7 @@ function ProductsAdmin() {
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
-                            setLightboxUrl(p.image_url!);
+                            setLightboxProduct(p);
                           }}
                           className="block size-full cursor-zoom-in"
                           aria-label={`View full-size image of ${p.title}`}
@@ -1285,6 +1288,21 @@ function ProductsAdmin() {
                             variant="outline"
                             size="sm"
                             className="h-8 px-2 shrink-0"
+                            disabled={!v.image_url}
+                            onClick={() =>
+                              setVars((rows) =>
+                                rows.map((r, j) => (j === i ? { ...r, image_url: "" } : r)),
+                              )
+                            }
+                            aria-label="Remove photo for this size"
+                          >
+                            <X className="size-3.5" />
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-8 px-2 shrink-0"
                             disabled={varUploading === i}
                             onClick={() => {
                               setVarUploadTarget(i);
@@ -1572,17 +1590,45 @@ function ProductsAdmin() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={lightboxUrl != null} onOpenChange={(o) => !o && setLightboxUrl(null)}>
-        <DialogContent className="max-w-3xl p-2 bg-transparent border-none shadow-none">
+      <Dialog open={lightboxProduct != null} onOpenChange={(o) => !o && setLightboxProduct(null)}>
+        <DialogContent className="max-w-3xl bg-card">
           <DialogHeader className="sr-only">
-            <DialogTitle>Product image preview</DialogTitle>
+            <DialogTitle>{lightboxProduct?.title ?? "Product image preview"}</DialogTitle>
           </DialogHeader>
-          {lightboxUrl && (
-            <img
-              src={lightboxUrl}
-              alt=""
-              className="w-full max-h-[85vh] object-contain rounded-lg"
-            />
+          {lightboxProduct?.image_url && (
+            <div className="space-y-3">
+              <img
+                src={lightboxProduct.image_url}
+                alt=""
+                className="w-full max-h-[75vh] object-contain rounded-lg bg-muted"
+              />
+              <button
+                type="button"
+                disabled={removingImage}
+                onClick={async () => {
+                  if (!lightboxProduct) return;
+                  setRemovingImage(true);
+                  try {
+                    await setProductImage({ data: { id: lightboxProduct.id, image_url: null } });
+                  } catch (err) {
+                    setRemovingImage(false);
+                    return toast.error(err instanceof Error ? err.message : "Failed to remove image");
+                  }
+                  toast.success("Image removed");
+                  qc.invalidateQueries({ queryKey: ["products"] });
+                  setRemovingImage(false);
+                  setLightboxProduct(null);
+                }}
+                className="mx-auto flex items-center gap-1.5 text-sm font-medium text-destructive hover:underline disabled:opacity-50"
+              >
+                {removingImage ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  <Trash2 className="size-3.5" />
+                )}
+                Remove image
+              </button>
+            </div>
           )}
         </DialogContent>
       </Dialog>
