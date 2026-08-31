@@ -33,6 +33,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import {
   Select,
   SelectContent,
@@ -525,8 +526,9 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["products"] });
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
+
   const del = async (id: string) => {
-    if (!confirm("Delete this product?")) return;
     try {
       await deleteProduct({ data: { id } });
     } catch (err) {
@@ -927,7 +929,7 @@ function ProductsAdmin() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      onClick={() => del(p.id)}
+                      onClick={() => setDeleteTarget(p)}
                       aria-label="Delete"
                     >
                       <Trash2 className="size-4 text-destructive" />
@@ -1739,6 +1741,17 @@ function ProductsAdmin() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={deleteTarget != null}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        itemLabel={deleteTarget?.title ?? ""}
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          del(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }

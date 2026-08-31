@@ -17,10 +17,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ConfirmDeleteDialog } from "@/components/confirm-delete-dialog";
 import { toast } from "sonner";
 import { MapPin, Trash2, FileDown } from "lucide-react";
 import { formatShippingAddress } from "@/lib/utils";
 import { downloadInvoice } from "@/lib/invoice";
+import type { Order } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/orders")({ component: OrdersAdmin });
 
@@ -73,8 +75,9 @@ function OrdersAdmin() {
     toast.success("Order marked as paid");
   };
 
+  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
+
   const removeOrder = async (id: string) => {
-    if (!confirm("Delete this order? This cannot be undone.")) return;
     try {
       await deleteOrder({ data: { id } });
     } catch (err) {
@@ -222,7 +225,7 @@ function OrdersAdmin() {
                       <FileDown className="size-4" />
                     </button>
                     <button
-                      onClick={() => removeOrder(o.id)}
+                      onClick={() => setDeleteTarget(o)}
                       title="Delete order"
                       className="text-muted-foreground hover:text-destructive transition-colors"
                     >
@@ -268,6 +271,21 @@ function OrdersAdmin() {
           )}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDeleteDialog
+        open={deleteTarget != null}
+        onOpenChange={(o) => !o && setDeleteTarget(null)}
+        itemLabel={
+          deleteTarget
+            ? `invoice #${deleteTarget.id.slice(0, 8)}${deleteTarget.customer_name ? ` (${deleteTarget.customer_name})` : ""}`
+            : ""
+        }
+        onConfirm={() => {
+          if (!deleteTarget) return;
+          removeOrder(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+      />
     </div>
   );
 }
