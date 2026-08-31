@@ -183,6 +183,10 @@ function RootShell({ children }: { children: React.ReactNode }) {
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(WEBSITE_JSON_LD) }}
         />
+        <script
+          src="https://chumnouykar.bcietech.com/widget.js"
+          data-widget-key="wgt_Bgxs9SdWg4RE6vcJdpZp4SCuUsFt6KbZf7gTYALWaX4"
+        />
       </head>
       <body>
         {children}
