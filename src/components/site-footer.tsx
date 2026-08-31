@@ -1,13 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import {
-  ArrowLeftRight,
-  ExternalLink,
-  Facebook,
-  Instagram,
-  MapPin,
-  Phone,
-  Truck,
-} from "lucide-react";
+import { Facebook, Instagram, MapPin, Phone, Truck } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
 import { useStoreSettings } from "@/hooks/use-products";
 
@@ -17,7 +9,7 @@ export function SiteFooter() {
   const shipThreshold = Number(settings?.free_shipping_threshold ?? 50);
   return (
     <footer className="bg-surface border-t border-border text-foreground mt-24">
-      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-10 md:gap-12">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:py-16 grid grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-10 md:gap-12">
         <div className="col-span-2 lg:col-span-1 space-y-4">
           <div className="flex items-center gap-2">
             <img
@@ -68,45 +60,6 @@ export function SiteFooter() {
               </Link>
             </li>
           </ul>
-        </div>
-
-        {/* Hidden below lg: the mobile/tablet hamburger sidebar already has this
-            same "Also Visit" block, so showing it here too would be redundant.
-            Desktop's nav has no sidebar equivalent, so it stays in the footer. */}
-        <div className="hidden lg:block">
-          <h4 className="font-display font-semibold mb-5 text-sm">{t("footer.otherStores")}</h4>
-          <div className="space-y-2">
-            <a
-              href="https://bosbadrinksnack.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
-            >
-              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">BOSBA Drink Snack</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("nav.sisterSiteHint")}
-                </span>
-              </span>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
-            </a>
-            <a
-              href="https://sorasake.wine"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-3 rounded-lg border border-dashed border-border p-3 hover:bg-muted transition-colors"
-            >
-              <ArrowLeftRight className="size-4 shrink-0 text-brand" />
-              <span className="flex-1 min-w-0">
-                <span className="block text-sm font-medium">SORA SAKE</span>
-                <span className="block text-xs text-muted-foreground">
-                  {t("nav.sisterSiteHintSora")}
-                </span>
-              </span>
-              <ExternalLink className="size-3.5 shrink-0 text-muted-foreground" />
-            </a>
-          </div>
         </div>
 
         <div className="col-span-2 lg:col-span-1">

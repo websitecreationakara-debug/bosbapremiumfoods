@@ -93,13 +93,10 @@ const en = {
   "footer.sashimiFillets": "Sashimi & Fillets",
   "footer.shellfish": "Shellfish",
   "footer.roeUni": "Roe & Uni",
-  "footer.otherStores": "Also Visit",
   "footer.followTitle": "Follow Us",
   "footer.followSub": "Recipes, offers and fresh arrivals on social media.",
   "footer.privacy": "Privacy",
   "footer.sitemap": "Sitemap",
-  "nav.sisterSiteHint": "Shop our Japanese drinks & snacks store",
-  "nav.sisterSiteHintSora": "Shop our Japanese sake store",
 } as const;
 
 export type I18nKey = keyof typeof en;
@@ -183,13 +180,10 @@ const km: Dict = {
   "footer.sashimiFillets": "សាស៊ីមី និងសាច់ត្រី",
   "footer.shellfish": "សត្វសំបកសមុទ្រ",
   "footer.roeUni": "ពងត្រី និងអ៊ូនី",
-  "footer.otherStores": "ទស្សនាហាងផ្សេងទៀត",
   "footer.followTitle": "តាមដានពួកយើង",
   "footer.followSub": "រូបមន្ត ការផ្តល់ជូន និងទំនិញថ្មីៗនៅលើបណ្តាញសង្គម។",
   "footer.privacy": "ឯកជនភាព",
   "footer.sitemap": "ផែនទីគេហទំព័រ",
-  "nav.sisterSiteHint": "ទស្សនាហាងភេសជ្ជៈ និងអាហារសម្រន់ជប៉ុនបងប្អូនរបស់យើង",
-  "nav.sisterSiteHintSora": "ទស្សនាហាងស្រាសាកេជប៉ុនបងប្អូនរបស់យើង",
 };
 
 const ja: Dict = {
@@ -270,13 +264,10 @@ const ja: Dict = {
   "footer.sashimiFillets": "刺身・切り身",
   "footer.shellfish": "貝類",
   "footer.roeUni": "魚卵・うに",
-  "footer.otherStores": "その他の店舗",
   "footer.followTitle": "フォローする",
   "footer.followSub": "レシピ・お得な情報・新着をSNSでチェック。",
   "footer.privacy": "プライバシー",
   "footer.sitemap": "サイトマップ",
-  "nav.sisterSiteHint": "姉妹店（日本の飲料・お菓子店）もチェック",
-  "nav.sisterSiteHintSora": "姉妹店（日本酒専門店）もチェック",
 };
 
 const DICTS: Record<Locale, Dict> = { en, km, ja };
