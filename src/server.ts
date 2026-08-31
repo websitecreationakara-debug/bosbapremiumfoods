@@ -20,18 +20,19 @@ type ServerEntry = {
 // = reCAPTCHA, analytics.tiktok = TikTok pixel, connect.facebook.net/facebook.com
 // = Meta Pixel (@adkit/meta-pixel-react in routes/__root.tsx), cloudflareinsights
 // = CF Web Analytics (edge-injected), nominatim = checkout address lookup,
-// fonts.* = Google Fonts, youtube.com = product video embeds (src/lib/youtube.ts).
+// fonts.* = Google Fonts, youtube.com = product video embeds (src/lib/youtube.ts),
+// chumnouykar.bcietech.com = Chumnouykar AI sales chat widget (routes/__root.tsx).
 const CSP = [
   "default-src 'self'",
   "base-uri 'self'",
   "object-src 'none'",
   "frame-ancestors 'self'",
   "form-action 'self'",
-  "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://analytics.tiktok.com https://connect.facebook.net https://static.cloudflareinsights.com",
+  "script-src 'self' 'unsafe-inline' https://www.google.com https://www.gstatic.com https://analytics.tiktok.com https://connect.facebook.net https://static.cloudflareinsights.com https://chumnouykar.bcietech.com",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' data: https://fonts.gstatic.com",
   "img-src 'self' data: blob: https:",
-  "connect-src 'self' https://nominatim.openstreetmap.org https://www.google.com https://analytics.tiktok.com https://www.facebook.com https://static.cloudflareinsights.com https://cloudflareinsights.com",
+  "connect-src 'self' https://nominatim.openstreetmap.org https://www.google.com https://analytics.tiktok.com https://www.facebook.com https://static.cloudflareinsights.com https://cloudflareinsights.com https://chumnouykar.bcietech.com",
   "frame-src 'self' https://www.google.com https://www.youtube.com",
   "worker-src 'self' blob:",
   "manifest-src 'self'",
