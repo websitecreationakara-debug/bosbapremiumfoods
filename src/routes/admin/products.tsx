@@ -207,6 +207,8 @@ function ProductsAdmin() {
     return tracked.reduce((a, v) => a + (v.stock ?? 0), 0);
   };
 
+  const categoryName = new Map(categories.map((c) => [c.id, c.name]));
+
   const filtersActive =
     query.trim() !== "" || catFilter !== "all" || statusFilter !== "all" || typeFilter !== "all";
   const filtered = products.filter((p) => {
@@ -730,6 +732,7 @@ function ProductsAdmin() {
                   )}
                 </button>
               </th>
+              <th className="text-left px-6 py-3">Category</th>
               <th className="text-left px-6 py-3">
                 <button
                   type="button"
@@ -774,7 +777,7 @@ function ProductsAdmin() {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
                   No products match your filters.
                 </td>
               </tr>
@@ -835,6 +838,9 @@ function ProductsAdmin() {
                       </span>
                     )}
                   </div>
+                </td>
+                <td className="px-6 py-3 text-muted-foreground">
+                  {p.category_id ? (categoryName.get(p.category_id) ?? "—") : "—"}
                 </td>
                 <td className="px-6 py-3 font-bold">{priceLabel(p)}</td>
                 <td className="px-6 py-3 text-muted-foreground">{weightLabel(p)}</td>
