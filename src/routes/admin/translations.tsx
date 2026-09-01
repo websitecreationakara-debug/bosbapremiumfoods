@@ -323,7 +323,7 @@ function TranslationsAdmin() {
             {(
               [
                 ["all", "All"],
-                ["edited", "Edited"],
+                ["edited", "Editing"],
                 ["needs-km", "Needs ខ្មែរ"],
                 ["needs-ja", "Needs 日本語"],
               ] as [FilterMode, string][]
