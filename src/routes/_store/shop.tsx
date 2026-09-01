@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { ChevronDown, Search, SlidersHorizontal } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useI18n } from "@/lib/i18n";
 import { useAllVariations } from "@/hooks/use-products";
@@ -69,8 +69,28 @@ function Shop() {
   const [range, setRange] = useState<[number, number] | null>(null);
   const [onSale, setOnSale] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [openCats, setOpenCats] = useState<Set<string>>(new Set());
 
   const catId = activeCat ? categories.find((c) => c.slug === activeCat)?.id : undefined;
+  const topLevelCats = categories.filter((c) => !c.parent_id);
+  const childCatsOf = (id: string) => categories.filter((c) => c.parent_id === id);
+
+  // Auto-expand the parent group of whichever category is active (e.g. from a
+  // direct link or the top nav), so the selection is never hidden.
+  useEffect(() => {
+    const active = categories.find((c) => c.slug === activeCat);
+    if (active?.parent_id) {
+      setOpenCats((prev) => new Set(prev).add(active.parent_id as string));
+    }
+  }, [activeCat, categories]);
+
+  const toggleCat = (id: string) =>
+    setOpenCats((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
 
   // Price slider bounds derived from the catalog (cheapest variant per product).
   const prices = products.map(displayPrice);
@@ -156,15 +176,48 @@ function Shop() {
           >
             {t("shop.allProducts")}
           </button>
-          {categories.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveCat(c.slug)}
-              className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === c.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
-            >
-              {c.name}
-            </button>
-          ))}
+          {topLevelCats.map((c) => {
+            const kids = childCatsOf(c.id);
+            const isOpen = openCats.has(c.id);
+            return (
+              <div key={c.id}>
+                <div className="flex items-center">
+                  <button
+                    onClick={() => setActiveCat(c.slug)}
+                    className={`flex-1 text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === c.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
+                  >
+                    {c.name}
+                  </button>
+                  {kids.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() => toggleCat(c.id)}
+                      aria-label={isOpen ? `Collapse ${c.name}` : `Expand ${c.name}`}
+                      aria-expanded={isOpen}
+                      className="shrink-0 p-2 text-muted-foreground hover:text-foreground"
+                    >
+                      <ChevronDown
+                        className={`size-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                      />
+                    </button>
+                  )}
+                </div>
+                {kids.length > 0 && isOpen && (
+                  <div className="ml-3 space-y-1 border-l pl-2">
+                    {kids.map((k) => (
+                      <button
+                        key={k.id}
+                        onClick={() => setActiveCat(k.slug)}
+                        className={`w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${activeCat === k.slug ? "bg-brand text-brand-foreground font-bold" : "hover:bg-muted"}`}
+                      >
+                        {k.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
