@@ -74,6 +74,9 @@ function Shop() {
   const catId = activeCat ? categories.find((c) => c.slug === activeCat)?.id : undefined;
   const topLevelCats = categories.filter((c) => !c.parent_id);
   const childCatsOf = (id: string) => categories.filter((c) => c.parent_id === id);
+  // Selecting a parent category (which rarely holds products directly) should
+  // surface everything filed under its children too, not just itself.
+  const catIds = catId ? [catId, ...childCatsOf(catId).map((c) => c.id)] : undefined;
 
   // Auto-expand the parent group of whichever category is active (e.g. from a
   // direct link or the top nav), so the selection is never hidden.
@@ -111,7 +114,7 @@ function Shop() {
   };
 
   const filtered = products.filter((p) => {
-    if (catId && p.category_id !== catId) return false;
+    if (catIds && !catIds.includes(p.category_id ?? "")) return false;
     if (query && !p.title.toLowerCase().includes(query.toLowerCase())) return false;
     if (onSale && !isOnSale(p)) return false;
     const price = displayPrice(p);
