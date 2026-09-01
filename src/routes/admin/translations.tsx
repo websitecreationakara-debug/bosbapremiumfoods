@@ -26,23 +26,6 @@ import { Globe, Loader2, RotateCcw, CircleAlert } from "lucide-react";
 
 export const Route = createFileRoute("/admin/translations")({ component: TranslationsAdmin });
 
-// Friendly section headings, grouped by each key's dotted prefix. New prefixes
-// just fall back to showing the raw prefix as the heading.
-const SECTION_LABELS: Record<string, string> = {
-  lang: "Language",
-  bar: "Top Bar",
-  theme: "Theme",
-  nav: "Navigation",
-  home: "Homepage",
-  feature: "Feature Highlights",
-  cta: "Membership CTA",
-  product: "Product",
-  shop: "Shop Page",
-  offers: "Offers Page",
-  offer: "Offer Badges",
-  footer: "Footer",
-};
-
 // Retired key prefixes stay out of the editor entirely (but their rows, if
 // any, are left alone in the database — nothing here deletes data).
 const DEPRECATED_PREFIXES: string[] = [];
@@ -56,25 +39,35 @@ const KEY_LABELS: Partial<Record<I18nKey, string>> = {
   "offers.ends": "Offer end-date label ({date} = date)",
 };
 
-type Section = { prefix: string; title: string; keys: I18nKey[] };
+// Sections mirror where a string actually renders on the site (site-header,
+// homepage, /shop, /offers, site-footer), not the key's dotted prefix — an
+// editor thinks in terms of "which page am I fixing", not naming convention.
+// Grouped by prefix rather than listing every key individually, since a
+// prefix (e.g. "shop.*") only ever belongs to one page/component. Any prefix
+// not listed here (e.g. a new one added later) falls into "Other" so nothing
+// silently disappears from the editor.
+const PAGE_SECTIONS: { title: string; prefixes: string[] }[] = [
+  { title: "Header", prefixes: ["lang", "bar", "theme", "nav"] },
+  { title: "Home Page", prefixes: ["home", "feature", "cta"] },
+  { title: "Shop Page", prefixes: ["shop"] },
+  { title: "Offers Page", prefixes: ["offers", "offer"] },
+  { title: "Footer", prefixes: ["footer"] },
+];
+
+type Section = { title: string; keys: I18nKey[] };
 
 const SECTIONS: Section[] = (() => {
-  const order: string[] = [];
-  const groups = new Map<string, I18nKey[]>();
-  for (const key of I18N_KEYS) {
-    const prefix = key.split(".")[0];
-    if (DEPRECATED_PREFIXES.includes(prefix)) continue;
-    if (!groups.has(prefix)) {
-      groups.set(prefix, []);
-      order.push(prefix);
-    }
-    groups.get(prefix)!.push(key);
-  }
-  return order.map((prefix) => ({
-    prefix,
-    title: SECTION_LABELS[prefix] ?? prefix,
-    keys: groups.get(prefix)!,
-  }));
+  const remaining = new Set(I18N_KEYS.filter((key) => !DEPRECATED_PREFIXES.includes(key.split(".")[0])));
+  const sections: Section[] = PAGE_SECTIONS.map(({ title, prefixes }) => {
+    const keys = I18N_KEYS.filter((key) => prefixes.includes(key.split(".")[0]) && remaining.has(key));
+    keys.forEach((k) => remaining.delete(k));
+    return { title, keys };
+  }).filter((s) => s.keys.length > 0);
+  // Anything left over (e.g. shared components like the product card, or a
+  // future key whose prefix isn't mapped above yet) goes under "Other".
+  const leftover = I18N_KEYS.filter((key) => remaining.has(key));
+  if (leftover.length > 0) sections.push({ title: "Other", keys: leftover });
+  return sections;
 })();
 
 // Khmer block U+1780–U+17FF; Japanese kana (hiragana/katakana) + CJK ideograph blocks.
@@ -231,7 +224,7 @@ function TranslationsAdmin() {
       </div>
 
       {SECTIONS.map((section) => (
-        <div key={section.prefix} className="bg-card border rounded-2xl p-5 space-y-5">
+        <div key={section.title} className="bg-card border rounded-2xl p-5 space-y-5">
           <h2 className="font-display font-bold text-lg">{section.title}</h2>
           <div className="space-y-6">
             {section.keys.map((key) => (
