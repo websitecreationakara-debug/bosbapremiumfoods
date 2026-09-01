@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, real, blob } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, real, blob, primaryKey } from "drizzle-orm/sqlite-core";
 
 const uuid = () => crypto.randomUUID();
 const nowIso = () => new Date().toISOString();
@@ -293,6 +293,24 @@ export const store_settings = sqliteTable("store_settings", {
   free_shipping_threshold: real("free_shipping_threshold").default(30),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
+
+// All user-facing UI wording, editable from /admin/translations instead of
+// hardcoded in src/lib/i18n.tsx. `locale` is normally "en" | "km" | "ja", but
+// two sentinel locales reuse this same table for related site-wide config
+// rather than adding separate tables:
+//   "_default"  key "locale"           -> the storefront's default language
+//   "_accept_km"/"_accept_ja"  key <i18n key> -> value "1" means this key is
+//     intentionally left the same as English (not a missing translation).
+export const translations = sqliteTable(
+  "translations",
+  {
+    locale: text("locale").notNull(),
+    key: text("key").notNull(),
+    value: text("value").notNull(),
+    updated_at: text("updated_at").notNull().$defaultFn(nowIso),
+  },
+  (table) => [primaryKey({ columns: [table.locale, table.key] })],
+);
 
 // ---------- better-auth tables ----------
 // Shapes follow better-auth's drizzle (sqlite) conventions, including the

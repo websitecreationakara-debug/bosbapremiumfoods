@@ -34,6 +34,7 @@ import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminRestoreRouteImport } from './routes/admin/restore'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminTranslationsRouteImport } from './routes/admin/translations'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as StoreCollectionsSlugRouteImport } from './routes/_store/collections.$slug'
 import { Route as StorePayIdRouteImport } from './routes/_store/pay.$id'
@@ -163,6 +164,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
+  id: '/translations',
+  path: '/translations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -208,6 +214,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/collections/$slug': typeof StoreCollectionsSlugRoute
@@ -236,6 +243,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/': typeof StoreIndexRoute
   '/admin': typeof AdminIndexRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/_store/': typeof StoreIndexRoute
   '/admin/': typeof AdminIndexRoute
@@ -301,6 +310,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/translations'
     | '/admin/users'
     | '/admin/'
     | '/collections/$slug'
@@ -329,6 +339,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/translations'
     | '/admin/users'
     | '/'
     | '/admin'
@@ -360,6 +371,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/translations'
     | '/admin/users'
     | '/_store/'
     | '/admin/'
@@ -552,6 +564,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/translations': {
+      id: '/admin/translations'
+      path: '/translations'
+      fullPath: '/admin/translations'
+      preLoaderRoute: typeof AdminTranslationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/users': {
       id: '/admin/users'
       path: '/users'
@@ -628,6 +647,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminRestoreRoute: typeof AdminRestoreRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -643,6 +663,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminRestoreRoute: AdminRestoreRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

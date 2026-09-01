@@ -16,6 +16,7 @@ import { CartProvider } from "@/hooks/use-cart";
 import { WishlistProvider } from "@/hooks/use-wishlist";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { LanguageProvider } from "@/lib/i18n";
+import { getTranslations, getSiteLocale } from "@/data/translations";
 import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
@@ -118,6 +119,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  loader: async () => {
+    const [strings, siteLocale] = await Promise.all([getTranslations(), getSiteLocale()]);
+    return { strings, siteLocale };
+  },
+  // Translations rarely change mid-session — avoid refetching this on every
+  // client-side navigation. LanguageProvider's own query still refetches on
+  // window focus and cross-tab admin saves independently of this.
+  staleTime: 5 * 60 * 1000,
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -206,6 +215,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const { strings, siteLocale } = Route.useLoaderData();
 
   useEffect(() => {
     if (!("serviceWorker" in navigator)) return;
@@ -250,7 +260,7 @@ function RootComponent() {
     >
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
-          <LanguageProvider>
+          <LanguageProvider initialStrings={strings} initialSiteLocale={siteLocale}>
             <AuthProvider>
               <WishlistProvider>
                 <CartProvider>

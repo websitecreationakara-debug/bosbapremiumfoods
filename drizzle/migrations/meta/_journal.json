@@ -281,6 +281,13 @@
       "when": 1787894605989,
       "tag": "0039_wandering_retro_girl",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "6",
+      "when": 1788238122770,
+      "tag": "0040_stormy_quicksilver",
+      "breakpoints": true
     }
   ]
 }
