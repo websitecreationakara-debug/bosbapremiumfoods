@@ -19,6 +19,7 @@ import {
   saveProductImages,
   setProductStatus,
   setProductStock,
+  setProductCategory,
   setProductImage,
 } from "@/data/products";
 import { setProductCollections } from "@/data/collections";
@@ -167,9 +168,9 @@ function ProductsAdmin() {
   // Column-header sort — separate from the drag-to-reorder sort_order below.
   // A column sort is just a view; it doesn't touch the stored order, so
   // clearing it (third click) goes right back to the manual drag order.
-  const [sortKey, setSortKey] = useState<"title" | "price" | "stock" | null>(null);
+  const [sortKey, setSortKey] = useState<"title" | "category" | "price" | "stock" | null>(null);
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const toggleSort = (key: "title" | "price" | "stock") => {
+  const toggleSort = (key: "title" | "category" | "price" | "stock") => {
     if (sortKey !== key) {
       setSortKey(key);
       setSortDir("asc");
@@ -186,6 +187,9 @@ function ProductsAdmin() {
   // Escape unmounts the input, which still fires a native blur — this skips
   // the blur-triggered save that would otherwise persist the abandoned edit.
   const skipStockBlurSave = useRef(false);
+  // Inline category edit in the list — click the category cell to swap it for
+  // a Select, same pattern as the stock inline edit above.
+  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
 
   const variationsByProduct = groupVariations(allVariations);
 
@@ -224,6 +228,11 @@ function ProductsAdmin() {
     ? [...filtered].sort((a, b) => {
         const dir = sortDir === "asc" ? 1 : -1;
         if (sortKey === "title") return a.title.localeCompare(b.title) * dir;
+        if (sortKey === "category") {
+          const nameA = categoryName.get(a.category_id ?? "") ?? "";
+          const nameB = categoryName.get(b.category_id ?? "") ?? "";
+          return nameA.localeCompare(nameB) * dir;
+        }
         if (sortKey === "price") return (priceValue(a) - priceValue(b)) * dir;
         return (stockValue(a) - stockValue(b)) * dir;
       })
@@ -526,6 +535,24 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["products"] });
   };
 
+  const saveCategory = async (p: Product, categoryId: string) => {
+    setEditingCategoryId(null);
+    const next = categoryId || null;
+    if (next === (p.category_id ?? null)) return;
+    qc.setQueryData(["products", "all"], (rows: Product[] = []) =>
+      rows.map((r) => (r.id === p.id ? { ...r, category_id: next } : r)),
+    );
+    try {
+      await setProductCategory({ data: { id: p.id, category_id: next } });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update category");
+      qc.invalidateQueries({ queryKey: ["products"] });
+      return;
+    }
+    toast.success("Category updated");
+    qc.invalidateQueries({ queryKey: ["products"] });
+  };
+
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const del = async (id: string) => {
@@ -734,7 +761,24 @@ function ProductsAdmin() {
                   )}
                 </button>
               </th>
-              <th className="text-left px-6 py-3">Category</th>
+              <th className="text-left px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("category")}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Category
+                  {sortKey === "category" ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="size-3 opacity-40" />
+                  )}
+                </button>
+              </th>
               <th className="text-left px-6 py-3">
                 <button
                   type="button"
@@ -842,7 +886,36 @@ function ProductsAdmin() {
                   </div>
                 </td>
                 <td className="px-6 py-3 text-muted-foreground">
-                  {p.category_id ? (categoryName.get(p.category_id) ?? "—") : "—"}
+                  {editingCategoryId === p.id ? (
+                    <Select
+                      defaultOpen
+                      value={p.category_id ?? ""}
+                      onValueChange={(v) => saveCategory(p, v)}
+                      onOpenChange={(o) => {
+                        if (!o) setEditingCategoryId(null);
+                      }}
+                    >
+                      <SelectTrigger className="h-7 w-40 text-xs">
+                        <SelectValue placeholder="No category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((c) => (
+                          <SelectItem key={c.id} value={c.id}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setEditingCategoryId(p.id)}
+                      title="Click to edit category"
+                      className="-mx-1.5 rounded px-1.5 py-0.5 text-left transition-colors hover:bg-muted"
+                    >
+                      {p.category_id ? (categoryName.get(p.category_id) ?? "—") : "—"}
+                    </button>
+                  )}
                 </td>
                 <td className="px-6 py-3 font-bold">{priceLabel(p)}</td>
                 <td className="px-6 py-3 text-muted-foreground">{weightLabel(p)}</td>

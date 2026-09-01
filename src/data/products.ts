@@ -261,6 +261,19 @@ export const setProductStock = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+// Quick inline category edit from the admin list — doesn't require the full
+// product payload the way updateProduct does.
+export const setProductCategory = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string; category_id: string | null }) => d)
+  .handler(async ({ data }) => {
+    await requireManager();
+    await getDb()
+      .update(products)
+      .set({ category_id: data.category_id, updated_at: new Date().toISOString() })
+      .where(eq(products.id, data.id));
+    return { ok: true };
+  });
+
 // Clears a product's cover image from the list-view preview lightbox —
 // doesn't require the full updateProduct payload, same pattern as the other
 // quick actions above.
