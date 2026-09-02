@@ -4,6 +4,7 @@ import { env } from "cloudflare:workers";
 import { eq, like } from "drizzle-orm";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { handlePublicApi } from "./lib/public-api.server";
 import { getDb } from "./db";
 import { products, product_variations } from "./db/schema";
 
@@ -170,7 +171,11 @@ async function handleProductSearch(request: Request): Promise<Response> {
       continue;
     }
     const variations = await db
-      .select({ id: product_variations.id, weight: product_variations.weight, stock: product_variations.stock })
+      .select({
+        id: product_variations.id,
+        weight: product_variations.weight,
+        stock: product_variations.stock,
+      })
       .from(product_variations)
       .where(eq(product_variations.product_id, p.id));
     for (const v of variations) {
@@ -246,6 +251,21 @@ export default {
     if (url.hostname === "www.bosbapremiumfoods.com") {
       url.hostname = "bosbapremiumfoods.com";
       return withSecurityHeaders(Response.redirect(url.toString(), 301));
+    }
+
+    // Public read-only catalog API (src/lib/public-api.server.ts). Returns null
+    // for non-/api/v1 paths so everything else falls through to app routing.
+    try {
+      const apiResponse = await handlePublicApi(request);
+      if (apiResponse) return withSecurityHeaders(apiResponse);
+    } catch (error) {
+      console.error(error);
+      return withSecurityHeaders(
+        new Response(JSON.stringify({ error: "Internal error" }), {
+          status: 500,
+          headers: { "content-type": "application/json" },
+        }),
+      );
     }
 
     if (url.pathname === "/api/stock-sync" && request.method === "POST") {
