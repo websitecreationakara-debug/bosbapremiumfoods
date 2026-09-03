@@ -109,6 +109,10 @@ export const I18N_KEYS = [
   "footer.followSub",
   "footer.privacy",
   "footer.sitemap",
+  "footer.about",
+  "footer.faq",
+  "footer.shipping",
+  "footer.refund",
 ] as const;
 
 export type I18nKey = (typeof I18N_KEYS)[number];
@@ -117,7 +121,9 @@ const EMPTY_STRINGS: TranslationStrings = { en: {}, km: {}, ja: {} };
 
 function interpolate(s: string, vars?: Record<string, string | number>) {
   if (!vars) return s;
-  return s.replace(/\$?\{(\w+)\}/g, (_, k: string) => (vars[k] != null ? String(vars[k]) : `{${k}}`));
+  return s.replace(/\$?\{(\w+)\}/g, (_, k: string) =>
+    vars[k] != null ? String(vars[k]) : `{${k}}`,
+  );
 }
 
 // Cross-tab (and same-tab, different-component-tree) live refresh after an

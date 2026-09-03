@@ -116,6 +116,18 @@ export function SiteFooter() {
         <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-3 text-xs text-muted-foreground">
           <span>© 2026 BOSBA Premium Foods</span>
           <div className="flex flex-wrap justify-center gap-x-6 gap-y-2">
+            <Link to="/about" className="hover:text-foreground transition-colors">
+              {t("footer.about")}
+            </Link>
+            <Link to="/faq" className="hover:text-foreground transition-colors">
+              {t("footer.faq")}
+            </Link>
+            <Link to="/shipping-policy" className="hover:text-foreground transition-colors">
+              {t("footer.shipping")}
+            </Link>
+            <Link to="/refund-policy" className="hover:text-foreground transition-colors">
+              {t("footer.refund")}
+            </Link>
             <Link to="/privacy" className="hover:text-foreground transition-colors">
               {t("footer.privacy")}
             </Link>

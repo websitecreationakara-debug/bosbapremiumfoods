@@ -288,6 +288,13 @@
       "when": 1788238122770,
       "tag": "0040_stormy_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "6",
+      "when": 1788413046504,
+      "tag": "0041_add_footer_page_translations",
+      "breakpoints": true
     }
   ]
 }
