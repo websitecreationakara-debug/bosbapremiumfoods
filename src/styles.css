@@ -243,4 +243,29 @@
   .animate-wagyu-marquee {
     animation: wagyu-marquee 32s linear infinite;
   }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.23, 1, 0.32, 1),
+      transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .reveal.reveal-left {
+    transform: translateX(-28px);
+  }
+  .reveal.reveal-right {
+    transform: translateX(28px);
+  }
+  .reveal.visible {
+    opacity: 1;
+    transform: translate(0, 0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reveal {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
 }
