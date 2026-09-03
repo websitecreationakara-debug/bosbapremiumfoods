@@ -26,7 +26,13 @@ import { useWishlist } from "@/hooks/use-wishlist";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/hooks/use-theme";
 import { useI18n, LOCALES } from "@/lib/i18n";
-import { useCollections, useStoreSettings, useNavItems, useNavSections, useNavLinks } from "@/hooks/use-products";
+import {
+  useCollections,
+  useStoreSettings,
+  useNavItems,
+  useNavSections,
+  useNavLinks,
+} from "@/hooks/use-products";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -36,7 +42,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetClose } from "@/components/ui/sheet";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { MegaMenu } from "@/components/mega-menu";
 
 export function SiteHeader() {
@@ -278,7 +289,8 @@ export function SiteHeader() {
                               const slug = collections.find((c) => c.id === l.collection_id)?.slug;
                               const isExternal = !slug && !!l.custom_url?.startsWith("http");
                               const subLabel =
-                                l.sub_label ?? collections.find((c) => c.id === l.collection_id)?.sub_label;
+                                l.sub_label ??
+                                collections.find((c) => c.id === l.collection_id)?.sub_label;
                               if (slug) {
                                 return (
                                   <SheetClose asChild key={l.id}>
@@ -288,7 +300,9 @@ export function SiteHeader() {
                                       className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
                                     >
                                       {l.label}
-                                      {subLabel && <span className="block text-xs">{subLabel}</span>}
+                                      {subLabel && (
+                                        <span className="block text-xs">{subLabel}</span>
+                                      )}
                                     </Link>
                                   </SheetClose>
                                 );
@@ -305,7 +319,9 @@ export function SiteHeader() {
                                     <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
                                     <span className="flex-1 min-w-0">
                                       {l.label}
-                                      {subLabel && <span className="block text-xs">{subLabel}</span>}
+                                      {subLabel && (
+                                        <span className="block text-xs">{subLabel}</span>
+                                      )}
                                     </span>
                                     <ExternalLink className="size-3 shrink-0" />
                                   </a>
@@ -432,9 +448,13 @@ export function SiteHeader() {
             <a href="tel:+85599361350" className="flex items-center gap-2 hover:text-foreground">
               <Phone className="size-4" /> +855 99 361 350
             </a>
-            <p className="flex items-center gap-2">
+            <Link
+              to="/store-locator"
+              className="flex items-center gap-2 hover:text-foreground"
+              onClick={() => setMenuOpen(false)}
+            >
               <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
-            </p>
+            </Link>
             <p className="flex items-center gap-2">
               <Truck className="size-4 shrink-0" />{" "}
               {t("bar.delivery", { threshold: shipThreshold })}

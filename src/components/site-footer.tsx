@@ -26,9 +26,12 @@ export function SiteFooter() {
             <a href="tel:+85599361350" className="flex items-center gap-2 hover:text-foreground">
               <Phone className="size-4" /> +855 99 361 350
             </a>
-            <p className="flex items-center gap-2">
+            <Link
+              to="/store-locator"
+              className="flex items-center gap-2 hover:text-secondary-accent transition-colors"
+            >
               <MapPin className="size-4 shrink-0" /> Sangkat Tuol Svay Prey Ti Muoy, Phnom Penh
-            </p>
+            </Link>
             <p className="flex items-center gap-2">
               <Truck className="size-4 shrink-0" />{" "}
               {t("bar.delivery", { threshold: shipThreshold })}

@@ -25,6 +25,7 @@ import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreRefundPolicyRouteImport } from './routes/_store/refund-policy'
 import { Route as StoreShippingPolicyRouteImport } from './routes/_store/shipping-policy'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
+import { Route as StoreStoreLocatorRouteImport } from './routes/_store/store-locator'
 import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -121,6 +122,11 @@ const StoreShippingPolicyRoute = StoreShippingPolicyRouteImport.update({
 const StoreShopRoute = StoreShopRouteImport.update({
   id: '/shop',
   path: '/shop',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreStoreLocatorRoute = StoreStoreLocatorRouteImport.update({
+  id: '/store-locator',
+  path: '/store-locator',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreThankYouRoute = StoreThankYouRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/refund-policy': typeof StoreRefundPolicyRoute
   '/shipping-policy': typeof StoreShippingPolicyRoute
   '/shop': typeof StoreShopRoute
+  '/store-locator': typeof StoreStoreLocatorRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -263,6 +270,7 @@ export interface FileRoutesByTo {
   '/refund-policy': typeof StoreRefundPolicyRoute
   '/shipping-policy': typeof StoreShippingPolicyRoute
   '/shop': typeof StoreShopRoute
+  '/store-locator': typeof StoreStoreLocatorRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -300,6 +308,7 @@ export interface FileRoutesById {
   '/_store/refund-policy': typeof StoreRefundPolicyRoute
   '/_store/shipping-policy': typeof StoreShippingPolicyRoute
   '/_store/shop': typeof StoreShopRoute
+  '/_store/store-locator': typeof StoreStoreLocatorRoute
   '/_store/thank-you': typeof StoreThankYouRoute
   '/_store/wishlist': typeof StoreWishlistRoute
   '/admin/banners': typeof AdminBannersRoute
@@ -338,6 +347,7 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/shipping-policy'
     | '/shop'
+    | '/store-locator'
     | '/thank-you'
     | '/wishlist'
     | '/admin/banners'
@@ -371,6 +381,7 @@ export interface FileRouteTypes {
     | '/refund-policy'
     | '/shipping-policy'
     | '/shop'
+    | '/store-locator'
     | '/thank-you'
     | '/wishlist'
     | '/admin/banners'
@@ -407,6 +418,7 @@ export interface FileRouteTypes {
     | '/_store/refund-policy'
     | '/_store/shipping-policy'
     | '/_store/shop'
+    | '/_store/store-locator'
     | '/_store/thank-you'
     | '/_store/wishlist'
     | '/admin/banners'
@@ -547,6 +559,13 @@ declare module '@tanstack/react-router' {
       path: '/shop'
       fullPath: '/shop'
       preLoaderRoute: typeof StoreShopRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/store-locator': {
+      id: '/_store/store-locator'
+      path: '/store-locator'
+      fullPath: '/store-locator'
+      preLoaderRoute: typeof StoreStoreLocatorRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/thank-you': {
@@ -690,6 +709,7 @@ interface StoreRouteChildren {
   StoreRefundPolicyRoute: typeof StoreRefundPolicyRoute
   StoreShippingPolicyRoute: typeof StoreShippingPolicyRoute
   StoreShopRoute: typeof StoreShopRoute
+  StoreStoreLocatorRoute: typeof StoreStoreLocatorRoute
   StoreThankYouRoute: typeof StoreThankYouRoute
   StoreWishlistRoute: typeof StoreWishlistRoute
   StoreIndexRoute: typeof StoreIndexRoute
@@ -710,6 +730,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreRefundPolicyRoute: StoreRefundPolicyRoute,
   StoreShippingPolicyRoute: StoreShippingPolicyRoute,
   StoreShopRoute: StoreShopRoute,
+  StoreStoreLocatorRoute: StoreStoreLocatorRoute,
   StoreThankYouRoute: StoreThankYouRoute,
   StoreWishlistRoute: StoreWishlistRoute,
   StoreIndexRoute: StoreIndexRoute,
