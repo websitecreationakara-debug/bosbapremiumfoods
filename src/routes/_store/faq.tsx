@@ -41,8 +41,13 @@ const FAQS: { question: string; answer: ReactNode }[] = [
   },
   {
     question: "Do you have a loyalty or membership program?",
-    answer:
-      "We're working on a dedicated membership program with points on every order. In the meantime, follow us on social media for offers and new arrivals.",
+    answer: (
+      <>
+        We're working on <Link to="/membership">BOSBA Plus</Link>, a dedicated membership program
+        with points on every order. In the meantime, follow us on social media for offers and new
+        arrivals.
+      </>
+    ),
   },
   {
     question: "How do I track my order?",

@@ -19,6 +19,7 @@ import { Route as StoreAccountRouteImport } from './routes/_store/account'
 import { Route as StoreAddressesRouteImport } from './routes/_store/addresses'
 import { Route as StoreCheckoutRouteImport } from './routes/_store/checkout'
 import { Route as StoreFaqRouteImport } from './routes/_store/faq'
+import { Route as StoreMembershipRouteImport } from './routes/_store/membership'
 import { Route as StoreOffersRouteImport } from './routes/_store/offers'
 import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
@@ -92,6 +93,11 @@ const StoreCheckoutRoute = StoreCheckoutRouteImport.update({
 const StoreFaqRoute = StoreFaqRouteImport.update({
   id: '/faq',
   path: '/faq',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreMembershipRoute = StoreMembershipRouteImport.update({
+  id: '/membership',
+  path: '/membership',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreOffersRoute = StoreOffersRouteImport.update({
@@ -230,6 +236,7 @@ export interface FileRoutesByFullPath {
   '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
   '/faq': typeof StoreFaqRoute
+  '/membership': typeof StoreMembershipRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
   '/privacy': typeof StorePrivacyRoute
@@ -264,6 +271,7 @@ export interface FileRoutesByTo {
   '/addresses': typeof StoreAddressesRoute
   '/checkout': typeof StoreCheckoutRoute
   '/faq': typeof StoreFaqRoute
+  '/membership': typeof StoreMembershipRoute
   '/offers': typeof StoreOffersRoute
   '/orders': typeof StoreOrdersRoute
   '/privacy': typeof StorePrivacyRoute
@@ -302,6 +310,7 @@ export interface FileRoutesById {
   '/_store/addresses': typeof StoreAddressesRoute
   '/_store/checkout': typeof StoreCheckoutRoute
   '/_store/faq': typeof StoreFaqRoute
+  '/_store/membership': typeof StoreMembershipRoute
   '/_store/offers': typeof StoreOffersRoute
   '/_store/orders': typeof StoreOrdersRoute
   '/_store/privacy': typeof StorePrivacyRoute
@@ -341,6 +350,7 @@ export interface FileRouteTypes {
     | '/addresses'
     | '/checkout'
     | '/faq'
+    | '/membership'
     | '/offers'
     | '/orders'
     | '/privacy'
@@ -375,6 +385,7 @@ export interface FileRouteTypes {
     | '/addresses'
     | '/checkout'
     | '/faq'
+    | '/membership'
     | '/offers'
     | '/orders'
     | '/privacy'
@@ -412,6 +423,7 @@ export interface FileRouteTypes {
     | '/_store/addresses'
     | '/_store/checkout'
     | '/_store/faq'
+    | '/_store/membership'
     | '/_store/offers'
     | '/_store/orders'
     | '/_store/privacy'
@@ -517,6 +529,13 @@ declare module '@tanstack/react-router' {
       path: '/faq'
       fullPath: '/faq'
       preLoaderRoute: typeof StoreFaqRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/membership': {
+      id: '/_store/membership'
+      path: '/membership'
+      fullPath: '/membership'
+      preLoaderRoute: typeof StoreMembershipRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/offers': {
@@ -703,6 +722,7 @@ interface StoreRouteChildren {
   StoreAddressesRoute: typeof StoreAddressesRoute
   StoreCheckoutRoute: typeof StoreCheckoutRoute
   StoreFaqRoute: typeof StoreFaqRoute
+  StoreMembershipRoute: typeof StoreMembershipRoute
   StoreOffersRoute: typeof StoreOffersRoute
   StoreOrdersRoute: typeof StoreOrdersRoute
   StorePrivacyRoute: typeof StorePrivacyRoute
@@ -724,6 +744,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreAddressesRoute: StoreAddressesRoute,
   StoreCheckoutRoute: StoreCheckoutRoute,
   StoreFaqRoute: StoreFaqRoute,
+  StoreMembershipRoute: StoreMembershipRoute,
   StoreOffersRoute: StoreOffersRoute,
   StoreOrdersRoute: StoreOrdersRoute,
   StorePrivacyRoute: StorePrivacyRoute,
