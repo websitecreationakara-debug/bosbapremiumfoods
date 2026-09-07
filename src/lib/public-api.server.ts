@@ -1,10 +1,14 @@
 import { env } from "cloudflare:workers";
-import { eq, asc, desc, inArray } from "drizzle-orm";
+import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, product_variations, product_images, promotions } from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { slugify, isUuid } from "@/lib/utils";
-import { notifyPosOfNewProduct, notifyPosOfStockEdit } from "@/lib/pos-sync";
+import {
+  notifyPosOfNewProduct,
+  notifyPosOfStockEdit,
+  notifyPosOfVariationEdit,
+} from "@/lib/pos-sync";
 
 // Public catalog API for consumption by other websites — same D1 database,
 // reached over HTTP.
@@ -352,9 +356,10 @@ async function replaceVariations(productId: string, raw: unknown): Promise<strin
 
   const db = getDb();
   const existing = await db
-    .select({ id: product_variations.id })
+    .select()
     .from(product_variations)
     .where(eq(product_variations.product_id, productId));
+  const existingById = new Map(existing.map((e) => [e.id, e]));
 
   const keepIds = list.map((v) => v.id).filter((id): id is string => !!id);
   const toDelete = existing.filter((e) => !keepIds.includes(e.id)).map((e) => e.id);
@@ -373,7 +378,19 @@ async function replaceVariations(productId: string, raw: unknown): Promise<strin
     };
     if (v.id) {
       await db.update(product_variations).set(row).where(eq(product_variations.id, v.id));
-      if (v.stock != null) await notifyPosOfStockEdit(v.id, v.stock);
+      // Tell POS about this size directly (by productId + variationId, not
+      // the variation's own id as if it were a product id -- the old call
+      // here never matched any POS link since siteProductId is always the
+      // parent product's id). Only for fields that actually changed.
+      const before = existingById.get(v.id);
+      if (before) {
+        const changes: { price?: number; stock?: number | null } = {};
+        if (before.price !== v.price) changes.price = v.price;
+        if (before.stock !== v.stock) changes.stock = v.stock;
+        if (Object.keys(changes).length > 0) {
+          await notifyPosOfVariationEdit(productId, v.id, changes);
+        }
+      }
     } else {
       await db.insert(product_variations).values({ product_id: productId, ...row });
     }
@@ -508,6 +525,92 @@ async function handlePatch(request: Request, id: string): Promise<Response> {
   return json(request, { data });
 }
 
+// Coerce a partial patch for one variation row. Separate from
+// buildProductFields/replaceVariations -- this only ever touches the one
+// named variation, so it can't accidentally drop sibling variations the way
+// sending a partial `variations[]` array to the whole-product PATCH would
+// (replaceVariations deletes any existing row whose id isn't present).
+const VARIATION_FIELDS: Record<string, FieldSpec2> = {
+  weight: { kind: "string", nullable: false },
+  price: { kind: "number", nullable: false },
+  sale_price: { kind: "number", nullable: true },
+  stock: { kind: "int", nullable: true },
+  pcs: { kind: "int", nullable: true },
+  image_url: { kind: "string", nullable: true },
+};
+type FieldSpec2 = { kind: "string" | "number" | "int"; nullable: boolean };
+
+function coerceVariationField(key: string, value: unknown, spec: FieldSpec2): unknown {
+  if (value === null) {
+    if (spec.nullable) return null;
+    throw new Error(`\`${key}\` cannot be null`);
+  }
+  if (spec.kind === "string") {
+    if (typeof value !== "string") throw new Error(`\`${key}\` must be a string`);
+    return value;
+  }
+  const n = toNum(value);
+  if (n === undefined) throw new Error(`\`${key}\` must be a number`);
+  return spec.kind === "int" ? Math.trunc(n) : n;
+}
+
+function buildVariationFields(body: Record<string, unknown>): FieldResult {
+  const fields: Record<string, unknown> = {};
+  try {
+    for (const [key, spec] of Object.entries(VARIATION_FIELDS)) {
+      if (!(key in body)) continue;
+      fields[key] = coerceVariationField(key, body[key], spec);
+    }
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Invalid field" };
+  }
+  if ("weight" in fields && (fields.weight as string).trim() === "") {
+    return { error: "weight cannot be empty" };
+  }
+  return { fields };
+}
+
+// PATCH /api/v1/products/:productId/variations/:variationId -- the one write
+// path for a single size/flavor row. The whole-product PATCH's `variations[]`
+// only works as a full replace (see replaceVariations); this is the safe way
+// for a caller (POS) to change just one variation's price/stock.
+async function handleVariationPatch(
+  request: Request,
+  productId: string,
+  variationId: string,
+): Promise<Response> {
+  const db = getDb();
+  const [variation] = await db
+    .select()
+    .from(product_variations)
+    .where(
+      and(eq(product_variations.id, variationId), eq(product_variations.product_id, productId)),
+    );
+  if (!variation) return json(request, { error: "Variation not found on this product" }, 404);
+
+  const body = await readJsonBody(request);
+  if (!body) return json(request, { error: "Body must be a JSON object" }, 400);
+
+  const built = buildVariationFields(body);
+  if ("error" in built) return json(request, { error: built.error }, 400);
+  if (Object.keys(built.fields).length === 0) {
+    return json(request, { error: "No writable fields in body" }, 422);
+  }
+
+  await db
+    .update(product_variations)
+    .set(built.fields)
+    .where(eq(product_variations.id, variationId));
+  await db
+    .update(products)
+    .set({ updated_at: new Date().toISOString() })
+    .where(eq(products.id, productId));
+
+  const row = await fetchProduct(productId);
+  const [data] = await assemble(row ? [row] : [], false);
+  return json(request, { data });
+}
+
 async function handleDelete(request: Request, id: string): Promise<Response> {
   if (!isUuid(id)) return json(request, { error: "DELETE requires a product id (UUID)" }, 400);
   const db = getDb();
@@ -541,7 +644,10 @@ export async function handlePublicApi(request: Request): Promise<Response | null
 
   const isCollection = url.pathname === "/api/v1/products";
   const idMatch = url.pathname.match(/^\/api\/v1\/products\/([^/]+)$/);
-  if (!isCollection && !idMatch) return json(request, { error: "Not found" }, 404);
+  const variationMatch = url.pathname.match(
+    /^\/api\/v1\/products\/([^/]+)\/variations\/([^/]+)$/,
+  );
+  if (!isCollection && !idMatch && !variationMatch) return json(request, { error: "Not found" }, 404);
 
   const isWrite = ["POST", "PATCH", "DELETE"].includes(request.method);
   if (isWrite && level !== "write") {
@@ -551,6 +657,12 @@ export async function handlePublicApi(request: Request): Promise<Response | null
   try {
     if (isCollection && request.method === "GET") return await handleList(request, url, level);
     if (isCollection && request.method === "POST") return await handleCreate(request);
+    if (variationMatch && request.method === "PATCH")
+      return await handleVariationPatch(
+        request,
+        decodeURIComponent(variationMatch[1]),
+        decodeURIComponent(variationMatch[2]),
+      );
     if (idMatch && request.method === "GET")
       return await handleGetOne(request, decodeURIComponent(idMatch[1]), level);
     if (idMatch && request.method === "PATCH")
