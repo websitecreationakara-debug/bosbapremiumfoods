@@ -46,7 +46,10 @@ export function MegaMenu() {
                   <NavigationMenuLink asChild>
                     <Link
                       to={item.direct_url ?? "/shop"}
-                      className={cn(linkClass, item.accent && "font-medium text-brand hover:text-brand/80")}
+                      className={cn(
+                        linkClass,
+                        item.accent && "font-medium text-brand hover:text-brand/80",
+                      )}
                     >
                       {item.label}
                     </Link>
@@ -62,7 +65,12 @@ export function MegaMenu() {
               <NavigationMenuItem key={item.id}>
                 <NavigationMenuTrigger className={triggerClass}>{item.label}</NavigationMenuTrigger>
                 <NavigationMenuContent>
-                  <MegaDropdown item={item} sections={sections} linksFor={linksFor} collections={collections} />
+                  <MegaDropdown
+                    item={item}
+                    sections={sections}
+                    linksFor={linksFor}
+                    collections={collections}
+                  />
                 </NavigationMenuContent>
               </NavigationMenuItem>
             );
@@ -74,9 +82,9 @@ export function MegaMenu() {
 }
 
 // Text-column + spotlight-card mega-menu layout: sections with real links
-// become plain-text link columns (sharing ~3/4 of the width), a section with
-// no links but an image becomes a single visual "spotlight" card (~1/4
-// width, `w-64`). A section with `title: null` (e.g. Shop by Occasion,
+// become plain-text link columns on a 4-up grid (25% each, filling the
+// available width), a section with no links but an image becomes a single
+// visual "spotlight" card (`w-64`) alongside them. A section with `title: null` (e.g. Shop by Occasion,
 // Pantry & Sake — see the schema comment on nav_sections.title) renders as a
 // flat single column headed by the menu item's own label instead of a
 // per-section heading. A column-type section can also carry an optional
@@ -99,7 +107,7 @@ function MegaDropdown({
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
       <div className="flex flex-col gap-10 md:flex-row">
-        <div className="grid grid-cols-2 gap-x-8 gap-y-8 md:max-w-xl md:grid-cols-3 lg:max-w-2xl">
+        <div className="grid flex-1 min-w-0 grid-cols-2 gap-x-8 gap-y-8 md:grid-cols-4">
           {columns.map((s) => (
             <div key={s.id} className="flex flex-col">
               <p className="font-display text-[15px] font-semibold mb-4">{s.title ?? item.label}</p>
@@ -146,16 +154,6 @@ function MegaDropdown({
           </div>
         )}
       </div>
-
-      <div className="mt-8 flex justify-end border-t pt-6">
-        <Link
-          to={item.direct_url ?? "/shop"}
-          className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2.5 text-xs font-semibold text-brand-foreground transition-colors hover:bg-brand/90"
-        >
-          Shop all
-          <ArrowRight className="size-3.5" />
-        </Link>
-      </div>
     </div>
   );
 }
@@ -168,7 +166,11 @@ function MegaTextLink({ link: l, collections }: { link: NavMenuLink; collections
     <li>
       <NavigationMenuLink asChild>
         {slug ? (
-          <Link to="/collections/$slug" params={{ slug }} className="group flex items-center gap-1 text-sm">
+          <Link
+            to="/collections/$slug"
+            params={{ slug }}
+            className="group flex items-center gap-1 text-sm"
+          >
             {inner}
           </Link>
         ) : isExternal ? (
