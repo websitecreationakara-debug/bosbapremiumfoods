@@ -81,10 +81,10 @@ export function MegaMenu() {
   );
 }
 
-// Text-column + spotlight-card mega-menu layout: sections with real links
-// become plain-text link columns on a 4-up grid (25% each, filling the
-// available width), a section with no links but an image becomes a single
-// visual "spotlight" card (`w-64`) alongside them. A section with `title: null` (e.g. Shop by Occasion,
+// Text-column + spotlight-card mega-menu layout: every section is a cell on
+// one 4-up grid (25% each). Sections with real links become plain-text link
+// columns; a section with no links but an image becomes a visual "spotlight"
+// card in the next grid cell, right after the link columns. A section with `title: null` (e.g. Shop by Occasion,
 // Pantry & Sake — see the schema comment on nav_sections.title) renders as a
 // flat single column headed by the menu item's own label instead of a
 // per-section heading. A column-type section can also carry an optional
@@ -106,53 +106,47 @@ function MegaDropdown({
 
   return (
     <div className="mx-auto max-w-7xl px-6 py-8 md:px-10 md:py-10">
-      <div className="flex flex-col gap-10 md:flex-row">
-        <div className="grid flex-1 min-w-0 grid-cols-2 gap-x-8 gap-y-8 md:grid-cols-4">
-          {columns.map((s) => (
-            <div key={s.id} className="flex flex-col">
-              <p className="font-display text-[15px] font-semibold mb-4">{s.title ?? item.label}</p>
-              <ul className="flex flex-col gap-3">
-                {s.cta_link && (
-                  <li>
-                    <NavigationMenuLink asChild>
-                      <Link
-                        to={s.cta_link}
-                        className="group flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand/80"
-                      >
-                        {s.cta_label ?? "View All"}
-                        <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
-                      </Link>
-                    </NavigationMenuLink>
-                  </li>
-                )}
-                {linksFor(s.id).map((l) => (
-                  <MegaTextLink key={l.id} link={l} collections={collections} />
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-
-        {promoSections.length > 0 && (
-          <div className="flex w-full shrink-0 flex-col gap-6 md:w-64">
-            {promoSections.map((s) => (
-              <NavigationMenuLink asChild key={s.id}>
-                <Link to={s.cta_link ?? "/shop"} className="group flex flex-col">
-                  <div className="aspect-square overflow-hidden rounded-xl bg-muted">
-                    <img
-                      src={s.image_url!}
-                      alt=""
-                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                    />
-                  </div>
-                  {s.cta_label && (
-                    <span className="mt-3 block text-sm font-medium text-brand">{s.cta_label}</span>
-                  )}
-                </Link>
-              </NavigationMenuLink>
-            ))}
+      <div className="grid grid-cols-2 gap-x-8 gap-y-8 md:grid-cols-4">
+        {columns.map((s) => (
+          <div key={s.id} className="flex flex-col">
+            <p className="font-display text-[15px] font-semibold mb-4">{s.title ?? item.label}</p>
+            <ul className="flex flex-col gap-3">
+              {s.cta_link && (
+                <li>
+                  <NavigationMenuLink asChild>
+                    <Link
+                      to={s.cta_link}
+                      className="group flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand/80"
+                    >
+                      {s.cta_label ?? "View All"}
+                      <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                    </Link>
+                  </NavigationMenuLink>
+                </li>
+              )}
+              {linksFor(s.id).map((l) => (
+                <MegaTextLink key={l.id} link={l} collections={collections} />
+              ))}
+            </ul>
           </div>
-        )}
+        ))}
+
+        {promoSections.map((s) => (
+          <NavigationMenuLink asChild key={s.id}>
+            <Link to={s.cta_link ?? "/shop"} className="group flex flex-col">
+              <div className="aspect-square overflow-hidden rounded-xl bg-muted">
+                <img
+                  src={s.image_url!}
+                  alt=""
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+              </div>
+              {s.cta_label && (
+                <span className="mt-3 block text-sm font-medium text-brand">{s.cta_label}</span>
+              )}
+            </Link>
+          </NavigationMenuLink>
+        ))}
       </div>
     </div>
   );
