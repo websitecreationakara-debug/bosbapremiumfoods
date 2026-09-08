@@ -22,6 +22,8 @@ import {
 //                                             optional `images[]` / `variations[]`
 //   PATCH  /api/v1/products/{id}            -> partial update (same body shape)
 //   DELETE /api/v1/products/{id}            -> delete (cascades variations+images)
+//   PATCH  /api/v1/products/{id}/variations/{variationId}  -> update one size row
+//   DELETE /api/v1/products/{id}/variations/{variationId}  -> remove one size row
 //
 // Every product payload carries its `variations[]` and `images[]`. GET prices
 // reflect any live promotion discount, matching the storefront.
@@ -611,6 +613,32 @@ async function handleVariationPatch(
   return json(request, { data });
 }
 
+// DELETE /api/v1/products/:productId/variations/:variationId -- remove one
+// size/flavor row, leaving the parent product and its other variations in
+// place. (Deleting the whole product is DELETE /api/v1/products/:id.)
+async function handleVariationDelete(
+  request: Request,
+  productId: string,
+  variationId: string,
+): Promise<Response> {
+  const db = getDb();
+  const [variation] = await db
+    .select()
+    .from(product_variations)
+    .where(
+      and(eq(product_variations.id, variationId), eq(product_variations.product_id, productId)),
+    );
+  if (!variation) return json(request, { error: "Variation not found on this product" }, 404);
+
+  await db.delete(product_variations).where(eq(product_variations.id, variationId));
+  await db
+    .update(products)
+    .set({ updated_at: new Date().toISOString() })
+    .where(eq(products.id, productId));
+
+  return json(request, { data: { id: variationId, deleted: true } });
+}
+
 async function handleDelete(request: Request, id: string): Promise<Response> {
   if (!isUuid(id)) return json(request, { error: "DELETE requires a product id (UUID)" }, 400);
   const db = getDb();
@@ -659,6 +687,12 @@ export async function handlePublicApi(request: Request): Promise<Response | null
     if (isCollection && request.method === "POST") return await handleCreate(request);
     if (variationMatch && request.method === "PATCH")
       return await handleVariationPatch(
+        request,
+        decodeURIComponent(variationMatch[1]),
+        decodeURIComponent(variationMatch[2]),
+      );
+    if (variationMatch && request.method === "DELETE")
+      return await handleVariationDelete(
         request,
         decodeURIComponent(variationMatch[1]),
         decodeURIComponent(variationMatch[2]),
