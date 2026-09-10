@@ -30,6 +30,7 @@ import { Route as StoreStoreLocatorRouteImport } from './routes/_store/store-loc
 import { Route as StoreThankYouRouteImport } from './routes/_store/thank-you'
 import { Route as StoreWishlistRouteImport } from './routes/_store/wishlist'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAddonsRouteImport } from './routes/admin/addons'
 import { Route as AdminBannersRouteImport } from './routes/admin/banners'
 import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminCollectionsRouteImport } from './routes/admin/collections'
@@ -150,6 +151,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAddonsRoute = AdminAddonsRouteImport.update({
+  id: '/addons',
+  path: '/addons',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminBannersRoute = AdminBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
@@ -246,6 +252,7 @@ export interface FileRoutesByFullPath {
   '/store-locator': typeof StoreStoreLocatorRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
@@ -281,6 +288,7 @@ export interface FileRoutesByTo {
   '/store-locator': typeof StoreStoreLocatorRoute
   '/thank-you': typeof StoreThankYouRoute
   '/wishlist': typeof StoreWishlistRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
@@ -320,6 +328,7 @@ export interface FileRoutesById {
   '/_store/store-locator': typeof StoreStoreLocatorRoute
   '/_store/thank-you': typeof StoreThankYouRoute
   '/_store/wishlist': typeof StoreWishlistRoute
+  '/admin/addons': typeof AdminAddonsRoute
   '/admin/banners': typeof AdminBannersRoute
   '/admin/categories': typeof AdminCategoriesRoute
   '/admin/collections': typeof AdminCollectionsRoute
@@ -360,6 +369,7 @@ export interface FileRouteTypes {
     | '/store-locator'
     | '/thank-you'
     | '/wishlist'
+    | '/admin/addons'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/store-locator'
     | '/thank-you'
     | '/wishlist'
+    | '/admin/addons'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/_store/store-locator'
     | '/_store/thank-you'
     | '/_store/wishlist'
+    | '/admin/addons'
     | '/admin/banners'
     | '/admin/categories'
     | '/admin/collections'
@@ -608,6 +620,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/addons': {
+      id: '/admin/addons'
+      path: '/addons'
+      fullPath: '/admin/addons'
+      preLoaderRoute: typeof AdminAddonsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/banners': {
       id: '/admin/banners'
       path: '/banners'
@@ -763,6 +782,7 @@ const StoreRouteChildren: StoreRouteChildren = {
 const StoreRouteWithChildren = StoreRoute._addFileChildren(StoreRouteChildren)
 
 interface AdminRouteChildren {
+  AdminAddonsRoute: typeof AdminAddonsRoute
   AdminBannersRoute: typeof AdminBannersRoute
   AdminCategoriesRoute: typeof AdminCategoriesRoute
   AdminCollectionsRoute: typeof AdminCollectionsRoute
@@ -779,6 +799,7 @@ interface AdminRouteChildren {
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAddonsRoute: AdminAddonsRoute,
   AdminBannersRoute: AdminBannersRoute,
   AdminCategoriesRoute: AdminCategoriesRoute,
   AdminCollectionsRoute: AdminCollectionsRoute,

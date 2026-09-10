@@ -7,6 +7,8 @@ import {
   usePromotions,
   useCollections,
   useProductCollections,
+  useAddonCollections,
+  useProductAddonCollections,
 } from "@/hooks/use-products";
 import {
   createProduct,
@@ -23,6 +25,7 @@ import {
   setProductImage,
 } from "@/data/products";
 import { setProductCollections } from "@/data/collections";
+import { setProductAddonCollections } from "@/data/addons";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { groupVariations } from "@/lib/variants";
@@ -120,6 +123,9 @@ function ProductsAdmin() {
   const { data: collections = [] } = useCollections();
   const { data: productCollections = [] } = useProductCollections();
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
+  const { data: addonCollections = [] } = useAddonCollections();
+  const { data: productAddonCollections = [] } = useProductAddonCollections();
+  const [selectedAddonCollections, setSelectedAddonCollections] = useState<string[]>([]);
   const { data: mediaItems = [] } = useQuery({
     queryKey: ["media"],
     queryFn: () => listMedia() as Promise<Media[]>,
@@ -362,6 +368,7 @@ function ProductsAdmin() {
     setTabs([]);
     setGallery([]);
     setSelectedCollections([]);
+    setSelectedAddonCollections([]);
     setPicker(false);
     setGalleryPicker(false);
     setOpen(true);
@@ -372,6 +379,11 @@ function ProductsAdmin() {
     setGallery([]);
     setSelectedCollections(
       productCollections.filter((pc) => pc.product_id === p.id).map((pc) => pc.collection_id),
+    );
+    setSelectedAddonCollections(
+      productAddonCollections
+        .filter((pac) => pac.product_id === p.id)
+        .map((pac) => pac.addon_collection_id),
     );
     getProductImages({ data: { productId: p.id } }).then((rows) =>
       setGallery(rows.map((r) => r.url)),
@@ -484,6 +496,9 @@ function ProductsAdmin() {
       if (variable) await saveVariations({ data: { productId, variations: variationPayload() } });
       await saveProductImages({ data: { productId, urls: gallery } });
       await setProductCollections({ data: { productId, collectionIds: selectedCollections } });
+      await setProductAddonCollections({
+        data: { productId, addonCollectionIds: selectedAddonCollections },
+      });
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to save product");
       return;
@@ -493,6 +508,7 @@ function ProductsAdmin() {
     qc.invalidateQueries({ queryKey: ["variations"] });
     qc.invalidateQueries({ queryKey: ["product_images"] });
     qc.invalidateQueries({ queryKey: ["product_collections"] });
+    qc.invalidateQueries({ queryKey: ["product_addon_collections"] });
     setOpen(false);
   };
 
@@ -1335,6 +1351,32 @@ function ProductsAdmin() {
                         checked={selectedCollections.includes(c.id)}
                         onCheckedChange={(v) =>
                           setSelectedCollections((ids) =>
+                            v === true ? [...ids, c.id] : ids.filter((id) => id !== c.id),
+                          )
+                        }
+                      />
+                      {c.title}
+                    </label>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {addonCollections.length > 0 && (
+              <div>
+                <Label>Addon Collections</Label>
+                <p className="text-xs text-muted-foreground mb-2">
+                  Extras offered on this product's page (rice, sauce, ikura, ...) — customers add
+                  them alongside this product, never on their own. Manage the addons themselves
+                  under Addons in the sidebar.
+                </p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 max-h-40 overflow-y-auto border rounded-lg p-3">
+                  {addonCollections.map((c) => (
+                    <label key={c.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                      <Checkbox
+                        checked={selectedAddonCollections.includes(c.id)}
+                        onCheckedChange={(v) =>
+                          setSelectedAddonCollections((ids) =>
                             v === true ? [...ids, c.id] : ids.filter((id) => id !== c.id),
                           )
                         }

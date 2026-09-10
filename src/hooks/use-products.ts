@@ -8,6 +8,13 @@ import {
 } from "@/data/products";
 import { listCategories } from "@/data/categories";
 import { listCollections, listProductCollections } from "@/data/collections";
+import {
+  listAddons,
+  listAddonCollections,
+  listAddonCollectionItems,
+  listProductAddonCollections,
+  getProductAddons,
+} from "@/data/addons";
 import { listNavItems, listNavSections, listNavLinks } from "@/data/nav";
 import { listHeroSlides } from "@/data/banners";
 import { listPromotions } from "@/data/promotions";
@@ -29,6 +36,10 @@ import type {
   StoreSettings,
   Order,
   Address,
+  Addon,
+  AddonCollection,
+  AddonCollectionItem,
+  ProductAddonCollection,
 } from "@/lib/types";
 
 export function useProducts(opts?: { all?: boolean }) {
@@ -87,6 +98,42 @@ export function useProductCollections() {
   return useQuery({
     queryKey: ["product_collections"],
     queryFn: () => listProductCollections() as Promise<ProductCollection[]>,
+  });
+}
+
+export function useAddons() {
+  return useQuery({
+    queryKey: ["addons"],
+    queryFn: () => listAddons() as Promise<Addon[]>,
+  });
+}
+
+export function useAddonCollections() {
+  return useQuery({
+    queryKey: ["addon_collections"],
+    queryFn: () => listAddonCollections() as Promise<AddonCollection[]>,
+  });
+}
+
+export function useAddonCollectionItems() {
+  return useQuery({
+    queryKey: ["addon_collection_items"],
+    queryFn: () => listAddonCollectionItems() as Promise<AddonCollectionItem[]>,
+  });
+}
+
+export function useProductAddonCollections() {
+  return useQuery({
+    queryKey: ["product_addon_collections"],
+    queryFn: () => listProductAddonCollections() as Promise<ProductAddonCollection[]>,
+  });
+}
+
+export function useProductAddons(productId: string) {
+  return useQuery({
+    queryKey: ["product_addons", productId],
+    queryFn: () => getProductAddons({ data: { productId } }) as Promise<Addon[]>,
+    enabled: !!productId,
   });
 }
 

@@ -87,6 +87,40 @@ export type ProductCollection = {
   sort_order: number;
 };
 
+export type Addon = {
+  id: string;
+  title: string;
+  description: string | null;
+  price: number;
+  image_url: string | null;
+  stock: number | null;
+  status: string;
+  sort_order: number;
+  created_at: string;
+};
+
+export type AddonCollection = {
+  id: string;
+  title: string;
+  active: boolean;
+  sort_order: number;
+  created_at: string;
+};
+
+export type AddonCollectionItem = {
+  id: string;
+  addon_collection_id: string;
+  addon_id: string;
+  sort_order: number;
+};
+
+export type ProductAddonCollection = {
+  id: string;
+  product_id: string;
+  addon_collection_id: string;
+  sort_order: number;
+};
+
 export type NavMenuItem = {
   id: string;
   label: string;

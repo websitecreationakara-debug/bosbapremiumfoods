@@ -5,6 +5,7 @@ import {
   orders,
   products,
   product_variations,
+  addons,
   promotions,
   promo_codes,
   store_settings,
@@ -140,7 +141,7 @@ export const createOrder = createServerFn({ method: "POST" })
     // from the DB (matching either a simple product or a variation id) and
     // recompute the total + shipping server-side.
     const ids = rawItems.map((i) => i.id).filter(Boolean);
-    const [prodRows, varRows, settingsRows] = await Promise.all([
+    const [prodRows, varRows, addonRows, settingsRows] = await Promise.all([
       db
         .select({
           id: products.id,
@@ -161,6 +162,13 @@ export const createOrder = createServerFn({ method: "POST" })
         })
         .from(product_variations)
         .where(inArray(product_variations.id, ids)),
+      // Addons: a separate, always-simple catalog (no promotion pricing, no
+      // parent to resolve) — never valid as an order's only content, see the
+      // addon-only guard below.
+      db
+        .select({ id: addons.id, price: addons.price, stock: addons.stock, status: addons.status })
+        .from(addons)
+        .where(inArray(addons.id, ids)),
       db.select().from(store_settings).limit(1),
     ]);
 
@@ -201,6 +209,9 @@ export const createOrder = createServerFn({ method: "POST" })
       const promo = pid ? promoById.get(pid) : undefined;
       priceById.set(v.id, applyPromo(v.sale_price ?? v.price, promo, now));
     }
+    // Addons have no promotion of their own, and a draft one isn't orderable
+    // (same as how a deleted product simply won't appear in prodRows).
+    for (const a of addonRows) if (a.status === "published") priceById.set(a.id, a.price);
 
     const items: OrderItem[] = rawItems.map((i) => {
       const price = priceById.get(i.id);
@@ -210,12 +221,21 @@ export const createOrder = createServerFn({ method: "POST" })
       return { id: i.id, title: String(i.title ?? "").slice(0, 200), qty, price };
     });
 
+    // An addon can never be the entire order — it only makes sense attached to
+    // a real product/variation purchase. Structurally addons also never show up
+    // in the shop grid/search, but this closes the direct-checkout path too.
+    const addonIdSet = new Set(addonRows.filter((a) => a.status === "published").map((a) => a.id));
+    if (items.every((i) => addonIdSet.has(i.id))) {
+      throw new Error("Add a product to your cart before checking out with addons.");
+    }
+
     // Inventory guard. null stock = untracked (always available); a number is a
     // tracked count. Block the order if any tracked line is short — checked
     // against the summed quantity per id, before anything is written.
     const stockById = new Map<string, number | null>();
     for (const p of prodRows) stockById.set(p.id, p.stock);
     for (const v of varRows) stockById.set(v.id, v.stock);
+    for (const a of addonRows) stockById.set(a.id, a.stock);
     const neededById = new Map<string, number>();
     for (const i of items) neededById.set(i.id, (neededById.get(i.id) ?? 0) + i.qty);
     for (const [id, need] of neededById) {
@@ -296,6 +316,7 @@ export const createOrder = createServerFn({ method: "POST" })
         const stock = stockById.get(id);
         if (stock == null) return null;
         const next = Math.max(0, stock - need);
+        if (addonIdSet.has(id)) return db.update(addons).set({ stock: next }).where(eq(addons.id, id));
         return productIdSet.has(id)
           ? db.update(products).set({ stock: next }).where(eq(products.id, id))
           : db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, id));
@@ -305,10 +326,11 @@ export const createOrder = createServerFn({ method: "POST" })
     // Phase 7 stock sync: fires for both plain products and size/variant
     // lines -- POS links to whichever id it was given either way (see
     // product_site_links) -- only skipped for untracked (null-stock) lines,
-    // matching the deduction guard just above.
+    // matching the deduction guard just above. Addons have no POS counterpart,
+    // so they're skipped here too.
     await Promise.all(
       [...neededById].map(([id, need]) => {
-        if (stockById.get(id) == null) return null;
+        if (stockById.get(id) == null || addonIdSet.has(id)) return null;
         return notifyPosOfSale(id, need);
       }),
     );
@@ -351,9 +373,10 @@ async function adjustStockForOrderItems(
   if (neededById.size === 0) return;
   const ids = [...neededById.keys()];
 
-  const [prodRows, varRows] = await Promise.all([
+  const [prodRows, varRows, addonRows] = await Promise.all([
     db.select().from(products).where(inArray(products.id, ids)),
     db.select().from(product_variations).where(inArray(product_variations.id, ids)),
+    db.select().from(addons).where(inArray(addons.id, ids)),
   ]);
 
   await Promise.all([
@@ -368,6 +391,12 @@ async function adjustStockForOrderItems(
       const next = Math.max(0, v.stock + direction * (neededById.get(v.id) ?? 0));
       await db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, v.id));
       await notifyPosOfVariationEdit(v.product_id, v.id, { stock: next });
+    }),
+    // Addons have no POS counterpart, so this is a plain DB-only adjustment.
+    ...addonRows.map(async (a) => {
+      if (a.stock == null) return;
+      const next = Math.max(0, a.stock + direction * (neededById.get(a.id) ?? 0));
+      await db.update(addons).set({ stock: next }).where(eq(addons.id, a.id));
     }),
   ]);
 }

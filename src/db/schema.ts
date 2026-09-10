@@ -95,6 +95,57 @@ export const product_collections = sqliteTable("product_collections", {
   sort_order: integer("sort_order").notNull().default(0),
 });
 
+// Add-ons: a small separate catalog (rice, sauce, ikura, ...) that is never
+// shown in the shop grid/search/sitemap and can never be bought on its own —
+// only attached to a real product's order via the picker on its product page.
+export const addons = sqliteTable("addons", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  title: text("title").notNull(),
+  description: text("description"),
+  price: real("price").notNull().default(0),
+  image_url: text("image_url"),
+  // null = stock untracked (always available); a number = tracked count (0 = out of stock).
+  stock: integer("stock"),
+  status: text("status").notNull().default("published"),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// A named group of addons (e.g. "Rice & Sauce") that gets attached to products
+// as a unit instead of picking individual addons per product every time.
+export const addon_collections = sqliteTable("addon_collections", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  title: text("title").notNull(),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  sort_order: integer("sort_order").notNull().default(0),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
+// Many-to-many: which addons belong to an addon collection.
+export const addon_collection_items = sqliteTable("addon_collection_items", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  addon_collection_id: text("addon_collection_id")
+    .notNull()
+    .references(() => addon_collections.id, { onDelete: "cascade" }),
+  addon_id: text("addon_id")
+    .notNull()
+    .references(() => addons.id, { onDelete: "cascade" }),
+  sort_order: integer("sort_order").notNull().default(0),
+});
+
+// Many-to-many: which addon collections are offered on a product's page.
+// Mirrors product_collections above, one table over.
+export const product_addon_collections = sqliteTable("product_addon_collections", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  product_id: text("product_id")
+    .notNull()
+    .references(() => products.id, { onDelete: "cascade" }),
+  addon_collection_id: text("addon_collection_id")
+    .notNull()
+    .references(() => addon_collections.id, { onDelete: "cascade" }),
+  sort_order: integer("sort_order").notNull().default(0),
+});
+
 export const hero_slides = sqliteTable("hero_slides", {
   id: text("id").primaryKey().$defaultFn(uuid),
   eyebrow: text("eyebrow"),

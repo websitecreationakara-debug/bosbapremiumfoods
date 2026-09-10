@@ -19,6 +19,7 @@ import { useCart } from "@/hooks/use-cart";
 import { useWishlist } from "@/hooks/use-wishlist";
 import { Button } from "@/components/ui/button";
 import { ProductCard } from "@/components/product-card";
+import { ProductAddonPicker } from "@/components/product-addon-picker";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -579,6 +580,8 @@ function ProductDetail() {
               )}
             </div>
           </div>
+
+          <ProductAddonPicker productId={product.id} />
 
           {!preOrder && (
             <a

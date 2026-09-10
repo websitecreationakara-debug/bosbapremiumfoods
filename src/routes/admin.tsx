@@ -15,6 +15,7 @@ import {
   Settings,
   Image,
   GalleryHorizontalEnd,
+  PackagePlus,
   Megaphone,
   ArrowLeft,
   PanelLeftClose,
@@ -39,6 +40,7 @@ const nav = [
   { to: "/admin/main-navigator", label: "Main Navigator", icon: Compass },
   { to: "/admin/banners", label: "Hero Banner", icon: GalleryHorizontalEnd },
   { to: "/admin/products", label: "Products", icon: Package },
+  { to: "/admin/addons", label: "Addons", icon: PackagePlus },
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
@@ -106,6 +108,7 @@ function AdminLayout() {
   const marketingPaths = [
     "/admin/main-navigator",
     "/admin/products",
+    "/admin/addons",
     "/admin/marketing",
     "/admin/categories",
     "/admin/collections",
@@ -117,6 +120,7 @@ function AdminLayout() {
   // but not the marketing/promotions page.
   const stockPaths = [
     "/admin/products",
+    "/admin/addons",
     "/admin/categories",
     "/admin/collections",
     "/admin/media",
