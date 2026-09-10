@@ -13,7 +13,7 @@ import {
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
-import { notifyPosOfSale } from "@/lib/pos-sync";
+import { notifyPosOfSale, notifyPosOfStockEdit, notifyPosOfVariationEdit } from "@/lib/pos-sync";
 import {
   getSessionUser,
   requireOrderViewer,
@@ -336,6 +336,42 @@ export const countPendingOrders = createServerFn({ method: "GET" }).handler(asyn
   return r?.n ?? 0;
 });
 
+// Shared by cancelling (direction=1, releases reserved stock back) and
+// un-cancelling (direction=-1, re-reserves it) an order. Untracked (null-stock)
+// lines are skipped and counts are clamped at 0, matching createOrder's own
+// deduction guard. Missing rows (e.g. the product was since deleted) are
+// naturally skipped since they just won't come back from the select.
+async function adjustStockForOrderItems(
+  db: ReturnType<typeof getDb>,
+  items: OrderItem[],
+  direction: 1 | -1,
+) {
+  const neededById = new Map<string, number>();
+  for (const i of items) neededById.set(i.id, (neededById.get(i.id) ?? 0) + i.qty);
+  if (neededById.size === 0) return;
+  const ids = [...neededById.keys()];
+
+  const [prodRows, varRows] = await Promise.all([
+    db.select().from(products).where(inArray(products.id, ids)),
+    db.select().from(product_variations).where(inArray(product_variations.id, ids)),
+  ]);
+
+  await Promise.all([
+    ...prodRows.map(async (p) => {
+      if (p.stock == null) return;
+      const next = Math.max(0, p.stock + direction * (neededById.get(p.id) ?? 0));
+      await db.update(products).set({ stock: next }).where(eq(products.id, p.id));
+      await notifyPosOfStockEdit(p.id, next);
+    }),
+    ...varRows.map(async (v) => {
+      if (v.stock == null) return;
+      const next = Math.max(0, v.stock + direction * (neededById.get(v.id) ?? 0));
+      await db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, v.id));
+      await notifyPosOfVariationEdit(v.product_id, v.id, { stock: next });
+    }),
+  ]);
+}
+
 export const updateOrderStatus = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string; status: string }) => d)
   .handler(async ({ data }) => {
@@ -344,6 +380,17 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     const [before] = await db.select().from(orders).where(eq(orders.id, data.id));
     if (!before) throw new Error("Order not found");
     await db.update(orders).set({ status: data.status }).where(eq(orders.id, data.id));
+
+    // Cancelling releases the order's reserved inventory back to sellable stock;
+    // un-cancelling (moving back out of "cancelled") re-reserves it. Guarded by
+    // the actual before/after transition so repeated no-op status writes (e.g.
+    // cancelling an already-cancelled order) can't double-adjust stock.
+    const wasCancelled = before.status === "cancelled";
+    const isCancelled = data.status === "cancelled";
+    if (isCancelled !== wasCancelled) {
+      const items = JSON.parse(before.items || "[]") as OrderItem[];
+      await adjustStockForOrderItems(db, items, isCancelled ? 1 : -1);
+    }
 
     // Notify on the transition into "shipped" — but only if a tracking link is
     // already set. Normally the link is added after shipping (the admin input
