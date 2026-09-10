@@ -438,7 +438,20 @@ export const deleteOrder = createServerFn({ method: "POST" })
   .inputValidator((d: { id: string }) => d)
   .handler(async ({ data }) => {
     await requireStaff();
-    await getDb().delete(orders).where(eq(orders.id, data.id));
+    const db = getDb();
+    const [before] = await db.select().from(orders).where(eq(orders.id, data.id));
+    if (!before) throw new Error("Order not found");
+
+    // Deleting a still-active order releases its reserved stock, same as cancelling
+    // one. Skip this for an already-cancelled order — its stock was already restored
+    // when it was cancelled (see updateOrderStatus above), so restocking again here
+    // would double-count it.
+    if (before.status !== "cancelled") {
+      const items = JSON.parse(before.items || "[]") as OrderItem[];
+      await adjustStockForOrderItems(db, items, 1);
+    }
+
+    await db.delete(orders).where(eq(orders.id, data.id));
     return { ok: true };
   });
 
