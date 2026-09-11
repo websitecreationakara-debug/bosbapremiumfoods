@@ -41,6 +41,7 @@ import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminRestoreRouteImport } from './routes/admin/restore'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSocialConnectionsRouteImport } from './routes/admin/social-connections'
 import { Route as AdminSocialPostsRouteImport } from './routes/admin/social-posts'
 import { Route as AdminTranslationsRouteImport } from './routes/admin/translations'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -207,6 +208,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSocialConnectionsRoute = AdminSocialConnectionsRouteImport.update({
+  id: '/social-connections',
+  path: '/social-connections',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminSocialPostsRoute = AdminSocialPostsRouteImport.update({
   id: '/social-posts',
   path: '/social-posts',
@@ -269,6 +275,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-connections': typeof AdminSocialConnectionsRoute
   '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -306,6 +313,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-connections': typeof AdminSocialConnectionsRoute
   '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -347,6 +355,7 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-connections': typeof AdminSocialConnectionsRoute
   '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
@@ -389,6 +398,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-connections'
     | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
@@ -426,6 +436,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-connections'
     | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
@@ -466,6 +477,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-connections'
     | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
@@ -709,6 +721,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/social-connections': {
+      id: '/admin/social-connections'
+      path: '/social-connections'
+      fullPath: '/admin/social-connections'
+      preLoaderRoute: typeof AdminSocialConnectionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/social-posts': {
       id: '/admin/social-posts'
       path: '/social-posts'
@@ -812,6 +831,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminRestoreRoute: typeof AdminRestoreRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSocialConnectionsRoute: typeof AdminSocialConnectionsRoute
   AdminSocialPostsRoute: typeof AdminSocialPostsRoute
   AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
@@ -830,6 +850,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminRestoreRoute: AdminRestoreRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSocialConnectionsRoute: AdminSocialConnectionsRoute,
   AdminSocialPostsRoute: AdminSocialPostsRoute,
   AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,

@@ -24,6 +24,7 @@ import {
   DatabaseBackup,
   Languages,
   Send,
+  Share2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -44,6 +45,7 @@ const nav = [
   { to: "/admin/addons", label: "Addons", icon: PackagePlus },
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
   { to: "/admin/social-posts", label: "Social Posts", icon: Send },
+  { to: "/admin/social-connections", label: "Social Connections", icon: Share2 },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/collections", label: "Collections", icon: Layers },

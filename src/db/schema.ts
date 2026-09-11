@@ -368,6 +368,22 @@ export const store_settings = sqliteTable("store_settings", {
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });
 
+// Social auto-posting credentials, self-service from /admin/social-connections
+// (admin-only) instead of a developer running `wrangler secret put`. Fixed
+// singleton id so the admin page can always upsert without a prior read.
+export const social_connections = sqliteTable("social_connections", {
+  id: text("id").primaryKey().default("default"),
+  fb_page_id: text("fb_page_id"),
+  fb_page_access_token: text("fb_page_access_token"),
+  ig_user_id: text("ig_user_id"),
+  telegram_bot_token: text("telegram_bot_token"),
+  telegram_channel_id: text("telegram_channel_id"),
+  tiktok_access_token: text("tiktok_access_token"),
+  // "SELF_ONLY" until the TikTok app passes Content Posting API audit.
+  tiktok_privacy: text("tiktok_privacy").notNull().default("SELF_ONLY"),
+  updated_at: text("updated_at").notNull().$defaultFn(nowIso),
+});
+
 // All user-facing UI wording, editable from /admin/translations instead of
 // hardcoded in src/lib/i18n.tsx. `locale` is normally "en" | "km" | "ja", but
 // two sentinel locales reuse this same table for related site-wide config
