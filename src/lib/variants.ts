@@ -28,3 +28,23 @@ export const groupVariations = (variations: ProductVariation[]) => {
   }
   return map;
 };
+
+export const formatMoney = (n: number) => `$${n.toFixed(2)}`;
+
+// Full price text for a product: a min–max range across priced variations for
+// a variable product (e.g. "$49.00–$140.00"), or the simple price with a
+// struck-through original if on sale. Never reads a variable product's own
+// `price`/`sale_price` columns — those are unused placeholders on that type
+// (see the schema comment on `products.type`).
+export const priceRangeText = (p: Product, variations: ProductVariation[]): string => {
+  if (p.type === "variable") {
+    const priced = variations.filter(hasValidPrice).map(variationPrice);
+    if (priced.length === 0) return "Contact us for pricing";
+    const min = Math.min(...priced);
+    const max = Math.max(...priced);
+    return min === max ? formatMoney(min) : `${formatMoney(min)}–${formatMoney(max)}`;
+  }
+  return p.sale_price != null && p.sale_price < p.price
+    ? `${formatMoney(p.sale_price)} (was ${formatMoney(p.price)})`
+    : formatMoney(p.price);
+};

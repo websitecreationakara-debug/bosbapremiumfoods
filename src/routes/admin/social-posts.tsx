@@ -8,7 +8,8 @@ import {
   deleteSocialPost,
   publishSocialPostNow,
 } from "@/data/social-posts";
-import { useProducts, useProductImages } from "@/hooks/use-products";
+import { useProducts, useProductImages, useAllVariations } from "@/hooks/use-products";
+import { groupVariations, priceRangeText } from "@/lib/variants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +36,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/lib/types";
+import type { Product, ProductVariation } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/social-posts")({ component: SocialPostsAdmin });
 
@@ -69,26 +70,14 @@ function parseJsonArray(value: string | null): string[] {
   }
 }
 
-function formatPrice(n: number): string {
-  return `$${n.toFixed(2)}`;
-}
-
-// The brief passed to Claude — the product's real description plus its
-// current price, so captions never rely on hand-typed product facts.
-function briefFromProduct(product: Product): string {
-  const priceLine =
-    product.sale_price != null && product.sale_price < product.price
-      ? `Price: ${formatPrice(product.sale_price)} (was ${formatPrice(product.price)})`
-      : `Price: ${formatPrice(product.price)}`;
-  return [product.description, priceLine].filter(Boolean).join("\n\n");
-}
-
 function ProductPicker({
   products,
+  variationsByProduct,
   selectedId,
   onSelect,
 }: {
   products: Product[];
+  variationsByProduct: Map<string, ProductVariation[]>;
   selectedId: string;
   onSelect: (product: Product) => void;
 }) {
@@ -145,7 +134,7 @@ function ProductPicker({
                   <span className="flex-1 min-w-0">
                     <span className="block truncate">{p.title}</span>
                     <span className="block text-xs text-muted-foreground">
-                      {formatPrice(p.sale_price ?? p.price)}
+                      {priceRangeText(p, variationsByProduct.get(p.id) ?? [])}
                     </span>
                   </span>
                 </CommandItem>
@@ -236,6 +225,8 @@ function SocialPostsAdmin() {
     () => allProducts.filter((p) => p.status === "published"),
     [allProducts],
   );
+  const { data: allVariations = [] } = useAllVariations();
+  const variationsByProduct = useMemo(() => groupVariations(allVariations), [allVariations]);
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -269,7 +260,10 @@ function SocialPostsAdmin() {
       ...f,
       product_id: product.id,
       topic: product.title,
-      brief: briefFromProduct(product),
+      // The post's actual copy — description, tabs, price — is built from the
+      // live product at publish time, not typed or generated here. This field
+      // is only for anything extra that isn't already on the product page.
+      brief: "",
       // Re-picking a product resets the photo selection to its own photos.
       image_urls: [product.image_url].filter((u): u is string => !!u),
     }));
@@ -340,8 +334,8 @@ function SocialPostsAdmin() {
         <div>
           <h1 className="font-display font-bold text-3xl">Social Posts</h1>
           <p className="text-muted-foreground mt-1">
-            Pick a product from the catalog — Claude writes the captions from its real name, price,
-            and description, and posts publish automatically every hour.
+            Pick a product from the catalog — the post uses its real name, description, tabs, and
+            price exactly as written, and publishes automatically every hour.
           </p>
         </div>
         <Button onClick={openNew} className="rounded-full">
@@ -437,6 +431,7 @@ function SocialPostsAdmin() {
               <Label>Product</Label>
               <ProductPicker
                 products={products}
+                variationsByProduct={variationsByProduct}
                 selectedId={form.product_id}
                 onSelect={selectProduct}
               />
@@ -445,15 +440,17 @@ function SocialPostsAdmin() {
             {form.product_id && (
               <>
                 <div>
-                  <Label>Notes (optional)</Label>
+                  <Label>Extra note (optional)</Label>
                   <p className="text-xs text-muted-foreground">
-                    The description and price above come straight from the product. Add anything
-                    extra here — a promo, a restock note, a seasonal angle.
+                    The post uses the product's real name, description, tabs, and price exactly as
+                    written on its product page — nothing is rewritten. Add a line here only for
+                    something not already on that page, like a promo or a restock note.
                   </p>
                   <Textarea
                     value={form.brief}
                     onChange={(e) => setForm({ ...form, brief: e.target.value })}
-                    rows={5}
+                    placeholder="e.g. Restocked this week — limited quantity"
+                    rows={2}
                   />
                 </div>
 

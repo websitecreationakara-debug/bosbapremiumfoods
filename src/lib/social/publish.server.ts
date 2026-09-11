@@ -1,7 +1,8 @@
 import { eq, and, lte } from "drizzle-orm";
 import { getDb } from "@/db";
-import { social_posts } from "@/db/schema";
-import { generateCaptions } from "./captions.server";
+import { social_posts, products, product_variations } from "@/db/schema";
+import { priceRangeText } from "@/lib/variants";
+import { buildCaptions, type Captions } from "./captions.server";
 import { absoluteImageUrl } from "./env.server";
 import {
   PUBLISHERS,
@@ -33,11 +34,36 @@ export async function publishPost(postId: string): Promise<PublishResult> {
   const platforms = chosen.length > 0 ? chosen : configuredPlatforms();
   if (platforms.length === 0) throw new Error("No platforms selected or configured");
 
-  const captions = await generateCaptions({
-    topic: post.topic,
-    brief: post.brief,
-    hasImage: imageUrls.length > 0,
-  });
+  // Built from the product's *current* description/tabs/price (not what was
+  // captured at schedule time), so an edit or a price change before the post
+  // goes out is reflected automatically. If the product was since deleted,
+  // fall back to the topic/note captured when the post was scheduled.
+  const [product] = post.product_id
+    ? await db.select().from(products).where(eq(products.id, post.product_id))
+    : [];
+  // A variable product's own price/stock columns are unused placeholders —
+  // its real prices live per-variation, so only fetch variations for those.
+  const variations =
+    product?.type === "variable"
+      ? await db
+          .select()
+          .from(product_variations)
+          .where(eq(product_variations.product_id, product.id))
+      : [];
+  const captions: Captions = product
+    ? buildCaptions({
+        title: product.title,
+        description: product.description,
+        priceText: priceRangeText(product, variations),
+        productId: product.id,
+        note: post.brief,
+      })
+    : {
+        facebook: [post.topic, post.brief].filter(Boolean).join("\n\n"),
+        instagram: [post.topic, post.brief].filter(Boolean).join("\n\n"),
+        telegram: [post.topic, post.brief].filter(Boolean).join("\n\n"),
+        tiktok: [post.topic, post.brief].filter(Boolean).join("\n\n"),
+      };
 
   const results: PublishResult = {};
   for (const platform of platforms) {
