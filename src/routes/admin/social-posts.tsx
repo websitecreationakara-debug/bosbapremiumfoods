@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   listSocialPosts,
@@ -8,17 +8,34 @@ import {
   deleteSocialPost,
   publishSocialPostNow,
 } from "@/data/social-posts";
-import { listMedia, uploadMedia } from "@/data/media";
-import { compressImage } from "@/lib/image";
+import { useProducts, useProductImages } from "@/hooks/use-products";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Plus, Pencil, Trash2, Upload, ImageIcon, Loader2, X, Send } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  ImageIcon,
+  Loader2,
+  Send,
+  Check,
+  ChevronsUpDown,
+} from "lucide-react";
 import { toast } from "sonner";
-import type { Media } from "@/lib/types";
+import type { Product } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/social-posts")({ component: SocialPostsAdmin });
 
@@ -28,6 +45,7 @@ type SocialPost = Awaited<ReturnType<typeof listSocialPosts>>[number];
 
 const emptyForm = {
   id: "",
+  product_id: "",
   topic: "",
   brief: "",
   scheduled_at: "",
@@ -51,110 +69,146 @@ function parseJsonArray(value: string | null): string[] {
   }
 }
 
-function PostImagesField({
-  urls,
-  onChange,
-  mediaItems,
-  onUploaded,
-}: {
-  urls: string[];
-  onChange: (urls: string[]) => void;
-  mediaItems: Media[];
-  onUploaded: () => void;
-}) {
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [uploading, setUploading] = useState(false);
-  const [picker, setPicker] = useState(false);
+function formatPrice(n: number): string {
+  return `$${n.toFixed(2)}`;
+}
 
-  const onUpload = async (file: File | undefined) => {
-    if (!file) return;
-    setUploading(true);
-    try {
-      const fd = new FormData();
-      fd.append("file", await compressImage(file));
-      const { url } = await uploadMedia({ data: fd });
-      onChange([...urls, url]);
-      onUploaded();
-      toast.success("Image uploaded");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setUploading(false);
-      if (fileRef.current) fileRef.current.value = "";
-    }
-  };
+// The brief passed to Claude — the product's real description plus its
+// current price, so captions never rely on hand-typed product facts.
+function briefFromProduct(product: Product): string {
+  const priceLine =
+    product.sale_price != null && product.sale_price < product.price
+      ? `Price: ${formatPrice(product.sale_price)} (was ${formatPrice(product.price)})`
+      : `Price: ${formatPrice(product.price)}`;
+  return [product.description, priceLine].filter(Boolean).join("\n\n");
+}
+
+function ProductPicker({
+  products,
+  selectedId,
+  onSelect,
+}: {
+  products: Product[];
+  selectedId: string;
+  onSelect: (product: Product) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = products.find((p) => p.id === selectedId);
 
   return (
-    <div className="space-y-2">
-      <Label>Photos</Label>
-      <p className="text-xs text-muted-foreground -mt-1">
-        Instagram and TikTok are skipped when a post has no photo.
-      </p>
-      {urls.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {urls.map((url, i) => (
-            <div key={`${url}-${i}`} className="size-16 rounded-lg border overflow-hidden relative">
-              <img src={url} alt="" className="w-full h-full object-cover" />
-              <button
-                type="button"
-                onClick={() => onChange(urls.filter((_, j) => j !== i))}
-                className="absolute top-0.5 right-0.5 bg-background/80 rounded-full p-0.5"
-                aria-label="Remove image"
-              >
-                <X className="size-3.5" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="flex gap-2">
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          disabled={uploading}
-          onClick={() => fileRef.current?.click()}
+          role="combobox"
+          className="w-full justify-between font-normal"
         >
-          {uploading ? (
-            <Loader2 className="size-4 mr-1.5 animate-spin" />
+          {selected ? (
+            <span className="flex items-center gap-2 min-w-0">
+              <span className="size-6 rounded bg-muted overflow-hidden shrink-0">
+                {selected.image_url && (
+                  <img src={selected.image_url} alt="" className="w-full h-full object-cover" />
+                )}
+              </span>
+              <span className="truncate">{selected.title}</span>
+            </span>
           ) : (
-            <Upload className="size-4 mr-1.5" />
+            <span className="text-muted-foreground">Search products…</span>
           )}
-          Upload
+          <ChevronsUpDown className="size-4 opacity-50 shrink-0" />
         </Button>
-        <Button type="button" variant="outline" size="sm" onClick={() => setPicker((v) => !v)}>
-          <ImageIcon className="size-4 mr-1.5" /> Media library
-        </Button>
-      </div>
-      <input
-        ref={fileRef}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={(e) => onUpload(e.target.files?.[0])}
-      />
-      {picker && (
-        <div className="border rounded-lg p-2 max-h-44 overflow-y-auto">
-          {mediaItems.length === 0 ? (
-            <p className="text-xs text-muted-foreground p-2">
-              No media yet — upload an image first.
-            </p>
-          ) : (
-            <div className="grid grid-cols-5 gap-2">
-              {mediaItems.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => onChange([...urls, m.url])}
-                  className="aspect-square rounded-md overflow-hidden border hover:ring-2 ring-brand"
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+        <Command
+          filter={(value, search) => (value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}
+        >
+          <CommandInput placeholder="Search products by name…" />
+          <CommandList>
+            <CommandEmpty>No products found.</CommandEmpty>
+            <CommandGroup>
+              {products.map((p) => (
+                <CommandItem
+                  key={p.id}
+                  value={p.title}
+                  onSelect={() => {
+                    onSelect(p);
+                    setOpen(false);
+                  }}
                 >
-                  <img src={m.url} alt={m.filename} className="w-full h-full object-cover" />
-                </button>
+                  <Check className={p.id === selectedId ? "opacity-100" : "opacity-0"} />
+                  <span className="size-8 rounded bg-muted overflow-hidden shrink-0">
+                    {p.image_url && (
+                      <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                    )}
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate">{p.title}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {formatPrice(p.sale_price ?? p.price)}
+                    </span>
+                  </span>
+                </CommandItem>
               ))}
-            </div>
-          )}
-        </div>
-      )}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ProductPhotoPicker({
+  productId,
+  mainImageUrl,
+  selected,
+  onChange,
+}: {
+  productId: string;
+  mainImageUrl: string | null;
+  selected: string[];
+  onChange: (urls: string[]) => void;
+}) {
+  const { data: gallery = [], isLoading } = useProductImages(productId);
+  const photos = useMemo(() => {
+    const urls = [mainImageUrl, ...gallery.map((g) => g.url)].filter((u): u is string => !!u);
+    return [...new Set(urls)];
+  }, [mainImageUrl, gallery]);
+
+  const toggle = (url: string) =>
+    onChange(selected.includes(url) ? selected.filter((u) => u !== url) : [...selected, url]);
+
+  if (isLoading) {
+    return <Loader2 className="size-5 animate-spin text-muted-foreground" />;
+  }
+  if (photos.length === 0) {
+    return <p className="text-sm text-muted-foreground">This product has no photos.</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-5 gap-2">
+      {photos.map((url) => {
+        const checked = selected.includes(url);
+        return (
+          <button
+            key={url}
+            type="button"
+            onClick={() => toggle(url)}
+            className={`relative aspect-square rounded-lg overflow-hidden border-2 ${
+              checked ? "border-brand" : "border-transparent"
+            }`}
+          >
+            <img src={url} alt="" className="w-full h-full object-cover" />
+            <span
+              className={`absolute top-1 right-1 size-5 rounded-full grid place-items-center ${
+                checked ? "bg-brand text-brand-foreground" : "bg-background/70 text-transparent"
+              }`}
+            >
+              <Check className="size-3.5" />
+            </span>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -177,10 +231,11 @@ function SocialPostsAdmin() {
     queryKey: ["social_posts"],
     queryFn: () => listSocialPosts(),
   });
-  const { data: mediaItems = [] } = useQuery({
-    queryKey: ["media"],
-    queryFn: () => listMedia() as Promise<Media[]>,
-  });
+  const { data: allProducts = [] } = useProducts({ all: true });
+  const products = useMemo(
+    () => allProducts.filter((p) => p.status === "published"),
+    [allProducts],
+  );
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -190,7 +245,6 @@ function SocialPostsAdmin() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["social_posts"] });
 
   const openNew = () => {
-    // Default schedule: one hour from now, on the hour.
     const d = new Date(Date.now() + 60 * 60 * 1000);
     d.setMinutes(0, 0, 0);
     setForm({ ...emptyForm, scheduled_at: isoToLocalInput(d.toISOString()) });
@@ -200,6 +254,7 @@ function SocialPostsAdmin() {
   const openEdit = (p: SocialPost) => {
     setForm({
       id: p.id,
+      product_id: p.product_id ?? "",
       topic: p.topic,
       brief: p.brief ?? "",
       scheduled_at: isoToLocalInput(p.scheduled_at),
@@ -209,9 +264,20 @@ function SocialPostsAdmin() {
     setOpen(true);
   };
 
+  const selectProduct = (product: Product) =>
+    setForm((f) => ({
+      ...f,
+      product_id: product.id,
+      topic: product.title,
+      brief: briefFromProduct(product),
+      // Re-picking a product resets the photo selection to its own photos.
+      image_urls: [product.image_url].filter((u): u is string => !!u),
+    }));
+
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     const payload = {
+      product_id: form.product_id,
       topic: form.topic,
       brief: form.brief || null,
       image_urls: form.image_urls,
@@ -266,14 +332,16 @@ function SocialPostsAdmin() {
       platforms: checked ? [...f.platforms, name] : f.platforms.filter((p) => p !== name),
     }));
 
+  const selectedProduct = products.find((p) => p.id === form.product_id);
+
   return (
     <div className="space-y-6 max-w-5xl">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="font-display font-bold text-3xl">Social Posts</h1>
           <p className="text-muted-foreground mt-1">
-            Scheduled posts publish automatically every hour — Claude writes the captions from your
-            brief.
+            Pick a product from the catalog — Claude writes the captions from its real name, price,
+            and description, and posts publish automatically every hour.
           </p>
         </div>
         <Button onClick={openNew} className="rounded-full">
@@ -366,64 +434,75 @@ function SocialPostsAdmin() {
           </DialogHeader>
           <form onSubmit={save} className="space-y-4">
             <div>
-              <Label>Topic</Label>
-              <Input
-                value={form.topic}
-                onChange={(e) => setForm({ ...form, topic: e.target.value })}
-                placeholder="New arrival: Hokkaido scallops"
-                required
+              <Label>Product</Label>
+              <ProductPicker
+                products={products}
+                selectedId={form.product_id}
+                onSelect={selectProduct}
               />
             </div>
-            <div>
-              <Label>Brief</Label>
-              <p className="text-xs text-muted-foreground">
-                Rough notes are fine — Claude writes the captions. Paste finished copy to use it
-                as-is.
-              </p>
-              <Textarea
-                value={form.brief}
-                onChange={(e) => setForm({ ...form, brief: e.target.value })}
-                placeholder="Fresh sashimi-grade scallops, limited stock, free delivery over $50..."
-                rows={4}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Publish time</Label>
-                <Input
-                  type="datetime-local"
-                  value={form.scheduled_at}
-                  onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <Label>Platforms</Label>
-                <p className="text-xs text-muted-foreground">None checked = all configured.</p>
-                <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1.5">
-                  {ALL_PLATFORMS.map((name) => (
-                    <label key={name} className="flex items-center gap-1.5 text-sm capitalize">
-                      <Checkbox
-                        checked={form.platforms.includes(name)}
-                        onCheckedChange={(v) => togglePlatform(name, v === true)}
-                      />
-                      {name}
-                    </label>
-                  ))}
+
+            {form.product_id && (
+              <>
+                <div>
+                  <Label>Notes (optional)</Label>
+                  <p className="text-xs text-muted-foreground">
+                    The description and price above come straight from the product. Add anything
+                    extra here — a promo, a restock note, a seasonal angle.
+                  </p>
+                  <Textarea
+                    value={form.brief}
+                    onChange={(e) => setForm({ ...form, brief: e.target.value })}
+                    rows={5}
+                  />
                 </div>
-              </div>
-            </div>
 
-            <PostImagesField
-              urls={form.image_urls}
-              onChange={(image_urls) => setForm((f) => ({ ...f, image_urls }))}
-              mediaItems={mediaItems}
-              onUploaded={() => qc.invalidateQueries({ queryKey: ["media"] })}
-            />
+                <div>
+                  <Label>Photos</Label>
+                  <p className="text-xs text-muted-foreground -mt-1 mb-2">
+                    Choose which of this product's photos to post. Instagram and TikTok need at
+                    least one.
+                  </p>
+                  <ProductPhotoPicker
+                    productId={form.product_id}
+                    mainImageUrl={selectedProduct?.image_url ?? null}
+                    selected={form.image_urls}
+                    onChange={(image_urls) => setForm((f) => ({ ...f, image_urls }))}
+                  />
+                </div>
 
-            <Button type="submit" className="w-full">
-              {editing ? "Save changes" : "Schedule post"}
-            </Button>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Publish time</Label>
+                    <Input
+                      type="datetime-local"
+                      value={form.scheduled_at}
+                      onChange={(e) => setForm({ ...form, scheduled_at: e.target.value })}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label>Platforms</Label>
+                    <p className="text-xs text-muted-foreground">None checked = all configured.</p>
+                    <div className="flex flex-wrap gap-x-4 gap-y-2 pt-1.5">
+                      {ALL_PLATFORMS.map((name) => (
+                        <label key={name} className="flex items-center gap-1.5 text-sm capitalize">
+                          <Checkbox
+                            checked={form.platforms.includes(name)}
+                            onCheckedChange={(v) => togglePlatform(name, v === true)}
+                          />
+                          {name}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <Button type="submit" className="w-full">
+                  {editing ? "Save changes" : "Schedule post"}
+                </Button>
+              </>
+            )}
           </form>
         </DialogContent>
       </Dialog>

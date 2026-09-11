@@ -276,8 +276,12 @@ export const media = sqliteTable("media", {
 // via src/lib/social/. JSON-in-text columns keep the row shape simple in SQLite.
 export const social_posts = sqliteTable("social_posts", {
   id: text("id").primaryKey().$defaultFn(uuid),
+  // The post is always tied to a real catalog product — topic/brief are
+  // auto-filled from it (title/description/price) at schedule time, not
+  // typed by hand. Null if the product was later deleted.
+  product_id: text("product_id").references(() => products.id, { onDelete: "set null" }),
   topic: text("topic").notNull(),
-  // Rough notes or finished copy; Claude keeps finished copy as-is.
+  // Auto-filled from the product's description + price; admin may add notes.
   brief: text("brief"),
   image_urls: text("image_urls").notNull().default("[]"), // JSON string[]
   platforms: text("platforms").notNull().default("[]"), // JSON subset of facebook|instagram|telegram|tiktok

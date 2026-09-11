@@ -5,15 +5,18 @@ import { social_posts } from "@/db/schema";
 import { requireManager } from "./_auth";
 
 export type SocialPostInput = {
-  topic: string;
-  brief: string | null;
-  image_urls: string[]; // media library /media/... paths or absolute URLs
+  product_id: string;
+  topic: string; // auto-filled from the product's title, not typed by hand
+  brief: string | null; // auto-filled from the product's description + price, plus optional notes
+  image_urls: string[]; // chosen from the product's own photos
   platforms: string[]; // subset of facebook | instagram | telegram | tiktok; empty = all configured
   scheduled_at: string; // ISO datetime (UTC)
 };
 
 function validateInput(d: SocialPostInput): SocialPostInput {
+  if (!d.product_id) throw new Error("A product is required");
   if (!d.topic?.trim()) throw new Error("Topic is required");
+  if (d.image_urls.length === 0) throw new Error("Choose at least one photo to post");
   if (!d.scheduled_at || Number.isNaN(Date.parse(d.scheduled_at)))
     throw new Error("A valid schedule time is required");
   return d;
@@ -31,6 +34,7 @@ export const createSocialPost = createServerFn({ method: "POST" })
     await getDb()
       .insert(social_posts)
       .values({
+        product_id: data.product_id,
         topic: data.topic.trim(),
         brief: data.brief,
         image_urls: JSON.stringify(data.image_urls),
@@ -47,6 +51,7 @@ export const updateSocialPost = createServerFn({ method: "POST" })
     await getDb()
       .update(social_posts)
       .set({
+        product_id: data.product_id,
         topic: data.topic.trim(),
         brief: data.brief,
         image_urls: JSON.stringify(data.image_urls),
