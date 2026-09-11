@@ -1,6 +1,7 @@
 import { eq, and, lte } from "drizzle-orm";
 import { getDb } from "@/db";
-import { social_posts, products } from "@/db/schema";
+import { social_posts, products, product_variations } from "@/db/schema";
+import { priceRangeText } from "@/lib/variants";
 import { buildCaptions, type Captions } from "./captions.server";
 import { absoluteImageUrl } from "./env.server";
 import {
@@ -40,12 +41,20 @@ export async function publishPost(postId: string): Promise<PublishResult> {
   const [product] = post.product_id
     ? await db.select().from(products).where(eq(products.id, post.product_id))
     : [];
+  // A variable product's own price/stock columns are unused placeholders —
+  // its real prices live per-variation, so only fetch variations for those.
+  const variations =
+    product?.type === "variable"
+      ? await db
+          .select()
+          .from(product_variations)
+          .where(eq(product_variations.product_id, product.id))
+      : [];
   const captions: Captions = product
     ? buildCaptions({
         title: product.title,
         description: product.description,
-        price: product.price,
-        salePrice: product.sale_price,
+        priceText: priceRangeText(product, variations),
         productId: product.id,
         note: post.brief,
       })

@@ -5,16 +5,6 @@ import type { SocialPlatform } from "./platforms.server";
 
 export type Captions = Record<SocialPlatform, string>;
 
-function formatPrice(n: number): string {
-  return `$${n.toFixed(2)}`;
-}
-
-function priceLine(price: number, salePrice: number | null): string {
-  return salePrice != null && salePrice < price
-    ? `Price: ${formatPrice(salePrice)} (was ${formatPrice(price)})`
-    : `Price: ${formatPrice(price)}`;
-}
-
 function escapeHtml(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
@@ -61,18 +51,19 @@ function truncate(text: string, max: number): string {
 // Builds each platform's caption directly from the product's real name,
 // description, tabs, and price — no AI rewriting, so the wording is always
 // exactly what's on the product page (plus an optional admin note and the
-// shop link/"link in bio").
+// shop link/"link in bio"). `priceText` is pre-formatted by the caller (see
+// `priceRangeText` in `@/lib/variants`) since a variable product's price
+// spans its variations, not the product row's own price column.
 export function buildCaptions(args: {
   title: string;
   description: string | null;
-  price: number;
-  salePrice: number | null;
+  priceText: string;
   productId: string;
   note: string | null;
 }): Captions {
   const url = `${SITE_URL}/product/${slugify(args.title) || args.productId}`;
   const body = [args.note?.trim(), productBody(args.description)].filter(Boolean).join("\n\n");
-  const price = priceLine(args.price, args.salePrice);
+  const price = `Price: ${args.priceText}`;
 
   const withLink = [args.title, body, price, `Shop now: ${url}`].filter(Boolean).join("\n\n");
   const withBioLink = [args.title, body, price, "🔗 Link in bio"].filter(Boolean).join("\n\n");

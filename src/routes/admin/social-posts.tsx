@@ -8,7 +8,8 @@ import {
   deleteSocialPost,
   publishSocialPostNow,
 } from "@/data/social-posts";
-import { useProducts, useProductImages } from "@/hooks/use-products";
+import { useProducts, useProductImages, useAllVariations } from "@/hooks/use-products";
+import { groupVariations, priceRangeText } from "@/lib/variants";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -35,7 +36,7 @@ import {
   ChevronsUpDown,
 } from "lucide-react";
 import { toast } from "sonner";
-import type { Product } from "@/lib/types";
+import type { Product, ProductVariation } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/social-posts")({ component: SocialPostsAdmin });
 
@@ -69,16 +70,14 @@ function parseJsonArray(value: string | null): string[] {
   }
 }
 
-function formatPrice(n: number): string {
-  return `$${n.toFixed(2)}`;
-}
-
 function ProductPicker({
   products,
+  variationsByProduct,
   selectedId,
   onSelect,
 }: {
   products: Product[];
+  variationsByProduct: Map<string, ProductVariation[]>;
   selectedId: string;
   onSelect: (product: Product) => void;
 }) {
@@ -135,7 +134,7 @@ function ProductPicker({
                   <span className="flex-1 min-w-0">
                     <span className="block truncate">{p.title}</span>
                     <span className="block text-xs text-muted-foreground">
-                      {formatPrice(p.sale_price ?? p.price)}
+                      {priceRangeText(p, variationsByProduct.get(p.id) ?? [])}
                     </span>
                   </span>
                 </CommandItem>
@@ -226,6 +225,8 @@ function SocialPostsAdmin() {
     () => allProducts.filter((p) => p.status === "published"),
     [allProducts],
   );
+  const { data: allVariations = [] } = useAllVariations();
+  const variationsByProduct = useMemo(() => groupVariations(allVariations), [allVariations]);
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -430,6 +431,7 @@ function SocialPostsAdmin() {
               <Label>Product</Label>
               <ProductPicker
                 products={products}
+                variationsByProduct={variationsByProduct}
                 selectedId={form.product_id}
                 onSelect={selectProduct}
               />
