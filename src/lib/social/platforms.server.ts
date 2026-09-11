@@ -1,9 +1,19 @@
-import { requireSocialEnv, socialEnv } from "./env.server";
-
 export type SocialPlatform = "facebook" | "instagram" | "telegram" | "tiktok";
 export const SOCIAL_PLATFORMS: SocialPlatform[] = ["facebook", "instagram", "telegram", "tiktok"];
 
-type PostArgs = { caption: string; imageUrls: string[] };
+// Credentials come from the social_connections table (admin-configured at
+// /admin/social-connections), not Worker secrets — see src/data/social-connections.ts.
+export type SocialCredentials = {
+  fb_page_id: string | null;
+  fb_page_access_token: string | null;
+  ig_user_id: string | null;
+  telegram_bot_token: string | null;
+  telegram_channel_id: string | null;
+  tiktok_access_token: string | null;
+  tiktok_privacy: string;
+};
+
+type PostArgs = { caption: string; imageUrls: string[]; creds: SocialCredentials };
 
 const GRAPH_API = "https://graph.facebook.com/v21.0";
 
@@ -20,9 +30,14 @@ async function graphPost(path: string, body: Record<string, unknown>) {
   return data;
 }
 
-export async function postToFacebook({ caption, imageUrls }: PostArgs): Promise<string> {
-  const pageId = requireSocialEnv("FB_PAGE_ID");
-  const access_token = requireSocialEnv("FB_PAGE_ACCESS_TOKEN");
+function require(value: string | null, label: string): string {
+  if (!value) throw new Error(`${label} not connected — set it up in Social Connections`);
+  return value;
+}
+
+export async function postToFacebook({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+  const pageId = require(creds.fb_page_id, "Facebook Page ID");
+  const access_token = require(creds.fb_page_access_token, "Facebook Page access token");
 
   if (imageUrls.length === 0) {
     const data = await graphPost(`${pageId}/feed`, { message: caption, access_token });
@@ -47,9 +62,9 @@ export async function postToFacebook({ caption, imageUrls }: PostArgs): Promise<
 }
 
 // Instagram content publishing: create a media container, then publish it.
-export async function postToInstagram({ caption, imageUrls }: PostArgs): Promise<string> {
-  const igId = requireSocialEnv("IG_USER_ID");
-  const access_token = requireSocialEnv("FB_PAGE_ACCESS_TOKEN");
+export async function postToInstagram({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+  const igId = require(creds.ig_user_id, "Instagram User ID");
+  const access_token = require(creds.fb_page_access_token, "Facebook Page access token");
   if (imageUrls.length === 0) throw new Error("Instagram needs at least one image");
 
   let creationId: string;
@@ -96,9 +111,9 @@ export async function postToInstagram({ caption, imageUrls }: PostArgs): Promise
   throw lastError;
 }
 
-export async function postToTelegram({ caption, imageUrls }: PostArgs): Promise<string> {
-  const token = requireSocialEnv("TELEGRAM_BOT_TOKEN");
-  const chat_id = requireSocialEnv("TELEGRAM_CHANNEL_ID");
+export async function postToTelegram({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+  const token = require(creds.telegram_bot_token, "Telegram bot token");
+  const chat_id = require(creds.telegram_channel_id, "Telegram channel ID");
 
   const call = async (method: string, body: Record<string, unknown>) => {
     const res = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
@@ -130,10 +145,11 @@ export async function postToTelegram({ caption, imageUrls }: PostArgs): Promise<
 }
 
 // EXPERIMENTAL: needs an approved TikTok Content Posting app. Until the app
-// passes TikTok's audit, direct posts are forced private (SELF_ONLY). Set the
-// TIKTOK_PRIVACY secret to PUBLIC_TO_EVERYONE after approval.
-export async function postToTikTok({ caption, imageUrls }: PostArgs): Promise<string> {
-  const token = requireSocialEnv("TIKTOK_ACCESS_TOKEN");
+// passes TikTok's audit, direct posts are forced private (SELF_ONLY) — flip
+// the Post visibility field in Social Connections to PUBLIC_TO_EVERYONE once
+// TikTok approves the app.
+export async function postToTikTok({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+  const token = require(creds.tiktok_access_token, "TikTok access token");
   if (imageUrls.length === 0) throw new Error("TikTok photo post needs at least one image");
 
   const res = await fetch("https://open.tiktokapis.com/v2/post/publish/content/init/", {
@@ -145,7 +161,7 @@ export async function postToTikTok({ caption, imageUrls }: PostArgs): Promise<st
       post_info: {
         title: caption.slice(0, 90),
         description: caption,
-        privacy_level: socialEnv("TIKTOK_PRIVACY") ?? "SELF_ONLY",
+        privacy_level: creds.tiktok_privacy || "SELF_ONLY",
       },
       source_info: {
         source: "PULL_FROM_URL",
@@ -171,13 +187,13 @@ export const PUBLISHERS: Record<SocialPlatform, (args: PostArgs) => Promise<stri
   tiktok: postToTikTok,
 };
 
-// Platforms whose credentials are actually configured — used as the default
+// Platforms whose credentials are actually filled in — used as the default
 // when a post doesn't pick platforms explicitly.
-export function configuredPlatforms(): SocialPlatform[] {
+export function configuredPlatforms(creds: SocialCredentials): SocialPlatform[] {
   const out: SocialPlatform[] = [];
-  if (socialEnv("FB_PAGE_ID") && socialEnv("FB_PAGE_ACCESS_TOKEN")) out.push("facebook");
-  if (socialEnv("IG_USER_ID") && socialEnv("FB_PAGE_ACCESS_TOKEN")) out.push("instagram");
-  if (socialEnv("TELEGRAM_BOT_TOKEN") && socialEnv("TELEGRAM_CHANNEL_ID")) out.push("telegram");
-  if (socialEnv("TIKTOK_ACCESS_TOKEN")) out.push("tiktok");
+  if (creds.fb_page_id && creds.fb_page_access_token) out.push("facebook");
+  if (creds.ig_user_id && creds.fb_page_access_token) out.push("instagram");
+  if (creds.telegram_bot_token && creds.telegram_channel_id) out.push("telegram");
+  if (creds.tiktok_access_token) out.push("tiktok");
   return out;
 }
