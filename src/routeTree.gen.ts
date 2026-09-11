@@ -41,6 +41,7 @@ import { Route as AdminOrdersRouteImport } from './routes/admin/orders'
 import { Route as AdminProductsRouteImport } from './routes/admin/products'
 import { Route as AdminRestoreRouteImport } from './routes/admin/restore'
 import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminSocialPostsRouteImport } from './routes/admin/social-posts'
 import { Route as AdminTranslationsRouteImport } from './routes/admin/translations'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as StoreCollectionsSlugRouteImport } from './routes/_store/collections.$slug'
@@ -206,6 +207,11 @@ const AdminSettingsRoute = AdminSettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSocialPostsRoute = AdminSocialPostsRouteImport.update({
+  id: '/social-posts',
+  path: '/social-posts',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminTranslationsRoute = AdminTranslationsRouteImport.update({
   id: '/translations',
   path: '/translations',
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/': typeof StoreIndexRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/admin/products': typeof AdminProductsRoute
   '/admin/restore': typeof AdminRestoreRoute
   '/admin/settings': typeof AdminSettingsRoute
+  '/admin/social-posts': typeof AdminSocialPostsRoute
   '/admin/translations': typeof AdminTranslationsRoute
   '/admin/users': typeof AdminUsersRoute
   '/_store/': typeof StoreIndexRoute
@@ -380,6 +389,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
     | '/admin/'
@@ -416,6 +426,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
     | '/'
@@ -455,6 +466,7 @@ export interface FileRouteTypes {
     | '/admin/products'
     | '/admin/restore'
     | '/admin/settings'
+    | '/admin/social-posts'
     | '/admin/translations'
     | '/admin/users'
     | '/_store/'
@@ -697,6 +709,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminSettingsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/social-posts': {
+      id: '/admin/social-posts'
+      path: '/social-posts'
+      fullPath: '/admin/social-posts'
+      preLoaderRoute: typeof AdminSocialPostsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/translations': {
       id: '/admin/translations'
       path: '/translations'
@@ -793,6 +812,7 @@ interface AdminRouteChildren {
   AdminProductsRoute: typeof AdminProductsRoute
   AdminRestoreRoute: typeof AdminRestoreRoute
   AdminSettingsRoute: typeof AdminSettingsRoute
+  AdminSocialPostsRoute: typeof AdminSocialPostsRoute
   AdminTranslationsRoute: typeof AdminTranslationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
@@ -810,6 +830,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminProductsRoute: AdminProductsRoute,
   AdminRestoreRoute: AdminRestoreRoute,
   AdminSettingsRoute: AdminSettingsRoute,
+  AdminSocialPostsRoute: AdminSocialPostsRoute,
   AdminTranslationsRoute: AdminTranslationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,

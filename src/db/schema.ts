@@ -270,6 +270,25 @@ export const media = sqliteTable("media", {
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 
+// Scheduled social-media posts, managed from /admin/social-posts. The hourly
+// cron trigger (src/server.ts `scheduled`) publishes due rows: Claude writes
+// per-platform captions from the brief, then each selected platform is posted
+// via src/lib/social/. JSON-in-text columns keep the row shape simple in SQLite.
+export const social_posts = sqliteTable("social_posts", {
+  id: text("id").primaryKey().$defaultFn(uuid),
+  topic: text("topic").notNull(),
+  // Rough notes or finished copy; Claude keeps finished copy as-is.
+  brief: text("brief"),
+  image_urls: text("image_urls").notNull().default("[]"), // JSON string[]
+  platforms: text("platforms").notNull().default("[]"), // JSON subset of facebook|instagram|telegram|tiktok
+  scheduled_at: text("scheduled_at").notNull(), // ISO datetime (UTC)
+  status: text("status").notNull().default("scheduled"), // scheduled | published | failed
+  captions: text("captions"), // JSON per-platform captions, filled at publish time
+  results: text("results"), // JSON per-platform outcome, filled at publish time
+  published_at: text("published_at"),
+  created_at: text("created_at").notNull().$defaultFn(nowIso),
+});
+
 export const orders = sqliteTable("orders", {
   id: text("id").primaryKey().$defaultFn(uuid),
   // Nullable: guest checkout creates orders with no associated account.

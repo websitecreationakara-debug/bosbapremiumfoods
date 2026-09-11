@@ -17,6 +17,10 @@
       "migrations_dir": "drizzle/migrations",
     },
   ],
+  // Hourly: publish due social posts (src/server.ts `scheduled`).
+  "triggers": {
+    "crons": ["0 * * * *"],
+  },
   "vars": {
     // Cross-site security dashboard ingest endpoint (see src/lib/audit.ts).
     // Not a secret, just a URL — the shared token is set via `wrangler secret put`.
