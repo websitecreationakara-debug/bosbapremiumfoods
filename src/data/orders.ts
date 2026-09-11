@@ -14,13 +14,13 @@ import {
 import { applyPromo } from "@/lib/promotions";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
-import { notifyPosOfSale, notifyPosOfStockEdit, notifyPosOfVariationEdit } from "@/lib/pos-sync";
 import {
-  getSessionUser,
-  requireOrderViewer,
-  requireStaff,
-  requireUser,
-} from "./_auth";
+  notifyPosOfOrder,
+  notifyPosOfSale,
+  notifyPosOfStockEdit,
+  notifyPosOfVariationEdit,
+} from "@/lib/pos-sync";
+import { getSessionUser, requireOrderViewer, requireStaff, requireUser } from "./_auth";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -316,7 +316,8 @@ export const createOrder = createServerFn({ method: "POST" })
         const stock = stockById.get(id);
         if (stock == null) return null;
         const next = Math.max(0, stock - need);
-        if (addonIdSet.has(id)) return db.update(addons).set({ stock: next }).where(eq(addons.id, id));
+        if (addonIdSet.has(id))
+          return db.update(addons).set({ stock: next }).where(eq(addons.id, id));
         return productIdSet.has(id)
           ? db.update(products).set({ stock: next }).where(eq(products.id, id))
           : db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, id));
@@ -334,6 +335,29 @@ export const createOrder = createServerFn({ method: "POST" })
         return notifyPosOfSale(id, need);
       }),
     );
+
+    // Phase 8: give this order a matching order + invoice in POS too, not
+    // just a stock nudge. Every line (plain product or variant) can be
+    // linked in POS here -- same as the stock-sync loop just above -- so all
+    // of them go, not just top-level products. Addons have no POS
+    // counterpart, so they're excluded here too.
+    const posOrderItems = items
+      .filter((i) => !addonIdSet.has(i.id))
+      .map((i) => ({ siteProductId: i.id, quantity: i.qty, unitPrice: i.price }));
+    if (posOrderItems.length > 0) {
+      await notifyPosOfOrder({
+        siteOrderId: row.id,
+        items: posOrderItems,
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone,
+        customerEmail: row.customer_email,
+        subtotal,
+        discount,
+        deliveryFee: shipping,
+        total,
+        paymentMethod: method === "khqr" ? "bank_qr" : "cash",
+      });
+    }
 
     // COD: notify the store now. KHQR: hold the notification until payment is
     // confirmed (markOrderPaid), so an unpaid online order never alerts the store.
@@ -389,7 +413,10 @@ async function adjustStockForOrderItems(
     ...varRows.map(async (v) => {
       if (v.stock == null) return;
       const next = Math.max(0, v.stock + direction * (neededById.get(v.id) ?? 0));
-      await db.update(product_variations).set({ stock: next }).where(eq(product_variations.id, v.id));
+      await db
+        .update(product_variations)
+        .set({ stock: next })
+        .where(eq(product_variations.id, v.id));
       await notifyPosOfVariationEdit(v.product_id, v.id, { stock: next });
     }),
     // Addons have no POS counterpart, so this is a plain DB-only adjustment.
