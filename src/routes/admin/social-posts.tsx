@@ -10,6 +10,11 @@ import {
 } from "@/data/social-posts";
 import { useProducts, useProductImages, useAllVariations } from "@/hooks/use-products";
 import { groupVariations, priceRangeText } from "@/lib/variants";
+import {
+  parseProductContent,
+  renderFormattedDescription,
+  renderTabBody,
+} from "@/lib/format-description";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -144,6 +149,39 @@ function ProductPicker({
         </Command>
       </PopoverContent>
     </Popover>
+  );
+}
+
+// Read-only — this is exactly what gets posted (plus the price line and
+// link/notes added at publish time). Edit the wording on the product page,
+// not here.
+function ProductContentPreview({ product }: { product: Product }) {
+  if (!product.description?.trim()) {
+    return (
+      <p className="text-sm text-muted-foreground rounded-lg border bg-muted/30 p-3">
+        This product has no description yet — add one on its product page first.
+      </p>
+    );
+  }
+  const { tagline, intro, offers, tabs } = parseProductContent(product.description);
+  return (
+    <div className="rounded-lg border bg-muted/30 p-3 text-sm space-y-3 max-h-64 overflow-y-auto">
+      {tagline && <p className="italic text-muted-foreground">{tagline}</p>}
+      {intro && <p className="whitespace-pre-line">{renderFormattedDescription(intro)}</p>}
+      {offers.length > 0 && (
+        <ul className="list-disc pl-5 space-y-0.5">
+          {offers.map((o, i) => (
+            <li key={i}>{renderFormattedDescription(o)}</li>
+          ))}
+        </ul>
+      )}
+      {tabs.map((t, i) => (
+        <div key={i}>
+          <p className="font-semibold">{t.title}</p>
+          {renderTabBody(t.body)}
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -437,8 +475,25 @@ function SocialPostsAdmin() {
               />
             </div>
 
-            {form.product_id && (
+            {form.product_id && selectedProduct && (
               <>
+                <div>
+                  <div className="flex items-baseline justify-between">
+                    <Label>Description &amp; Tabs</Label>
+                    <span className="text-xs font-medium text-muted-foreground">
+                      {priceRangeText(
+                        selectedProduct,
+                        variationsByProduct.get(selectedProduct.id) ?? [],
+                      )}
+                    </span>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-1.5">
+                    This is what gets posted, straight from the product page. Edit it there, not
+                    here.
+                  </p>
+                  <ProductContentPreview product={selectedProduct} />
+                </div>
+
                 <div>
                   <Label>Extra note (optional)</Label>
                   <p className="text-xs text-muted-foreground">
