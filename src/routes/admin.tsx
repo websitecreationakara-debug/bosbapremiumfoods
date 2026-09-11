@@ -23,6 +23,7 @@ import {
   ShieldCheck,
   DatabaseBackup,
   Languages,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { authClient } from "@/lib/auth-client";
@@ -42,6 +43,7 @@ const nav = [
   { to: "/admin/products", label: "Products", icon: Package },
   { to: "/admin/addons", label: "Addons", icon: PackagePlus },
   { to: "/admin/marketing", label: "Marketing", icon: Megaphone },
+  { to: "/admin/social-posts", label: "Social Posts", icon: Send },
   { to: "/admin/media", label: "Media", icon: Image },
   { to: "/admin/categories", label: "Categories", icon: Tag },
   { to: "/admin/collections", label: "Collections", icon: Layers },
@@ -110,6 +112,7 @@ function AdminLayout() {
     "/admin/products",
     "/admin/addons",
     "/admin/marketing",
+    "/admin/social-posts",
     "/admin/categories",
     "/admin/collections",
     "/admin/media",

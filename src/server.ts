@@ -243,6 +243,15 @@ async function normalizeCatastrophicSsrResponse(response: Response): Promise<Res
 }
 
 export default {
+  // Hourly cron (wrangler.jsonc `triggers.crons`): publish due social posts.
+  // Dynamic import keeps the social stack out of the request path's cold start.
+  async scheduled(_event: unknown, _env: unknown, ctx: { waitUntil(p: Promise<unknown>): void }) {
+    const run = import("./lib/social/publish.server")
+      .then((m) => m.publishDuePosts())
+      .catch((error) => console.error("social cron failed", error));
+    ctx.waitUntil(run);
+  },
+
   async fetch(request: Request, env: unknown, ctx: unknown) {
     // Canonical host: redirect www → apex so the auth session cookie lives on a
     // single host (BETTER_AUTH_URL is the non-www origin). Without this, signing in
