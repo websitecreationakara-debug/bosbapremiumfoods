@@ -16,6 +16,7 @@ import { promoCodeDiscount } from "@/lib/promo-code";
 import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import {
   notifyPosOfOrder,
+  notifyPosOfOrderStatus,
   notifyPosOfSale,
   notifyPosOfStockEdit,
   notifyPosOfVariationEdit,
@@ -446,6 +447,12 @@ export const updateOrderStatus = createServerFn({ method: "POST" })
     if (isCancelled !== wasCancelled) {
       const items = JSON.parse(before.items || "[]") as OrderItem[];
       await adjustStockForOrderItems(db, items, isCancelled ? 1 : -1);
+    }
+
+    // Phase 8: keep POS's copy of this order (if it has one -- see
+    // notifyPosOfOrder) in step with whatever staff set it to here.
+    if (data.status !== before.status) {
+      await notifyPosOfOrderStatus(before.id, data.status);
     }
 
     // Notify on the transition into "shipped" — but only if a tracking link is
