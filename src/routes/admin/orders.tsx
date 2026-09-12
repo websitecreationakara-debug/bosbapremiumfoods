@@ -36,6 +36,7 @@ function OrdersAdmin() {
   });
 
   const setStatus = async (id: string, status: string) => {
+    if (status === "cancelled" && !confirm("Are you sure you want to cancel this order?")) return;
     try {
       await updateOrderStatus({ data: { id, status } });
     } catch (err) {
