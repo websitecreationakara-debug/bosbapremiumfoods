@@ -86,7 +86,7 @@ function AddonRow({ addon }: { addon: Addon }) {
             variant="outline"
             className="rounded-full shrink-0"
             onClick={() => {
-              add(addonToProduct(addon), null, qty);
+              add(addonToProduct(addon), null, qty, { openDrawer: false });
               toast.success(`${addon.title} added`);
               setQty(1);
             }}

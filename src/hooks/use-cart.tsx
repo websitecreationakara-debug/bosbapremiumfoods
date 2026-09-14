@@ -19,7 +19,12 @@ type CartCtx = {
   subtotal: number;
   drawerOpen: boolean;
   setDrawerOpen: (b: boolean) => void;
-  add: (p: Product, variation?: ProductVariation | null, qty?: number) => void;
+  add: (
+    p: Product,
+    variation?: ProductVariation | null,
+    qty?: number,
+    opts?: { openDrawer?: boolean },
+  ) => void;
   remove: (key: string) => void;
   setQty: (key: string, qty: number) => void;
   clear: () => void;
@@ -48,14 +53,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     if (hydrated) localStorage.setItem(STORAGE, JSON.stringify(items));
   }, [items, hydrated]);
 
-  const add: CartCtx["add"] = (p, variation = null, qty = 1) => {
+  const add: CartCtx["add"] = (p, variation = null, qty = 1, opts = {}) => {
     const key = lineKey(p.id, variation?.id);
     setItems((prev) => {
       const existing = prev.find((i) => itemKey(i) === key);
       if (existing) return prev.map((i) => (itemKey(i) === key ? { ...i, qty: i.qty + qty } : i));
       return [...prev, { product: p, variation, qty }];
     });
-    setDrawerOpen(true);
+    if (opts.openDrawer !== false) setDrawerOpen(true);
   };
 
   const remove: CartCtx["remove"] = (key) =>
