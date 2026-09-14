@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useProductAddons } from "@/hooks/use-products";
+import { useCartAddons } from "@/hooks/use-products";
 import { useCart } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { Minus, Plus, ImageIcon } from "lucide-react";
@@ -99,14 +99,16 @@ function AddonRow({ addon }: { addon: Addon }) {
   );
 }
 
-export function ProductAddonPicker({ productId }: { productId: string }) {
-  const { data: addonsList = [] } = useProductAddons(productId);
+// Shown on checkout — offers the union of addons for every product
+// currently in the cart.
+export function CheckoutAddonPicker({ productIds }: { productIds: string[] }) {
+  const { data: addonsList = [] } = useCartAddons(productIds);
   if (addonsList.length === 0) return null;
 
   return (
-    <div className="mt-6 border rounded-2xl px-4">
-      <p className="text-sm font-semibold pt-4 pb-1">Complete your order</p>
-      <p className="text-xs text-muted-foreground pb-1">Add extras to go with this product.</p>
+    <div className="border rounded-2xl px-4">
+      <p className="text-sm font-semibold pt-4 pb-1">Add-on</p>
+      <p className="text-xs text-muted-foreground pb-1">Add extras to go with your order.</p>
       <div className="divide-y">
         {addonsList.map((a) => (
           <AddonRow key={a.id} addon={a} />

@@ -23,6 +23,7 @@ import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { LocationMap } from "@/components/checkout/location-map";
+import { CheckoutAddonPicker } from "@/components/product-addon-picker";
 import {
   MapPin,
   Check,
@@ -89,6 +90,11 @@ export const Route = createFileRoute("/_store/checkout")({
 
 function Checkout() {
   const { items, subtotal, clear, setQty, remove } = useCart();
+  // Real products only — synthetic addon cart lines don't have their own
+  // addon-collection links, so they'd never resolve any recommendations.
+  const cartProductIds = [
+    ...new Set(items.filter((i) => i.product.type !== "addon").map((i) => i.product.id)),
+  ];
   const { user } = useAuth();
   const { data: addresses = [] } = useMyAddresses(!!user);
   const qc = useQueryClient();
@@ -369,7 +375,7 @@ function Checkout() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12 grid lg:grid-cols-[1fr_400px] gap-10">
-      <form onSubmit={placeOrder} className="space-y-6">
+      <form id="checkout-form" onSubmit={placeOrder} className="space-y-6">
         <h1 className="font-display font-semibold tracking-tight text-3xl">Checkout</h1>
 
         <section className="space-y-4 bg-muted rounded-2xl p-6">
@@ -684,14 +690,6 @@ function Checkout() {
             </div>
           </section>
         )}
-
-        <Button type="submit" disabled={submitting} size="lg" className="w-full rounded-full">
-          {submitting
-            ? "Placing order..."
-            : payment === "khqr"
-              ? `Continue to payment — $${total.toFixed(2)}`
-              : `Place order — $${total.toFixed(2)}`}
-        </Button>
       </form>
 
       <aside className="bg-muted rounded-2xl p-6 h-fit sticky top-28 space-y-4">
@@ -822,6 +820,22 @@ function Checkout() {
             <span>${total.toFixed(2)}</span>
           </div>
         </div>
+
+        <Button
+          type="submit"
+          form="checkout-form"
+          disabled={submitting}
+          size="lg"
+          className="w-full rounded-full"
+        >
+          {submitting
+            ? "Placing order..."
+            : payment === "khqr"
+              ? `Continue to payment — $${total.toFixed(2)}`
+              : `Place order — $${total.toFixed(2)}`}
+        </Button>
+
+        <CheckoutAddonPicker productIds={cartProductIds} />
       </aside>
 
       <Dialog open={!!preview} onOpenChange={(open) => !open && setPreview(null)}>

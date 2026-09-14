@@ -13,7 +13,7 @@ import {
   listAddonCollections,
   listAddonCollectionItems,
   listProductAddonCollections,
-  getProductAddons,
+  getAddonsForProducts,
 } from "@/data/addons";
 import { listNavItems, listNavSections, listNavLinks } from "@/data/nav";
 import { listHeroSlides } from "@/data/banners";
@@ -129,11 +129,14 @@ export function useProductAddonCollections() {
   });
 }
 
-export function useProductAddons(productId: string) {
+// Addons for every product currently in the cart, for the checkout page's
+// "Add-on" picker.
+export function useCartAddons(productIds: string[]) {
+  const key = [...productIds].sort().join(",");
   return useQuery({
-    queryKey: ["product_addons", productId],
-    queryFn: () => getProductAddons({ data: { productId } }) as Promise<Addon[]>,
-    enabled: !!productId,
+    queryKey: ["product_addons", "cart", key],
+    queryFn: () => getAddonsForProducts({ data: { productIds } }) as Promise<Addon[]>,
+    enabled: productIds.length > 0,
   });
 }
 

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { asc, eq } from "drizzle-orm";
+import { asc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import { addons, addon_collections, addon_collection_items, product_addon_collections } from "@/db/schema";
 import { requireManager } from "./_auth";
@@ -158,12 +158,15 @@ export const setProductAddonCollections = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-// Public: the addons a product's page should offer, resolved through its
-// linked collections and deduped (a product can link to several collections
-// that happen to share an addon). Draft/unpublished addons are excluded.
-export const getProductAddons = createServerFn({ method: "GET" })
-  .inputValidator((d: { productId: string }) => d)
+// Public: the addons to offer for a whole cart, resolved through every
+// product's linked collections and deduped (products can link to several
+// collections that happen to share an addon, and the cart can hold several
+// products). Shown on checkout. Draft/unpublished addons are excluded.
+export const getAddonsForProducts = createServerFn({ method: "GET" })
+  .inputValidator((d: { productIds: string[] }) => d)
   .handler(async ({ data }) => {
+    if (data.productIds.length === 0) return [];
+
     const rows = await getDb()
       .select({ addon: addons })
       .from(product_addon_collections)
@@ -172,7 +175,7 @@ export const getProductAddons = createServerFn({ method: "GET" })
         eq(addon_collection_items.addon_collection_id, product_addon_collections.addon_collection_id),
       )
       .innerJoin(addons, eq(addons.id, addon_collection_items.addon_id))
-      .where(eq(product_addon_collections.product_id, data.productId));
+      .where(inArray(product_addon_collections.product_id, data.productIds));
 
     const seen = new Set<string>();
     const list: (typeof addons.$inferSelect)[] = [];
