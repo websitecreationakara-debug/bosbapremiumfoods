@@ -32,12 +32,14 @@ import {
 //                                   `?status=all` + write-key rule as products).
 //                                   Supports `?limit` & `?offset`.
 //   GET    /api/v1/addons/{id}   -> one addon
+//   PATCH  /api/v1/addons/{id}   -> partial update (write key required)
+//   DELETE /api/v1/addons/{id}   -> delete (write key required)
 //
-// Read-only for now (no create/update/delete) -- addons are managed from this
-// site's own admin (src/data/addons.ts); POS only needs to read the catalog to
-// sell them as their own line items. See the `addons` table comment in
-// src/db/schema.ts for what an addon is (a small separate catalog attached to
-// a product's checkout, never sold standalone on this site).
+// Addons are also managed from this site's own admin (src/data/addons.ts) --
+// PATCH/DELETE here exist so POS can edit price/stock or remove one of its
+// own accord without a trip to this site's admin. See the `addons` table
+// comment in src/db/schema.ts for what an addon is (a small separate catalog
+// attached to a product's checkout, never sold standalone on this site).
 //
 // Auth: send the key as `x-api-key: <key>` or `Authorization: Bearer <key>`.
 //   PUBLIC_API_KEY        — read access (GET). If PUBLIC_API_WRITE_KEY is unset,
@@ -461,7 +463,7 @@ async function handleGetOne(
   return json(request, { data });
 }
 
-// ---------- addons (read-only) ----------
+// ---------- addons ----------
 
 async function handleAddonList(request: Request, url: URL, level: AuthLevel): Promise<Response> {
   const statusParam = url.searchParams.get("status");
@@ -499,6 +501,78 @@ async function handleAddonGetOne(
     return json(request, { error: "Not found" }, 404);
   }
   return json(request, { data: row });
+}
+
+// Columns a client may PATCH. `id`/`created_at` are server-managed.
+const ADDON_WRITABLE = [
+  "title",
+  "description",
+  "price",
+  "image_url",
+  "stock",
+  "status",
+  "sort_order",
+] as const;
+
+const ADDON_NUMERIC = new Set(["price", "stock", "sort_order"]);
+const ADDON_NULLABLE_NUMERIC = new Set(["stock"]);
+const ADDON_INTEGER = new Set(["stock", "sort_order"]);
+
+function buildAddonFields(body: Record<string, unknown>): FieldResult {
+  const fields: Record<string, unknown> = {};
+  for (const key of ADDON_WRITABLE) {
+    if (!(key in body)) continue;
+    const v = body[key];
+
+    if (key === "title") {
+      if (typeof v !== "string" || v.trim() === "")
+        return { error: "title must be a non-empty string" };
+      fields.title = v.trim();
+    } else if (key === "status") {
+      if (typeof v !== "string" || v.trim() === "")
+        return { error: "status must be a non-empty string" };
+      fields.status = v.trim();
+    } else if (ADDON_NUMERIC.has(key)) {
+      if (v === null) {
+        if (!ADDON_NULLABLE_NUMERIC.has(key)) return { error: `${key} cannot be null` };
+        fields[key] = null;
+      } else {
+        const n = toNum(v);
+        if (n === undefined) return { error: `${key} must be a number` };
+        fields[key] = ADDON_INTEGER.has(key) ? Math.trunc(n) : n;
+      }
+    } else {
+      // nullable text columns (description, image_url)
+      if (v === null) fields[key] = null;
+      else if (typeof v === "string") fields[key] = v;
+      else return { error: `${key} must be a string or null` };
+    }
+  }
+  return { fields };
+}
+
+async function handleAddonPatch(request: Request, id: string): Promise<Response> {
+  const [existing] = await getDb().select().from(addons).where(eq(addons.id, id));
+  if (!existing) return json(request, { error: "Not found" }, 404);
+
+  const body = await readJsonBody(request);
+  if (!body) return json(request, { error: "Body must be a JSON object" }, 400);
+
+  const built = buildAddonFields(body);
+  if ("error" in built) return json(request, { error: built.error }, 400);
+  if (Object.keys(built.fields).length === 0) {
+    return json(request, { error: "No writable fields in body" }, 422);
+  }
+
+  await getDb().update(addons).set(built.fields).where(eq(addons.id, id));
+  const [row] = await getDb().select().from(addons).where(eq(addons.id, id));
+  return json(request, { data: row });
+}
+
+async function handleAddonDelete(request: Request, id: string): Promise<Response> {
+  const deleted = await getDb().delete(addons).where(eq(addons.id, id)).returning({ id: addons.id });
+  if (deleted.length === 0) return json(request, { error: "Not found" }, 404);
+  return json(request, { data: { id, deleted: true } });
 }
 
 async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {
@@ -725,10 +799,22 @@ export async function handlePublicApi(request: Request): Promise<Response | null
   const isAddonCollection = url.pathname === "/api/v1/addons";
   const addonIdMatch = url.pathname.match(/^\/api\/v1\/addons\/([^/]+)$/);
   if (isAddonCollection || addonIdMatch) {
-    if (request.method !== "GET") return json(request, { error: "Method not allowed" }, 405);
+    const isAddonWrite = ["PATCH", "DELETE"].includes(request.method);
+    if (isAddonWrite && level !== "write") {
+      return json(request, { error: "Write access required" }, 403);
+    }
+    if (isAddonCollection && request.method !== "GET") {
+      return json(request, { error: "Method not allowed" }, 405);
+    }
+    if (addonIdMatch && !["GET", "PATCH", "DELETE"].includes(request.method)) {
+      return json(request, { error: "Method not allowed" }, 405);
+    }
     try {
       if (isAddonCollection) return await handleAddonList(request, url, level);
-      return await handleAddonGetOne(request, decodeURIComponent(addonIdMatch![1]), level);
+      const addonId = decodeURIComponent(addonIdMatch![1]);
+      if (request.method === "PATCH") return await handleAddonPatch(request, addonId);
+      if (request.method === "DELETE") return await handleAddonDelete(request, addonId);
+      return await handleAddonGetOne(request, addonId, level);
     } catch (error) {
       console.error("public-api error", error);
       return json(request, { error: "Internal error" }, 500);
