@@ -374,11 +374,11 @@ function Checkout() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl px-6 py-12 grid lg:grid-cols-[1fr_400px] gap-10">
-      <form id="checkout-form" onSubmit={placeOrder} className="space-y-6">
+    <div className="mx-auto max-w-5xl px-0 sm:px-6 py-6 sm:py-12 grid lg:grid-cols-[1fr_400px] gap-6 sm:gap-10">
+      <form id="checkout-form" onSubmit={placeOrder} className="space-y-6 px-4 sm:px-0">
         <h1 className="font-display font-semibold tracking-tight text-3xl">Checkout</h1>
 
-        <section className="space-y-4 bg-muted rounded-2xl p-6">
+        <section className="space-y-4 bg-muted -mx-4 sm:mx-0 rounded-none sm:rounded-2xl p-6">
           <h2 className="font-display font-semibold text-lg">Delivery Details</h2>
 
           <div className="grid grid-cols-2 gap-2">
@@ -648,7 +648,7 @@ function Checkout() {
         </section>
 
         {PAYMENT_METHODS_ENABLED && (
-          <section className="space-y-4 bg-muted rounded-2xl p-6">
+          <section className="space-y-4 bg-muted -mx-4 sm:mx-0 rounded-none sm:rounded-2xl p-6">
             <h2 className="font-display font-semibold text-lg">Payment Method</h2>
             <div className="grid sm:grid-cols-2 gap-3">
               {(
@@ -692,7 +692,7 @@ function Checkout() {
         )}
       </form>
 
-      <aside className="bg-muted rounded-2xl p-6 h-fit sticky top-28 space-y-4">
+      <aside className="bg-muted rounded-none sm:rounded-2xl p-6 h-fit sticky top-28 space-y-4">
         <h2 className="font-display font-semibold text-lg">Order Summary</h2>
         <div className="space-y-3 max-h-80 overflow-y-auto">
           {items.map((item) => {
@@ -757,6 +757,13 @@ function Checkout() {
             );
           })}
         </div>
+        <Link
+          to="/shop"
+          className="flex items-center gap-2 border-t pt-4 text-sm font-semibold hover:text-brand transition-colors"
+        >
+          <Plus className="size-4" />
+          Add more items
+        </Link>
         <div className="border-t pt-4">
           {applied ? (
             <div className="flex items-center justify-between text-sm">

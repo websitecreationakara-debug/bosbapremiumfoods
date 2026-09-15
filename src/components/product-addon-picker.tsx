@@ -107,7 +107,7 @@ export function CheckoutAddonPicker({ productIds }: { productIds: string[] }) {
 
   return (
     <div className="border rounded-2xl px-4">
-      <p className="text-sm font-semibold pt-4 pb-1">Add-on</p>
+      <p className="text-sm font-semibold pt-4 pb-1">Recommend Add-on</p>
       <p className="text-xs text-muted-foreground pb-1">Add extras to go with your order.</p>
       <div className="divide-y">
         {addonsList.map((a) => (
