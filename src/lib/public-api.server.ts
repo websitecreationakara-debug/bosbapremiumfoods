@@ -1,7 +1,7 @@
 import { env } from "cloudflare:workers";
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products, product_variations, product_images, promotions } from "@/db/schema";
+import { products, product_variations, product_images, promotions, addons } from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { slugify, isUuid } from "@/lib/utils";
 import {
@@ -28,6 +28,17 @@ import {
 // Every product payload carries its `variations[]` and `images[]`. GET prices
 // reflect any live promotion discount, matching the storefront.
 //
+//   GET    /api/v1/addons        -> list (published only by default; same
+//                                   `?status=all` + write-key rule as products).
+//                                   Supports `?limit` & `?offset`.
+//   GET    /api/v1/addons/{id}   -> one addon
+//
+// Read-only for now (no create/update/delete) -- addons are managed from this
+// site's own admin (src/data/addons.ts); POS only needs to read the catalog to
+// sell them as their own line items. See the `addons` table comment in
+// src/db/schema.ts for what an addon is (a small separate catalog attached to
+// a product's checkout, never sold standalone on this site).
+//
 // Auth: send the key as `x-api-key: <key>` or `Authorization: Bearer <key>`.
 //   PUBLIC_API_KEY        — read access (GET). If PUBLIC_API_WRITE_KEY is unset,
 //                           this key also grants writes.
@@ -40,6 +51,7 @@ import {
 
 type ProductRow = typeof products.$inferSelect;
 type VariationRow = typeof product_variations.$inferSelect;
+type AddonRow = typeof addons.$inferSelect;
 
 type ApiEnv = {
   PUBLIC_API_KEY?: string;
@@ -449,6 +461,46 @@ async function handleGetOne(
   return json(request, { data });
 }
 
+// ---------- addons (read-only) ----------
+
+async function handleAddonList(request: Request, url: URL, level: AuthLevel): Promise<Response> {
+  const statusParam = url.searchParams.get("status");
+  const wantsNonPublished = statusParam && statusParam !== "published";
+  if (wantsNonPublished && level !== "write") {
+    return json(request, { error: "Write access required to list non-published addons" }, 403);
+  }
+
+  const limit = Math.min(Math.max(toNum(url.searchParams.get("limit")) ?? 200, 1), 500);
+  const offset = Math.max(Math.trunc(toNum(url.searchParams.get("offset")) ?? 0), 0);
+
+  const q = getDb()
+    .select()
+    .from(addons)
+    .$dynamic()
+    .orderBy(asc(addons.sort_order), desc(addons.created_at))
+    .limit(limit)
+    .offset(offset);
+
+  if (!statusParam || statusParam === "published") q.where(eq(addons.status, "published"));
+  else if (statusParam !== "all") q.where(eq(addons.status, statusParam));
+
+  const data: AddonRow[] = await q;
+  return json(request, { data, count: data.length, limit, offset });
+}
+
+async function handleAddonGetOne(
+  request: Request,
+  id: string,
+  level: AuthLevel,
+): Promise<Response> {
+  const [row] = await getDb().select().from(addons).where(eq(addons.id, id));
+  if (!row) return json(request, { error: "Not found" }, 404);
+  if (row.status !== "published" && level !== "write") {
+    return json(request, { error: "Not found" }, 404);
+  }
+  return json(request, { data: row });
+}
+
 async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {
   try {
     const parsed = await request.json();
@@ -669,6 +721,19 @@ export async function handlePublicApi(request: Request): Promise<Response | null
 
   const level = authLevel(request);
   if (level === "none") return json(request, { error: "Unauthorized" }, 401);
+
+  const isAddonCollection = url.pathname === "/api/v1/addons";
+  const addonIdMatch = url.pathname.match(/^\/api\/v1\/addons\/([^/]+)$/);
+  if (isAddonCollection || addonIdMatch) {
+    if (request.method !== "GET") return json(request, { error: "Method not allowed" }, 405);
+    try {
+      if (isAddonCollection) return await handleAddonList(request, url, level);
+      return await handleAddonGetOne(request, decodeURIComponent(addonIdMatch![1]), level);
+    } catch (error) {
+      console.error("public-api error", error);
+      return json(request, { error: "Internal error" }, 500);
+    }
+  }
 
   const isCollection = url.pathname === "/api/v1/products";
   const idMatch = url.pathname.match(/^\/api\/v1\/products\/([^/]+)$/);
