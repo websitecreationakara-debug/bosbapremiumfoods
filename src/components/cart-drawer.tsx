@@ -56,12 +56,13 @@ export function CartDrawer() {
                 const { product, variation, qty } = item;
                 const key = itemKey(item);
                 const unit = itemUnitPrice(item);
+                const image = variation?.image_url || product.image_url;
                 return (
                   <div key={key} className="flex gap-3">
                     <div className="size-20 rounded-xl bg-muted overflow-hidden shrink-0">
-                      {product.image_url && (
+                      {image && (
                         <img
-                          src={product.image_url}
+                          src={image}
                           alt={product.title}
                           className="w-full h-full object-cover"
                           loading="lazy"
