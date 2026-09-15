@@ -89,7 +89,11 @@ export function SiteHeader() {
             <Menu className="size-5" />
           </button>
 
-          <Link to="/" className="flex items-center shrink-0" aria-label="BOSBA Premium Foods">
+          <Link
+            to="/"
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center shrink-0 lg:static lg:translate-x-0 lg:translate-y-0"
+            aria-label="BOSBA Premium Foods"
+          >
             <img
               src="/logo.png"
               alt="BOSBA Premium Foods"
