@@ -32,14 +32,16 @@ import {
 //                                   `?status=all` + write-key rule as products).
 //                                   Supports `?limit` & `?offset`.
 //   GET    /api/v1/addons/{id}   -> one addon
+//   POST   /api/v1/addons        -> create; body = addon fields, title required
+//                                   (write key required)
 //   PATCH  /api/v1/addons/{id}   -> partial update (write key required)
 //   DELETE /api/v1/addons/{id}   -> delete (write key required)
 //
 // Addons are also managed from this site's own admin (src/data/addons.ts) --
-// PATCH/DELETE here exist so POS can edit price/stock or remove one of its
-// own accord without a trip to this site's admin. See the `addons` table
-// comment in src/db/schema.ts for what an addon is (a small separate catalog
-// attached to a product's checkout, never sold standalone on this site).
+// this API exists so POS can create/edit/delete one of its own accord without
+// a trip to this site's admin. See the `addons` table comment in
+// src/db/schema.ts for what an addon is (a small separate catalog attached to
+// a product's checkout, never sold standalone on this site).
 //
 // Auth: send the key as `x-api-key: <key>` or `Authorization: Bearer <key>`.
 //   PUBLIC_API_KEY        — read access (GET). If PUBLIC_API_WRITE_KEY is unset,
@@ -551,6 +553,23 @@ function buildAddonFields(body: Record<string, unknown>): FieldResult {
   return { fields };
 }
 
+async function handleAddonCreate(request: Request): Promise<Response> {
+  const body = await readJsonBody(request);
+  if (!body) return json(request, { error: "Body must be a JSON object" }, 400);
+  if (typeof body.title !== "string" || body.title.trim() === "") {
+    return json(request, { error: "title is required" }, 400);
+  }
+
+  const built = buildAddonFields(body);
+  if ("error" in built) return json(request, { error: built.error }, 400);
+
+  const [created] = await getDb()
+    .insert(addons)
+    .values(built.fields as typeof addons.$inferInsert)
+    .returning();
+  return json(request, { data: created }, 201);
+}
+
 async function handleAddonPatch(request: Request, id: string): Promise<Response> {
   const [existing] = await getDb().select().from(addons).where(eq(addons.id, id));
   if (!existing) return json(request, { error: "Not found" }, 404);
@@ -799,18 +818,19 @@ export async function handlePublicApi(request: Request): Promise<Response | null
   const isAddonCollection = url.pathname === "/api/v1/addons";
   const addonIdMatch = url.pathname.match(/^\/api\/v1\/addons\/([^/]+)$/);
   if (isAddonCollection || addonIdMatch) {
-    const isAddonWrite = ["PATCH", "DELETE"].includes(request.method);
+    const isAddonWrite = ["POST", "PATCH", "DELETE"].includes(request.method);
     if (isAddonWrite && level !== "write") {
       return json(request, { error: "Write access required" }, 403);
     }
-    if (isAddonCollection && request.method !== "GET") {
+    if (isAddonCollection && !["GET", "POST"].includes(request.method)) {
       return json(request, { error: "Method not allowed" }, 405);
     }
     if (addonIdMatch && !["GET", "PATCH", "DELETE"].includes(request.method)) {
       return json(request, { error: "Method not allowed" }, 405);
     }
     try {
-      if (isAddonCollection) return await handleAddonList(request, url, level);
+      if (isAddonCollection && request.method === "GET") return await handleAddonList(request, url, level);
+      if (isAddonCollection && request.method === "POST") return await handleAddonCreate(request);
       const addonId = decodeURIComponent(addonIdMatch![1]);
       if (request.method === "PATCH") return await handleAddonPatch(request, addonId);
       if (request.method === "DELETE") return await handleAddonDelete(request, addonId);
