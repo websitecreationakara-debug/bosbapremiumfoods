@@ -116,10 +116,10 @@ function MegaDropdown({
                   <NavigationMenuLink asChild>
                     <Link
                       to={s.cta_link}
-                      className="group flex items-center gap-1 text-sm font-semibold text-brand hover:text-brand/80"
+                      className="group/cta flex items-center gap-1 text-sm font-semibold hover:text-brand"
                     >
                       {s.cta_label ?? "View All"}
-                      <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-0.5" />
+                      <ArrowRight className="size-3.5 transition-transform group-hover/cta:translate-x-0.5" />
                     </Link>
                   </NavigationMenuLink>
                 </li>
@@ -155,7 +155,13 @@ function MegaDropdown({
 function MegaTextLink({ link: l, collections }: { link: NavMenuLink; collections: Collection[] }) {
   const slug = collections.find((c) => c.id === l.collection_id)?.slug;
   const isExternal = !slug && !!l.custom_url?.startsWith("http");
-  const inner = <span className="transition-colors group-hover:text-brand">{l.label}</span>;
+  // Named group ("link") so this link's own hover doesn't bleed into every
+  // other link in the dropdown — the mega-menu's outer <ul> also carries the
+  // unnamed `group` class (for the chevron animation), and an unnamed
+  // `group-hover:` matches ANY ancestor `.group`, not just the nearest one —
+  // so every link here would light up gold as soon as the dropdown opened at
+  // all, regardless of which item the mouse was actually over.
+  const inner = <span className="transition-colors group-hover/link:text-brand">{l.label}</span>;
   return (
     <li>
       <NavigationMenuLink asChild>
@@ -163,7 +169,7 @@ function MegaTextLink({ link: l, collections }: { link: NavMenuLink; collections
           <Link
             to="/collections/$slug"
             params={{ slug }}
-            className="group flex items-center gap-1 text-sm"
+            className="group/link flex items-center gap-1 text-sm"
           >
             {inner}
           </Link>
@@ -172,13 +178,13 @@ function MegaTextLink({ link: l, collections }: { link: NavMenuLink; collections
             href={l.custom_url ?? "#"}
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-1 text-sm"
+            className="group/link flex items-center gap-1 text-sm"
           >
             {inner}
             <ExternalLink className="size-3 text-muted-foreground" />
           </a>
         ) : (
-          <Link to={l.custom_url ?? "/shop"} className="group flex items-center gap-1 text-sm">
+          <Link to={l.custom_url ?? "/shop"} className="group/link flex items-center gap-1 text-sm">
             {inner}
           </Link>
         )}
