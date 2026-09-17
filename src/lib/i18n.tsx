@@ -11,6 +11,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   getTranslations,
   getSiteLocale,
+  getEnabledLocales,
   LOCALE_CODES,
   type Locale,
   type TranslationStrings,
@@ -156,6 +157,7 @@ type Ctx = {
   t: (key: I18nKey, vars?: Record<string, string | number>) => string;
   strings: TranslationStrings;
   siteLocale: Locale;
+  enabledLocales: Locale[];
 };
 
 const I18nContext = createContext<Ctx | null>(null);
@@ -187,6 +189,14 @@ export function LanguageProvider({
     refetchOnWindowFocus: true,
   });
 
+  const { data: enabledLocales } = useQuery({
+    queryKey: ["enabled-locales"],
+    queryFn: () => getEnabledLocales() as Promise<Locale[]>,
+    staleTime: 0,
+    refetchOnWindowFocus: true,
+  });
+  const resolvedEnabledLocales = enabledLocales ?? LOCALE_CODES;
+
   const resolvedSiteLocale = siteLocale ?? "en";
   const [locale, setLocaleState] = useState<Locale>(initialSiteLocale ?? "en");
   // Whether the visitor has an explicit saved preference — once true, changes
@@ -209,9 +219,19 @@ export function LanguageProvider({
 
   useEffect(() => {
     if (hasSavedPreference.current) return;
-    setLocaleState(resolvedSiteLocale);
-    document.documentElement.lang = resolvedSiteLocale;
-  }, [resolvedSiteLocale]);
+    const fallback = resolvedEnabledLocales.includes(resolvedSiteLocale) ? resolvedSiteLocale : "en";
+    setLocaleState(fallback);
+    document.documentElement.lang = fallback;
+  }, [resolvedSiteLocale, resolvedEnabledLocales]);
+
+  // A saved preference (or the current locale generally) can go stale if an
+  // admin turns that language off after the fact — never leave the visitor
+  // stuck showing a language that's no longer offered.
+  useEffect(() => {
+    if (resolvedEnabledLocales.includes(locale)) return;
+    setLocaleState("en");
+    document.documentElement.lang = "en";
+  }, [locale, resolvedEnabledLocales]);
 
   const setLocale = (l: Locale) => {
     hasSavedPreference.current = true;
@@ -228,6 +248,7 @@ export function LanguageProvider({
     const invalidate = () => {
       qc.invalidateQueries({ queryKey: ["translations"] });
       qc.invalidateQueries({ queryKey: ["site-locale"] });
+      qc.invalidateQueries({ queryKey: ["enabled-locales"] });
     };
     const onStorage = (e: StorageEvent) => {
       if (e.key === STORAGE_PING_KEY) invalidate();
@@ -259,7 +280,14 @@ export function LanguageProvider({
 
   return (
     <I18nContext.Provider
-      value={{ locale, setLocale, t, strings: resolvedStrings, siteLocale: resolvedSiteLocale }}
+      value={{
+        locale,
+        setLocale,
+        t,
+        strings: resolvedStrings,
+        siteLocale: resolvedSiteLocale,
+        enabledLocales: resolvedEnabledLocales,
+      }}
     >
       {children}
     </I18nContext.Provider>

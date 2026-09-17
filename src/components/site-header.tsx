@@ -64,7 +64,7 @@ export function SiteHeader() {
   const [searchOpen, setSearchOpen] = useState(false);
 
   const { theme, toggle } = useTheme();
-  const { locale, setLocale, t } = useI18n();
+  const { locale, setLocale, t, enabledLocales } = useI18n();
 
   const runSearch = (value: string) => {
     const v = value.trim();
@@ -177,7 +177,7 @@ export function SiteHeader() {
                 <DropdownMenuLabel className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Globe className="size-3.5" /> {LOCALES.find((l) => l.code === locale)?.label}
                 </DropdownMenuLabel>
-                {LOCALES.map((l) => (
+                {LOCALES.filter((l) => enabledLocales.includes(l.code)).map((l) => (
                   <DropdownMenuItem
                     key={l.code}
                     onClick={() => setLocale(l.code)}
@@ -423,7 +423,7 @@ export function SiteHeader() {
                 {LOCALES.find((l) => l.code === locale)?.label}
               </p>
               <div className="flex flex-wrap gap-2 px-2">
-                {LOCALES.map((l) => (
+                {LOCALES.filter((l) => enabledLocales.includes(l.code)).map((l) => (
                   <button
                     key={l.code}
                     onClick={() => setLocale(l.code)}

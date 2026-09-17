@@ -6,15 +6,18 @@ import {
   getTranslations,
   getSiteLocale,
   getAcceptedKeys,
+  getEnabledLocales,
   saveTranslations,
   setSiteLocale,
   setAcceptedKey,
+  setLocaleEnabled,
 } from "@/data/translations";
 import { I18N_KEYS, LOCALES, broadcastTranslationsUpdated, type I18nKey, type Locale } from "@/lib/i18n";
 import type { TranslationStrings } from "@/data/translations";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -99,10 +102,15 @@ function TranslationsAdmin() {
     queryKey: ["accepted-keys"],
     queryFn: () => getAcceptedKeys() as Promise<Record<"km" | "ja", string[]>>,
   });
+  const { data: enabledLocales = ["en", "km", "ja"] as Locale[] } = useQuery({
+    queryKey: ["enabled-locales"],
+    queryFn: () => getEnabledLocales() as Promise<Locale[]>,
+  });
 
   const [edits, setEdits] = useState<EditMap>(EMPTY_EDITS);
   const [saving, setSaving] = useState(false);
   const [savingLocale, setSavingLocale] = useState(false);
+  const [togglingLocale, setTogglingLocale] = useState<"km" | "ja" | null>(null);
   const [activeTab, setActiveTab] = useState(SECTIONS[0].title);
   const [search, setSearch] = useState("");
   const [filterMode, setFilterMode] = useState<FilterMode>("all");
@@ -175,6 +183,27 @@ function TranslationsAdmin() {
     setSavingLocale(false);
   };
 
+  const toggleLocale = async (locale: "km" | "ja", enabled: boolean) => {
+    setTogglingLocale(locale);
+    qc.setQueryData(["enabled-locales"], (prev?: Locale[]) => {
+      const set = new Set(prev ?? enabledLocales);
+      if (enabled) set.add(locale);
+      else set.delete(locale);
+      return [...set];
+    });
+    try {
+      await setLocaleEnabled({ data: { locale, enabled } });
+      toast.success(
+        `${LOCALES.find((l) => l.code === locale)?.label ?? locale} is now ${enabled ? "visible" : "hidden"} to customers`,
+      );
+      broadcastTranslationsUpdated();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update language visibility");
+    }
+    qc.invalidateQueries({ queryKey: ["enabled-locales"] });
+    setTogglingLocale(null);
+  };
+
   const toggleAccepted = async (locale: "km" | "ja", key: string, next: boolean) => {
     qc.setQueryData(["accepted-keys"], (prev?: Record<"km" | "ja", string[]>) => {
       const p = prev ?? { km: [], ja: [] };
@@ -237,7 +266,7 @@ function TranslationsAdmin() {
             <Globe className="size-4 text-muted-foreground" />
             <span className="text-muted-foreground">Default website language</span>
             <Select
-              value={siteLocale}
+              value={enabledLocales.includes(siteLocale) ? siteLocale : "en"}
               onValueChange={(v) => changeSiteLocale(v as Locale)}
               disabled={savingLocale}
             >
@@ -245,7 +274,7 @@ function TranslationsAdmin() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {LOCALES.map((l) => (
+                {LOCALES.filter((l) => enabledLocales.includes(l.code)).map((l) => (
                   <SelectItem key={l.code} value={l.code}>
                     {l.label}
                   </SelectItem>
@@ -304,6 +333,16 @@ function TranslationsAdmin() {
                 >
                   {pct === 100 ? "complete" : "in progress"}
                 </span>
+                <label className="flex items-center gap-2 shrink-0 pl-2 border-l">
+                  <Switch
+                    checked={enabledLocales.includes(code)}
+                    disabled={togglingLocale === code}
+                    onCheckedChange={(checked) => toggleLocale(code, checked)}
+                  />
+                  <span className="text-sm text-muted-foreground">
+                    {enabledLocales.includes(code) ? "Visible to customers" : "Hidden from customers"}
+                  </span>
+                </label>
               </div>
             );
           })}
