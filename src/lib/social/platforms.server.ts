@@ -13,7 +13,17 @@ export type SocialCredentials = {
   tiktok_privacy: string;
 };
 
-type PostArgs = { caption: string; imageUrls: string[]; creds: SocialCredentials };
+type PostArgs = {
+  caption: string;
+  imageUrls: string[];
+  creds: SocialCredentials;
+  // The product page to send customers to when they click the post. Facebook
+  // link-posts to it (see postToFacebook) instead of uploading the photo
+  // directly — a directly-uploaded photo opens Facebook's own photo viewer on
+  // click, with no way back to the site. Null for freeform posts with no
+  // linked product, which fall back to a plain photo/feed post.
+  productUrl: string | null;
+};
 
 const GRAPH_API = "https://graph.facebook.com/v21.0";
 
@@ -35,9 +45,25 @@ function require(value: string | null, label: string): string {
   return value;
 }
 
-export async function postToFacebook({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+export async function postToFacebook({
+  caption,
+  imageUrls,
+  creds,
+  productUrl,
+}: PostArgs): Promise<string> {
   const pageId = require(creds.fb_page_id, "Facebook Page ID");
   const access_token = require(creds.fb_page_access_token, "Facebook Page access token");
+
+  // Linked to a real product: post as a link post so the whole card (image
+  // included) is clickable through to the product page. A directly-uploaded
+  // photo (the branches below) opens in Facebook's own photo viewer instead —
+  // there's no click-through at all, regardless of what the caption text
+  // says. Facebook scrapes `link` for its own preview image via the product
+  // page's og:image, so the photo doesn't need separate uploading here.
+  if (productUrl) {
+    const data = await graphPost(`${pageId}/feed`, { message: caption, link: productUrl, access_token });
+    return `post ${data.id}`;
+  }
 
   if (imageUrls.length === 0) {
     const data = await graphPost(`${pageId}/feed`, { message: caption, access_token });

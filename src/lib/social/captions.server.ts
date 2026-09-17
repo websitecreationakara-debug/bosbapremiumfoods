@@ -1,6 +1,5 @@
 import { parseProductContent } from "@/lib/format-description";
-import { slugify } from "@/lib/utils";
-import { SITE_URL } from "./env.server";
+import { productUrl } from "./env.server";
 import type { SocialPlatform } from "./platforms.server";
 
 export type Captions = Record<SocialPlatform, string>;
@@ -61,7 +60,7 @@ export function buildCaptions(args: {
   productId: string;
   note: string | null;
 }): Captions {
-  const url = `${SITE_URL}/product/${slugify(args.title) || args.productId}`;
+  const url = productUrl(args.title, args.productId);
   const body = [args.note?.trim(), productBody(args.description)].filter(Boolean).join("\n\n");
   const price = `Price: ${args.priceText}`;
 

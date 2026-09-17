@@ -3,7 +3,7 @@ import { getDb } from "@/db";
 import { social_posts, social_connections, products, product_variations } from "@/db/schema";
 import { priceRangeText } from "@/lib/variants";
 import { buildCaptions, type Captions } from "./captions.server";
-import { absoluteImageUrl } from "./env.server";
+import { absoluteImageUrl, productUrl } from "./env.server";
 import {
   PUBLISHERS,
   configuredPlatforms,
@@ -83,12 +83,18 @@ export async function publishPost(postId: string): Promise<PublishResult> {
         tiktok: [post.topic, post.brief].filter(Boolean).join("\n\n"),
       };
 
+  const linkUrl = product ? productUrl(product.title, product.id) : null;
   const results: PublishResult = {};
   for (const platform of platforms) {
     try {
       results[platform] = {
         ok: true,
-        detail: await PUBLISHERS[platform]({ caption: captions[platform], imageUrls, creds }),
+        detail: await PUBLISHERS[platform]({
+          caption: captions[platform],
+          imageUrls,
+          creds,
+          productUrl: linkUrl,
+        }),
       };
     } catch (err) {
       results[platform] = { ok: false, detail: err instanceof Error ? err.message : String(err) };
