@@ -45,6 +45,7 @@ type CreateOrderInput = {
   scheduled_at?: string | null;
   delivery_method?: string | null;
   payment_method?: string | null;
+  note?: string | null;
 };
 
 // Flat-rate shipping below the free-delivery threshold (kept in sync with the
@@ -87,6 +88,7 @@ async function notifyOrderPlaced(row: typeof orders.$inferSelect, items: OrderIt
     location_lng: row.location_lng,
     scheduled_at: row.scheduled_at,
     delivery_method: row.delivery_method,
+    note: row.note,
   });
 }
 
@@ -311,6 +313,7 @@ export const createOrder = createServerFn({ method: "POST" })
         location_lng: deliveryMethod === "pickup" ? null : (data.location_lng ?? null),
         scheduled_at: data.scheduled_at?.trim() || null,
         delivery_method: deliveryMethod,
+        note: data.note?.trim() || null,
       })
       .returning();
 

@@ -125,6 +125,7 @@ function Checkout() {
   const [payment, setPayment] = useState<"cod" | "khqr">("cod");
   const [deliveryMethod, setDeliveryMethod] = useState<"delivery" | "pickup">("delivery");
   const [preview, setPreview] = useState<{ url: string; title: string } | null>(null);
+  const [note, setNote] = useState("");
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const appliedDefault = useRef(false);
@@ -303,6 +304,7 @@ function Checkout() {
           scheduled_at: scheduledAt,
           delivery_method: deliveryMethod,
           payment_method: payment,
+          note: note.trim() || null,
         },
       });
     } catch (err) {
@@ -754,6 +756,20 @@ function Checkout() {
               </div>
             );
           })}
+        </div>
+        <div className="border-t pt-4 space-y-2">
+          <Label htmlFor="order-note" className="text-sm font-semibold">
+            Note for your order
+          </Label>
+          <textarea
+            id="order-note"
+            value={note}
+            onChange={(e) => setNote(e.target.value.slice(0, 500))}
+            placeholder="e.g. delivery instructions, gift message..."
+            rows={3}
+            maxLength={500}
+            className="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+          />
         </div>
         <Link
           to="/shop"

@@ -140,6 +140,11 @@ function OrdersAdmin() {
                       🗓️ Scheduled: {o.scheduled_at.replace("T", " ")}
                     </div>
                   )}
+                  {o.note && (
+                    <div className="mt-1 text-xs text-muted-foreground">
+                      <span className="font-medium text-foreground">📝 Note:</span> {o.note}
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-3">{new Date(o.created_at).toLocaleDateString()}</td>
                 <td className="px-6 py-3">

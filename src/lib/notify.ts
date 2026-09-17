@@ -20,6 +20,7 @@ export type OrderNotification = {
   postal_code?: string | null;
   scheduled_at?: string | null;
   delivery_method?: string | null;
+  note?: string | null;
 };
 
 // datetime-local strings ("2026-07-01T14:00") shown as "2026-07-01 14:00".
@@ -125,6 +126,7 @@ export async function notifyNewOrder(order: OrderNotification): Promise<void> {
     `${isPickup ? "🏪" : "Deliver to:"} ${shipTo || "—"}`,
     ...(schedule ? [`🗓️ Scheduled: ${schedule}`] : []),
     ...(mapLink ? [`📍 Map: ${mapLink}`] : []),
+    ...(order.note ? [`📝 Note: ${order.note}`] : []),
     "Items:",
     ...order.items.map((i) => `  ${i.qty}× ${i.title} — $${(i.price * i.qty).toFixed(2)}`),
     `Sub Total: $${subtotal.toFixed(2)}`,
@@ -192,6 +194,7 @@ async function sendEmail(
         <p style="margin:0 0 2px"><strong>${order.delivery_method === "pickup" ? "🏪" : "Deliver to:"}</strong> ${escapeHtml(shipTo || "—")}</p>
         ${formatSchedule(order.scheduled_at) ? `<p style="margin:0 0 2px"><strong>🗓️ Scheduled:</strong> ${escapeHtml(formatSchedule(order.scheduled_at)!)}</p>` : ""}
         ${order.delivery_method !== "pickup" && mapsUrl(order) ? `<p style="margin:0 0 16px"><strong>📍 Location:</strong> <a href="${mapsUrl(order)}">Open in Google Maps</a></p>` : ""}
+        ${order.note ? `<p style="margin:0 0 16px"><strong>📝 Note:</strong> ${escapeHtml(order.note)}</p>` : ""}
         <table style="border-collapse:collapse;width:100%;border-top:1px solid #eee">${rows}</table>
         ${totalsHtml(order)}`);
     await resend.emails.send({

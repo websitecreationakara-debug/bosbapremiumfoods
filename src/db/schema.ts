@@ -319,6 +319,8 @@ export const orders = sqliteTable("orders", {
   scheduled_at: text("scheduled_at"),
   // "delivery" | "pickup" (customer collects in-store — no delivery fee, no address needed).
   delivery_method: text("delivery_method").notNull().default("delivery"),
+  // Optional free-text note the customer left at checkout (e.g. delivery instructions).
+  note: text("note"),
   // "cod" (cash on delivery) | "khqr" (pay online via the KHQR gateway).
   payment_method: text("payment_method").notNull().default("cod"),
   // "unpaid" | "paid". COD orders stay unpaid until delivery; KHQR orders flip to
