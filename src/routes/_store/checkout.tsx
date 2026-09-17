@@ -151,7 +151,7 @@ function Checkout() {
 
   const applyAddress = (a: Address) => {
     if (nameRef.current) nameRef.current.value = a.recipient_name || user?.name || "";
-    if (phoneRef.current) phoneRef.current.value = a.phone || "";
+    if (phoneRef.current) phoneRef.current.value = a.phone || user?.phone || "";
     if (addressRef.current) addressRef.current.value = a.address || "";
     if (cityRef.current) cityRef.current.value = a.city || "";
     // A saved address is a deliberate, complete choice — treat it like manual
@@ -165,7 +165,7 @@ function Checkout() {
     );
   };
   const clearAddressFields = () => {
-    if (phoneRef.current) phoneRef.current.value = "";
+    if (phoneRef.current) phoneRef.current.value = user?.phone || "";
     if (addressRef.current) addressRef.current.value = "";
     if (cityRef.current) cityRef.current.value = "";
     addressDirty.current = false;
@@ -180,7 +180,7 @@ function Checkout() {
     const a = addresses.find((x) => x.is_default) ?? addresses[0];
     setSelectedAddressId(a.id);
     if (nameRef.current) nameRef.current.value = a.recipient_name || user.name || "";
-    if (phoneRef.current) phoneRef.current.value = a.phone || "";
+    if (phoneRef.current) phoneRef.current.value = a.phone || user.phone || "";
     if (addressRef.current) addressRef.current.value = a.address || "";
     if (cityRef.current) cityRef.current.value = a.city || "";
     addressDirty.current = true;
@@ -497,7 +497,13 @@ function Checkout() {
             </div>
             <div className="sm:col-span-2">
               <Label>Phone</Label>
-              <Input ref={phoneRef} required type="tel" placeholder="+855 12 345 678" />
+              <Input
+                ref={phoneRef}
+                required
+                type="tel"
+                placeholder="+855 12 345 678"
+                defaultValue={user?.phone ?? ""}
+              />
             </div>
             {deliveryMethod === "delivery" && (
               <>

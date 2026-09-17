@@ -6,6 +6,7 @@ type AuthUser = {
   id: string;
   email: string;
   name: string | null;
+  phone: string | null;
   role: string | null;
   twoFactorEnabled: boolean;
 } | null;
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: string;
         email: string;
         name?: string | null;
+        phone?: string | null;
         role?: string | null;
         twoFactorEnabled?: boolean | null;
       }
@@ -64,6 +66,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         id: u.id,
         email: u.email,
         name: u.name ?? null,
+        phone: u.phone ?? null,
         role: u.role ?? null,
         twoFactorEnabled: !!u.twoFactorEnabled,
       }
