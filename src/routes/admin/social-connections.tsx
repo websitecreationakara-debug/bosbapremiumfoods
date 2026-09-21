@@ -166,6 +166,44 @@ function SocialConnectionsAdmin() {
 
         <section className="bg-card border rounded-2xl p-6 space-y-4">
           <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold">Threads</h2>
+            <ConnectionStatus connected={threadsConnected} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Also a Meta product, but Threads runs its own separate API and access token — it does{" "}
+            <em>not</em> reuse the Facebook Page token above. Create an app at{" "}
+            <a
+              href="https://developers.facebook.com/apps"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              developers.facebook.com/apps
+            </a>{" "}
+            with the Threads API product added, generate a token with the{" "}
+            <code>threads_basic</code> and <code>threads_content_publish</code> permissions.
+          </p>
+          <div>
+            <Label>Threads User ID</Label>
+            <Input
+              value={form.threads_user_id}
+              onChange={(e) => setForm({ ...form, threads_user_id: e.target.value })}
+              placeholder="e.g. 7834500000000000"
+            />
+          </div>
+          <div>
+            <Label>Threads Access Token</Label>
+            <Input
+              type="password"
+              value={form.threads_access_token}
+              onChange={(e) => setForm({ ...form, threads_access_token: e.target.value })}
+              placeholder="THAA..."
+            />
+          </div>
+        </section>
+
+        <section className="bg-card border rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
             <h2 className="font-display font-bold">Telegram</h2>
             <ConnectionStatus connected={tgConnected} />
           </div>
@@ -230,44 +268,6 @@ function SocialConnectionsAdmin() {
                 </SelectItem>
               </SelectContent>
             </Select>
-          </div>
-        </section>
-
-        <section className="bg-card border rounded-2xl p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display font-bold">Threads</h2>
-            <ConnectionStatus connected={threadsConnected} />
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Threads is a Meta product but has its own separate API and access token — it does{" "}
-            <em>not</em> reuse the Facebook Page token above. Create an app at{" "}
-            <a
-              href="https://developers.facebook.com/apps"
-              target="_blank"
-              rel="noreferrer"
-              className="underline"
-            >
-              developers.facebook.com/apps
-            </a>{" "}
-            with the Threads API product added, generate a token with the{" "}
-            <code>threads_basic</code> and <code>threads_content_publish</code> permissions.
-          </p>
-          <div>
-            <Label>Threads User ID</Label>
-            <Input
-              value={form.threads_user_id}
-              onChange={(e) => setForm({ ...form, threads_user_id: e.target.value })}
-              placeholder="e.g. 7834500000000000"
-            />
-          </div>
-          <div>
-            <Label>Threads Access Token</Label>
-            <Input
-              type="password"
-              value={form.threads_access_token}
-              onChange={(e) => setForm({ ...form, threads_access_token: e.target.value })}
-              placeholder="THAA..."
-            />
           </div>
         </section>
 
