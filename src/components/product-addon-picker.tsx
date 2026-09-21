@@ -24,6 +24,7 @@ function addonToProduct(a: Addon): Product {
     stock: a.stock,
     status: a.status,
     image_url: a.image_url,
+    social_image_url: null,
     badge: null,
     rating: null,
     weight: null,

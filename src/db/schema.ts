@@ -192,6 +192,10 @@ export const products = sqliteTable("products", {
   stock: integer("stock"),
   status: text("status").notNull().default("published"),
   image_url: text("image_url"),
+  // Landscape (1200x630) letterboxed version of image_url, auto-generated at
+  // save time in the admin — used for og:image/social link previews instead
+  // of the square storefront photo, which Facebook's card crops awkwardly.
+  social_image_url: text("social_image_url"),
   badge: text("badge"),
   rating: real("rating").default(4.5),
   weight: text("weight"),

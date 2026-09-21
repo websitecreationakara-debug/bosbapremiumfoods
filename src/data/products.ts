@@ -16,6 +16,7 @@ type ProductInput = {
   stock: number | null;
   status: string;
   image_url: string | null;
+  social_image_url: string | null;
   badge: string | null;
   rating: number | null;
   weight: string | null;
