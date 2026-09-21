@@ -1,5 +1,11 @@
-export type SocialPlatform = "facebook" | "instagram" | "telegram" | "tiktok";
-export const SOCIAL_PLATFORMS: SocialPlatform[] = ["facebook", "instagram", "telegram", "tiktok"];
+export type SocialPlatform = "facebook" | "instagram" | "telegram" | "tiktok" | "threads";
+export const SOCIAL_PLATFORMS: SocialPlatform[] = [
+  "facebook",
+  "instagram",
+  "telegram",
+  "tiktok",
+  "threads",
+];
 
 // Credentials come from the social_connections table (admin-configured at
 // /admin/social-connections), not Worker secrets — see src/data/social-connections.ts.
@@ -11,6 +17,10 @@ export type SocialCredentials = {
   telegram_channel_id: string | null;
   tiktok_access_token: string | null;
   tiktok_privacy: string;
+  // Threads is a Meta product but has its own separate Graph API and OAuth
+  // token — does not reuse fb_page_access_token.
+  threads_user_id: string | null;
+  threads_access_token: string | null;
 };
 
 type PostArgs = {
@@ -137,6 +147,87 @@ export async function postToInstagram({ caption, imageUrls, creds }: PostArgs): 
   throw lastError;
 }
 
+// Threads Graph API — separate host/version from the Facebook Graph API
+// above, and its own OAuth token (see SocialCredentials.threads_access_token).
+const THREADS_API = "https://graph.threads.net/v1.0";
+
+async function threadsPost(path: string, body: Record<string, unknown>) {
+  const res = await fetch(`${THREADS_API}/${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json()) as { error?: unknown; [key: string]: unknown };
+  if (!res.ok || data.error) {
+    throw new Error(`Threads ${path}: ${JSON.stringify(data.error ?? data)}`);
+  }
+  return data;
+}
+
+// Same container-then-publish shape as Instagram: create a media container
+// (single image or a carousel of children), then publish it by creation_id.
+// Threads renders plain-text URLs as clickable links (unlike Instagram), so
+// the caption already carries the real shop link — see buildCaptions.
+export async function postToThreads({ caption, imageUrls, creds }: PostArgs): Promise<string> {
+  const userId = require(creds.threads_user_id, "Threads User ID");
+  const access_token = require(creds.threads_access_token, "Threads access token");
+
+  let creationId: string;
+  if (imageUrls.length === 0) {
+    const container = await threadsPost(`${userId}/threads`, {
+      media_type: "TEXT",
+      text: caption,
+      access_token,
+    });
+    creationId = String(container.id);
+  } else if (imageUrls.length === 1) {
+    const container = await threadsPost(`${userId}/threads`, {
+      media_type: "IMAGE",
+      image_url: imageUrls[0],
+      text: caption,
+      access_token,
+    });
+    creationId = String(container.id);
+  } else {
+    const children: string[] = [];
+    for (const url of imageUrls.slice(0, 10)) {
+      const child = await threadsPost(`${userId}/threads`, {
+        media_type: "IMAGE",
+        image_url: url,
+        is_carousel_item: true,
+        access_token,
+      });
+      children.push(String(child.id));
+    }
+    const container = await threadsPost(`${userId}/threads`, {
+      media_type: "CAROUSEL",
+      children: children.join(","),
+      text: caption,
+      access_token,
+    });
+    creationId = String(container.id);
+  }
+
+  // Meta recommends waiting for the container to finish processing before
+  // publishing — same pattern as Instagram's retry loop below, just an
+  // upfront wait here since Threads containers are usually ready faster.
+  await new Promise((r) => setTimeout(r, 5000));
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const published = await threadsPost(`${userId}/threads_publish`, {
+        creation_id: creationId,
+        access_token,
+      });
+      return `thread ${published.id}`;
+    } catch (err) {
+      lastError = err;
+      await new Promise((r) => setTimeout(r, 5000));
+    }
+  }
+  throw lastError;
+}
+
 export async function postToTelegram({ caption, imageUrls, creds }: PostArgs): Promise<string> {
   const token = require(creds.telegram_bot_token, "Telegram bot token");
   const chat_id = require(creds.telegram_channel_id, "Telegram channel ID");
@@ -211,6 +302,7 @@ export const PUBLISHERS: Record<SocialPlatform, (args: PostArgs) => Promise<stri
   instagram: postToInstagram,
   telegram: postToTelegram,
   tiktok: postToTikTok,
+  threads: postToThreads,
 };
 
 // Platforms whose credentials are actually filled in — used as the default
@@ -221,5 +313,6 @@ export function configuredPlatforms(creds: SocialCredentials): SocialPlatform[] 
   if (creds.ig_user_id && creds.fb_page_access_token) out.push("instagram");
   if (creds.telegram_bot_token && creds.telegram_channel_id) out.push("telegram");
   if (creds.tiktok_access_token) out.push("tiktok");
+  if (creds.threads_user_id && creds.threads_access_token) out.push("threads");
   return out;
 }

@@ -22,6 +22,8 @@ const EMPTY_CREDS: SocialCredentials = {
   telegram_channel_id: null,
   tiktok_access_token: null,
   tiktok_privacy: "SELF_ONLY",
+  threads_user_id: null,
+  threads_access_token: null,
 };
 
 function parseJsonArray(value: string | null): string[] {
@@ -81,6 +83,7 @@ export async function publishPost(postId: string): Promise<PublishResult> {
         instagram: [post.topic, post.brief].filter(Boolean).join("\n\n"),
         telegram: [post.topic, post.brief].filter(Boolean).join("\n\n"),
         tiktok: [post.topic, post.brief].filter(Boolean).join("\n\n"),
+        threads: [post.topic, post.brief].filter(Boolean).join("\n\n"),
       };
 
   const linkUrl = product ? productUrl(product.title, product.id) : null;

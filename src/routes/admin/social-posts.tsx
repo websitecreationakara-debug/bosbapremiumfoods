@@ -45,7 +45,7 @@ import type { Product, ProductVariation } from "@/lib/types";
 
 export const Route = createFileRoute("/admin/social-posts")({ component: SocialPostsAdmin });
 
-const ALL_PLATFORMS = ["facebook", "instagram", "telegram", "tiktok"] as const;
+const ALL_PLATFORMS = ["facebook", "instagram", "telegram", "tiktok", "threads"] as const;
 
 type SocialPost = Awaited<ReturnType<typeof listSocialPosts>>[number];
 

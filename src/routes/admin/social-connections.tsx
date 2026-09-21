@@ -27,6 +27,8 @@ const empty = {
   telegram_channel_id: "",
   tiktok_access_token: "",
   tiktok_privacy: "SELF_ONLY",
+  threads_user_id: "",
+  threads_access_token: "",
 };
 
 function ConnectionStatus({ connected }: { connected: boolean }) {
@@ -59,6 +61,8 @@ function SocialConnectionsAdmin() {
         telegram_channel_id: data.telegram_channel_id ?? "",
         tiktok_access_token: data.tiktok_access_token ?? "",
         tiktok_privacy: data.tiktok_privacy ?? "SELF_ONLY",
+        threads_user_id: data.threads_user_id ?? "",
+        threads_access_token: data.threads_access_token ?? "",
       });
   }, [data]);
 
@@ -74,6 +78,8 @@ function SocialConnectionsAdmin() {
           telegram_channel_id: form.telegram_channel_id.trim() || null,
           tiktok_access_token: form.tiktok_access_token.trim() || null,
           tiktok_privacy: form.tiktok_privacy,
+          threads_user_id: form.threads_user_id.trim() || null,
+          threads_access_token: form.threads_access_token.trim() || null,
         },
       });
     } catch (err) {
@@ -87,6 +93,7 @@ function SocialConnectionsAdmin() {
   const igConnected = !!(form.ig_user_id && form.fb_page_access_token);
   const tgConnected = !!(form.telegram_bot_token && form.telegram_channel_id);
   const ttConnected = !!form.tiktok_access_token;
+  const threadsConnected = !!(form.threads_user_id && form.threads_access_token);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -223,6 +230,44 @@ function SocialConnectionsAdmin() {
                 </SelectItem>
               </SelectContent>
             </Select>
+          </div>
+        </section>
+
+        <section className="bg-card border rounded-2xl p-6 space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold">Threads</h2>
+            <ConnectionStatus connected={threadsConnected} />
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Threads is a Meta product but has its own separate API and access token — it does{" "}
+            <em>not</em> reuse the Facebook Page token above. Create an app at{" "}
+            <a
+              href="https://developers.facebook.com/apps"
+              target="_blank"
+              rel="noreferrer"
+              className="underline"
+            >
+              developers.facebook.com/apps
+            </a>{" "}
+            with the Threads API product added, generate a token with the{" "}
+            <code>threads_basic</code> and <code>threads_content_publish</code> permissions.
+          </p>
+          <div>
+            <Label>Threads User ID</Label>
+            <Input
+              value={form.threads_user_id}
+              onChange={(e) => setForm({ ...form, threads_user_id: e.target.value })}
+              placeholder="e.g. 7834500000000000"
+            />
+          </div>
+          <div>
+            <Label>Threads Access Token</Label>
+            <Input
+              type="password"
+              value={form.threads_access_token}
+              onChange={(e) => setForm({ ...form, threads_access_token: e.target.value })}
+              placeholder="THAA..."
+            />
           </div>
         </section>
 

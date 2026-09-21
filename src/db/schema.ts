@@ -288,7 +288,7 @@ export const social_posts = sqliteTable("social_posts", {
   // Auto-filled from the product's description + price; admin may add notes.
   brief: text("brief"),
   image_urls: text("image_urls").notNull().default("[]"), // JSON string[]
-  platforms: text("platforms").notNull().default("[]"), // JSON subset of facebook|instagram|telegram|tiktok
+  platforms: text("platforms").notNull().default("[]"), // JSON subset of facebook|instagram|telegram|tiktok|threads
   scheduled_at: text("scheduled_at").notNull(), // ISO datetime (UTC)
   status: text("status").notNull().default("scheduled"), // scheduled | published | failed
   captions: text("captions"), // JSON per-platform captions, filled at publish time
@@ -385,6 +385,11 @@ export const social_connections = sqliteTable("social_connections", {
   telegram_bot_token: text("telegram_bot_token"),
   telegram_channel_id: text("telegram_channel_id"),
   tiktok_access_token: text("tiktok_access_token"),
+  // Threads (Meta) has its own Graph API (graph.threads.net) and its own OAuth
+  // token — it does NOT reuse fb_page_access_token, even though it's a Meta
+  // product like Facebook/Instagram.
+  threads_user_id: text("threads_user_id"),
+  threads_access_token: text("threads_access_token"),
   // "SELF_ONLY" until the TikTok app passes Content Posting API audit.
   tiktok_privacy: text("tiktok_privacy").notNull().default("SELF_ONLY"),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),

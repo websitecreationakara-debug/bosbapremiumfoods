@@ -72,5 +72,8 @@ export function buildCaptions(args: {
     instagram: truncate(toPlainText(withBioLink), 2190),
     telegram: truncate(toTelegramHtml(withLink), 4000),
     tiktok: truncate(toPlainText(withBioLink), 2190),
+    // Threads, unlike Instagram, renders a plain-text URL as a real clickable
+    // link, so it gets the real shop link (withLink) instead of "link in bio".
+    threads: truncate(toPlainText(withLink), 500),
   };
 }
