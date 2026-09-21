@@ -80,7 +80,14 @@ export const Route = createFileRoute("/_store/product/$id")({
       };
     }
     const desc = metaDescription(product);
-    const img = product.image_url ?? undefined;
+    // image_url is stored as the media library's site-relative /media/... path;
+    // og:image/twitter:image require an absolute URL or Facebook silently
+    // falls back to another image on the site.
+    const img = product.image_url
+      ? product.image_url.startsWith("http")
+        ? product.image_url
+        : `${SITE}${product.image_url.startsWith("/") ? "" : "/"}${product.image_url}`
+      : undefined;
     return {
       meta: [
         { title: `${product.title} — BOSBA Premium Foods` },
