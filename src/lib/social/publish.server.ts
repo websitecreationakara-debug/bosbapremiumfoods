@@ -1,4 +1,4 @@
-import { eq, and, lte } from "drizzle-orm";
+import { eq, and, lte, asc } from "drizzle-orm";
 import { getDb } from "@/db";
 import { social_posts, social_connections, products, product_variations } from "@/db/schema";
 import { priceRangeText } from "@/lib/variants";
@@ -118,9 +118,17 @@ export async function publishPost(postId: string): Promise<PublishResult> {
   return results;
 }
 
-// Cron entry point (src/server.ts `scheduled`). Publishes every scheduled post
-// whose time has passed. Failed posts stay `failed` and are not retried
-// automatically — retry from the admin page after fixing the cause.
+// Cron entry point (src/server.ts `scheduled`, hourly). Publishes scheduled
+// posts whose time has passed — but at most one per run. Meta's spam/quality
+// systems throttle distribution hard for accounts posting frequent,
+// near-identical templated promotional content (this pipeline's posts all
+// share the same product-name/description/price/shop-link shape), so if
+// several products are scheduled for the same hour, firing them all within
+// the same few seconds is exactly the pattern that gets suppressed. Limiting
+// to one per hourly tick spreads them out naturally with no extra
+// infrastructure — the rest just get published on the next run(s). Failed
+// posts stay `failed` and are not retried automatically — retry from the
+// admin page after fixing the cause.
 export async function publishDuePosts(): Promise<{ id: string; results?: PublishResult }[]> {
   const db = getDb();
   const due = await db
@@ -131,7 +139,9 @@ export async function publishDuePosts(): Promise<{ id: string; results?: Publish
         eq(social_posts.status, "scheduled"),
         lte(social_posts.scheduled_at, new Date().toISOString()),
       ),
-    );
+    )
+    .orderBy(asc(social_posts.scheduled_at))
+    .limit(1);
 
   const runs: { id: string; results?: PublishResult }[] = [];
   for (const { id } of due) {
