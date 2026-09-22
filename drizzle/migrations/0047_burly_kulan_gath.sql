@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `social_image_url` text;

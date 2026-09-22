@@ -80,7 +80,16 @@ export const Route = createFileRoute("/_store/product/$id")({
       };
     }
     const desc = metaDescription(product);
-    const img = product.image_url ?? undefined;
+    // Media library URLs are stored as site-relative /media/... paths;
+    // og:image/twitter:image require an absolute URL or Facebook silently
+    // falls back to another image on the site. Prefer social_image_url (the
+    // pre-letterboxed 1200x630 landscape version — see lib/image.ts) since
+    // Facebook's link card crops the storefront's square image_url
+    // awkwardly; fall back to the square photo for older products saved
+    // before this existed.
+    const absolute = (u: string) => (u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`);
+    const rawImg = product.social_image_url ?? product.image_url;
+    const img = rawImg ? absolute(rawImg) : undefined;
     return {
       meta: [
         { title: `${product.title} — BOSBA Premium Foods` },

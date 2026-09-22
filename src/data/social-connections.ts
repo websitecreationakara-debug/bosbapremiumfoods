@@ -12,6 +12,8 @@ export type SocialConnectionsInput = {
   telegram_channel_id: string | null;
   tiktok_access_token: string | null;
   tiktok_privacy: string;
+  threads_user_id: string | null;
+  threads_access_token: string | null;
 };
 
 // Admin-only: these are live API credentials, not general store config.

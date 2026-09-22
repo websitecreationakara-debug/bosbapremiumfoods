@@ -8,6 +8,8 @@ export type Product = {
   stock: number | null;
   status: string;
   image_url: string | null;
+  // Landscape letterboxed version of image_url for og:image/social previews.
+  social_image_url: string | null;
   badge: string | null;
   rating: number | null;
   weight: string | null;

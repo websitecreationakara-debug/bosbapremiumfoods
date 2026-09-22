@@ -27,7 +27,7 @@ import {
 import { setProductCollections } from "@/data/collections";
 import { setProductAddonCollections } from "@/data/addons";
 import { listMedia, uploadMedia } from "@/data/media";
-import { compressImage } from "@/lib/image";
+import { compressImage, letterboxImage } from "@/lib/image";
 import { groupVariations } from "@/lib/variants";
 import { downloadProductsXlsx } from "@/lib/products-export";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -86,6 +86,7 @@ const empty = {
   stock: "",
   status: "published",
   image_url: "",
+  social_image_url: "",
   badge: "",
   rating: "4.5",
   weight: "",
@@ -150,6 +151,14 @@ function ProductsAdmin() {
   const videoId = form.video_url.trim() ? extractYoutubeId(form.video_url) : null;
   const fileRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  // Tracks the cover image/social image as last loaded from the DB, so save()
+  // only pays for regenerating the letterboxed social image when image_url
+  // actually changed (typed URL, upload, or media-picker — all 3 paths just
+  // mutate form.image_url, so this is the one place that needs to know).
+  const origImageRef = useRef<{ image_url: string | null; social_image_url: string | null }>({
+    image_url: null,
+    social_image_url: null,
+  });
   const [uploading, setUploading] = useState(false);
   const [picker, setPicker] = useState(false);
   // Extra gallery photos (beyond the cover image), edited as an ordered URL list.
@@ -364,6 +373,7 @@ function ProductsAdmin() {
 
   const openNew = () => {
     setForm(empty);
+    origImageRef.current = { image_url: null, social_image_url: null };
     setVars([]);
     setTabs([]);
     setGallery([]);
@@ -400,6 +410,7 @@ function ProductsAdmin() {
       stock: p.stock != null ? String(p.stock) : "",
       status: p.status,
       image_url: p.image_url ?? "",
+      social_image_url: p.social_image_url ?? "",
       badge: p.badge ?? "",
       rating: p.rating != null ? String(p.rating) : "",
       weight: p.weight ?? "",
@@ -410,6 +421,7 @@ function ProductsAdmin() {
       promotion_id: p.promotion_id ?? "",
       video_url: p.video_url ?? "",
     });
+    origImageRef.current = { image_url: p.image_url, social_image_url: p.social_image_url };
     setOpen(true);
     if (p.type === "variable") {
       const rows = await getVariations({ data: { productId: p.id, raw: true } });
@@ -469,6 +481,33 @@ function ProductsAdmin() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     const variable = form.type === "variable";
+
+    // Facebook/social link previews need a landscape image; the storefront's
+    // own cover photo is square (see letterboxImage's comment). Regenerate
+    // the padded social version whenever the cover image actually changed —
+    // all 3 ways of setting form.image_url (typed URL, file upload, media
+    // picker) funnel through here, so this is the one place that needs to
+    // know, and comparing against origImageRef avoids redoing it on every
+    // unrelated field edit (price, description, ...).
+    const newImage = form.image_url || null;
+    let socialImageUrl = origImageRef.current.social_image_url;
+    if (newImage !== origImageRef.current.image_url) {
+      socialImageUrl = null;
+      if (newImage) {
+        try {
+          const letterboxed = await letterboxImage(newImage);
+          if (letterboxed) {
+            const fd = new FormData();
+            fd.append("file", letterboxed);
+            socialImageUrl = (await uploadMedia({ data: fd })).url;
+          }
+        } catch {
+          // Non-fatal — product still saves with the square image_url; the
+          // storefront's og:image fallback just won't be letterboxed this time.
+        }
+      }
+    }
+
     const payload = {
       title: form.title,
       description: composeDescription(form.description, tabs) || null,
@@ -478,7 +517,8 @@ function ProductsAdmin() {
       category_id: form.category_id || null,
       stock: variable || form.stock.trim() === "" ? null : Number(form.stock),
       status: form.status,
-      image_url: form.image_url || null,
+      image_url: newImage,
+      social_image_url: socialImageUrl,
       badge: form.badge || null,
       rating: form.rating.trim() === "" ? null : Number(form.rating),
       weight: variable || form.weight.trim() === "" ? null : form.weight.trim(),
@@ -595,6 +635,7 @@ function ProductsAdmin() {
           stock: p.stock,
           status: "draft",
           image_url: p.image_url,
+          social_image_url: p.social_image_url,
           badge: p.badge,
           rating: p.rating,
           weight: p.weight,
