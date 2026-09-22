@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { useState } from "react";
 import {
   Search,
@@ -17,6 +17,7 @@ import {
   Globe,
   Check,
   ArrowLeftRight,
+  ArrowRight,
   ExternalLink,
   Flame,
 } from "lucide-react";
@@ -49,6 +50,8 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { MegaMenu } from "@/components/mega-menu";
+import type { NavMenuLink } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const { count, setDrawerOpen } = useCart();
@@ -65,6 +68,21 @@ export function SiteHeader() {
 
   const { theme, toggle } = useTheme();
   const { locale, setLocale, t, enabledLocales } = useI18n();
+
+  // Drives both the "current page" highlight and which mobile-menu
+  // accordions auto-expand on open (see the Sheet below) - the Sheet's
+  // content unmounts on close (Radix Dialog default), so recomputing this
+  // from the live route on every render means reopening the menu always
+  // reflects wherever the customer navigated to, instead of resetting back
+  // to fully collapsed.
+  const currentHref = useRouterState({ select: (s) => s.location.href });
+  const isActiveTarget = (target?: string | null) => {
+    if (!target) return false;
+    if (currentHref === target) return true;
+    // Targets with no query of their own (the common case: collection/category
+    // links) should still match a current URL that happens to carry one.
+    return !target.includes("?") && currentHref.split("?")[0] === target;
+  };
 
   const runSearch = (value: string) => {
     const v = value.trim();
@@ -254,15 +272,18 @@ export function SiteHeader() {
                 .sort((a, b) => a.sort_order - b.sort_order)
                 .map((item) => {
                   if (item.type === "link") {
+                    const active = isActiveTarget(item.direct_url ?? "/shop");
                     return (
                       <SheetClose asChild key={item.id}>
                         <Link
                           to={item.direct_url ?? "/shop"}
-                          className={
+                          className={cn(
                             item.accent
                               ? "flex items-center gap-2 rounded-lg px-3 py-2.5 text-sm font-medium text-brand hover:bg-muted"
-                              : "block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted"
-                          }
+                              : "block rounded-lg px-3 py-2.5 text-sm font-medium hover:bg-muted",
+                            active && "bg-muted",
+                            active && !item.accent && "text-brand",
+                          )}
                         >
                           {item.accent && <Flame className="size-4" />}
                           {item.label}
@@ -274,76 +295,165 @@ export function SiteHeader() {
                   const sections = navSections
                     .filter((s) => s.nav_item_id === item.id && s.active)
                     .sort((a, b) => a.sort_order - b.sort_order);
-                  const links = sections.flatMap((s) =>
-                    navLinks
-                      .filter((l) => l.nav_section_id === s.id && l.active)
-                      .sort((a, b) => a.sort_order - b.sort_order),
-                  );
-                  if (links.length === 0) return null;
+                  // Keep sections separate here (unlike the old flatMap) so mobile can
+                  // mirror the desktop mega-menu's grouped columns instead of dumping
+                  // every sub-category into one long flat list under the item label.
+                  const sectionsWithLinks = sections
+                    .map((s) => ({
+                      section: s,
+                      links: navLinks
+                        .filter((l) => l.nav_section_id === s.id && l.active)
+                        .sort((a, b) => a.sort_order - b.sort_order),
+                    }))
+                    .filter((s) => s.links.length > 0);
+                  if (sectionsWithLinks.length === 0) return null;
+
+                  const isLinkActive = (l: NavMenuLink) => {
+                    const slug = collections.find((c) => c.id === l.collection_id)?.slug;
+                    if (slug) return isActiveTarget(`/collections/${slug}`);
+                    const isExternal = !slug && !!l.custom_url?.startsWith("http");
+                    if (isExternal) return false;
+                    return isActiveTarget(l.custom_url ?? "/shop");
+                  };
+
+                  const renderLink = (l: NavMenuLink) => {
+                    const slug = collections.find((c) => c.id === l.collection_id)?.slug;
+                    const isExternal = !slug && !!l.custom_url?.startsWith("http");
+                    const subLabel =
+                      l.sub_label ?? collections.find((c) => c.id === l.collection_id)?.sub_label;
+                    const active = isLinkActive(l);
+                    if (slug) {
+                      return (
+                        <SheetClose asChild key={l.id}>
+                          <Link
+                            to="/collections/$slug"
+                            params={{ slug }}
+                            className={cn(
+                              "block rounded-lg px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
+                              active ? "bg-muted font-medium text-brand" : "text-muted-foreground",
+                            )}
+                          >
+                            {l.label}
+                            {subLabel && <span className="block text-xs">{subLabel}</span>}
+                          </Link>
+                        </SheetClose>
+                      );
+                    }
+                    if (isExternal) {
+                      return (
+                        <a
+                          key={l.id}
+                          href={l.custom_url ?? "#"}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                        >
+                          <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
+                          <span className="flex-1 min-w-0">
+                            {l.label}
+                            {subLabel && <span className="block text-xs">{subLabel}</span>}
+                          </span>
+                          <ExternalLink className="size-3 shrink-0" />
+                        </a>
+                      );
+                    }
+                    return (
+                      <SheetClose asChild key={l.id}>
+                        <Link
+                          to={l.custom_url ?? "/shop"}
+                          className={cn(
+                            "block rounded-lg px-3 py-2 text-sm hover:bg-muted hover:text-foreground",
+                            active ? "bg-muted font-medium text-brand" : "text-muted-foreground",
+                          )}
+                        >
+                          {l.label}
+                          {subLabel && <span className="block text-xs">{subLabel}</span>}
+                        </Link>
+                      </SheetClose>
+                    );
+                  };
+
+                  // Auto-expand whichever section(s)/item contain the page the customer
+                  // is currently on, computed fresh every time this Sheet mounts (it
+                  // unmounts on close) - see the currentHref/isActiveTarget comment above
+                  // for why this replaces relying on the accordions' own open/close state.
+                  const activeSectionIds = sectionsWithLinks
+                    .filter(
+                      ({ section: s, links }) =>
+                        isActiveTarget(s.cta_link) || links.some(isLinkActive),
+                    )
+                    .map(({ section: s }) => `${item.id}-${s.id}`);
+                  const itemActive = activeSectionIds.length > 0;
 
                   return (
-                    <Accordion key={item.id} type="multiple">
+                    <Accordion
+                      key={item.id}
+                      type="multiple"
+                      defaultValue={itemActive ? [item.id] : undefined}
+                    >
                       <AccordionItem value={item.id} className="border-none">
-                        <AccordionTrigger className="px-3 py-2.5 text-sm font-medium hover:no-underline hover:bg-muted rounded-lg">
+                        <AccordionTrigger
+                          className={cn(
+                            "px-3 py-2.5 text-sm font-medium hover:no-underline hover:bg-muted rounded-lg",
+                            itemActive && "text-brand",
+                          )}
+                        >
                           {item.label}
                         </AccordionTrigger>
                         <AccordionContent className="pb-1">
-                          <div className="pl-3 space-y-1">
-                            {links.map((l) => {
-                              const slug = collections.find((c) => c.id === l.collection_id)?.slug;
-                              const isExternal = !slug && !!l.custom_url?.startsWith("http");
-                              const subLabel =
-                                l.sub_label ??
-                                collections.find((c) => c.id === l.collection_id)?.sub_label;
-                              if (slug) {
+                          {sectionsWithLinks.length > 1 ? (
+                            <Accordion
+                              type="multiple"
+                              defaultValue={activeSectionIds}
+                              className="pl-3 space-y-0.5"
+                            >
+                              {sectionsWithLinks.map(({ section: s, links }) => {
+                                const sectionActive =
+                                  isActiveTarget(s.cta_link) || links.some(isLinkActive);
                                 return (
-                                  <SheetClose asChild key={l.id}>
-                                    <Link
-                                      to="/collections/$slug"
-                                      params={{ slug }}
-                                      className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                                  <AccordionItem
+                                    key={s.id}
+                                    value={`${item.id}-${s.id}`}
+                                    className="border-none"
+                                  >
+                                    <AccordionTrigger
+                                      className={cn(
+                                        "px-3 py-2 text-xs font-semibold uppercase tracking-wide hover:no-underline hover:bg-muted rounded-lg",
+                                        sectionActive ? "text-brand" : "text-muted-foreground",
+                                      )}
                                     >
-                                      {l.label}
-                                      {subLabel && (
-                                        <span className="block text-xs">{subLabel}</span>
-                                      )}
-                                    </Link>
-                                  </SheetClose>
+                                      {s.title ?? item.label}
+                                    </AccordionTrigger>
+                                    <AccordionContent className="pb-1">
+                                      <div className="pl-3 space-y-1">
+                                        {s.cta_link && (
+                                          <SheetClose asChild>
+                                            <Link
+                                              to={s.cta_link}
+                                              className={cn(
+                                                "flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-semibold hover:bg-muted",
+                                                isActiveTarget(s.cta_link)
+                                                  ? "bg-muted text-brand"
+                                                  : "text-brand",
+                                              )}
+                                            >
+                                              {s.cta_label ?? "View All"}
+                                              <ArrowRight className="size-3.5" />
+                                            </Link>
+                                          </SheetClose>
+                                        )}
+                                        {links.map(renderLink)}
+                                      </div>
+                                    </AccordionContent>
+                                  </AccordionItem>
                                 );
-                              }
-                              if (isExternal) {
-                                return (
-                                  <a
-                                    key={l.id}
-                                    href={l.custom_url ?? "#"}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  >
-                                    <ArrowLeftRight className="size-3.5 shrink-0 text-brand" />
-                                    <span className="flex-1 min-w-0">
-                                      {l.label}
-                                      {subLabel && (
-                                        <span className="block text-xs">{subLabel}</span>
-                                      )}
-                                    </span>
-                                    <ExternalLink className="size-3 shrink-0" />
-                                  </a>
-                                );
-                              }
-                              return (
-                                <SheetClose asChild key={l.id}>
-                                  <Link
-                                    to={l.custom_url ?? "/shop"}
-                                    className="block rounded-lg px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-                                  >
-                                    {l.label}
-                                    {subLabel && <span className="block text-xs">{subLabel}</span>}
-                                  </Link>
-                                </SheetClose>
-                              );
-                            })}
-                          </div>
+                              })}
+                            </Accordion>
+                          ) : (
+                            <div className="pl-3 space-y-1">
+                              {sectionsWithLinks[0].links.map(renderLink)}
+                            </div>
+                          )}
                         </AccordionContent>
                       </AccordionItem>
                     </Accordion>
