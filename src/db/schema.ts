@@ -14,6 +14,8 @@ export const categories = sqliteTable("categories", {
   image_url: text("image_url"),
   // Self-reference for parent/child hierarchy; null = top-level category.
   parent_id: text("parent_id"),
+  // Scoped to siblings (same parent_id), drag-reordered from /admin/categories.
+  sort_order: integer("sort_order").notNull().default(0),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
 });
 

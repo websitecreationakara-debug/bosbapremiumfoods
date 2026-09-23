@@ -1,6 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useCategories } from "@/hooks/use-products";
-import { createCategory, updateCategory, deleteCategory } from "@/data/categories";
+import {
+  createCategory,
+  updateCategory,
+  deleteCategory,
+  reorderCategories,
+} from "@/data/categories";
 import { listMedia, uploadMedia } from "@/data/media";
 import { compressImage } from "@/lib/image";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -16,8 +21,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Fragment, useRef, useState } from "react";
-import { Trash2, Upload, ImageIcon, Loader2, X, Pencil, Check } from "lucide-react";
+import { Trash2, Upload, ImageIcon, Loader2, X, Pencil, Check, GripVertical } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 import type { Category, Media } from "@/lib/types";
 
 const slugify = (s: string) =>
@@ -95,6 +101,23 @@ function CategoriesAdmin() {
     qc.invalidateQueries({ queryKey: ["categories"] });
   };
 
+  // Drag to reorder — scoped to siblings (same parent_id), like /admin/main-navigator.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
+  const reorder = async (fromId: string, toId: string) => {
+    if (fromId === toId) return;
+    const from = categories.find((c) => c.id === fromId);
+    const to = categories.find((c) => c.id === toId);
+    if (!from || !to || (from.parent_id ?? null) !== (to.parent_id ?? null)) return;
+    const ids = childrenOf(from.parent_id ?? null).map((c) => c.id);
+    const fi = ids.indexOf(fromId);
+    const ti = ids.indexOf(toId);
+    if (fi < 0 || ti < 0) return;
+    ids.splice(ti, 0, ids.splice(fi, 1)[0]);
+    await reorderCategories({ data: { ids } });
+    qc.invalidateQueries({ queryKey: ["categories"] });
+  };
+
   const del = async (id: string) => {
     try {
       await deleteCategory({ data: { id } });
@@ -142,10 +165,31 @@ function CategoriesAdmin() {
 
   const renderRow = (c: Category, depth: number) => (
     <div
-      className="flex items-center justify-between gap-3 px-5 py-3"
+      draggable
+      onDragStart={() => setDragId(c.id)}
+      onDragOver={(e) => {
+        if (!dragId) return;
+        e.preventDefault();
+        setOverId(c.id);
+      }}
+      onDrop={() => {
+        if (dragId) reorder(dragId, c.id);
+        setDragId(null);
+        setOverId(null);
+      }}
+      onDragEnd={() => {
+        setDragId(null);
+        setOverId(null);
+      }}
+      className={cn(
+        "flex items-center justify-between gap-3 px-5 py-3",
+        dragId === c.id && "opacity-40",
+        overId === c.id && dragId !== c.id && "border-t-2 border-t-brand",
+      )}
       style={{ paddingLeft: 20 + depth * 28 }}
     >
       <div className="flex items-center gap-3 min-w-0">
+        <GripVertical className="size-4 text-muted-foreground/60 cursor-grab shrink-0" />
         {depth > 0 && <span className="text-muted-foreground shrink-0">↳</span>}
         <button
           type="button"
@@ -231,6 +275,10 @@ function CategoriesAdmin() {
   return (
     <div className="max-w-4xl space-y-6">
       <h1 className="font-display font-bold text-3xl">Categories</h1>
+      <p className="text-sm text-muted-foreground -mt-4">
+        Drag the grip handle to reorder categories — top-level categories and each parent's
+        children reorder independently. Changes go live immediately.
+      </p>
       <form onSubmit={add} className="flex flex-wrap gap-2">
         <Input
           required
