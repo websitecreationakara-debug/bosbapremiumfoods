@@ -418,7 +418,7 @@ export function SiteHeader() {
                                   >
                                     <AccordionTrigger
                                       className={cn(
-                                        "px-3 py-2 text-xs font-semibold uppercase tracking-wide hover:no-underline hover:bg-muted rounded-lg",
+                                        "px-3 py-2 text-xs font-semibold tracking-wide hover:no-underline hover:bg-muted rounded-lg",
                                         sectionActive ? "text-brand" : "text-muted-foreground",
                                       )}
                                     >
