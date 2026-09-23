@@ -1,7 +1,14 @@
 import { env } from "cloudflare:workers";
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
-import { products, product_variations, product_images, promotions, addons } from "@/db/schema";
+import {
+  products,
+  product_variations,
+  product_images,
+  promotions,
+  addons,
+  categories,
+} from "@/db/schema";
 import { applyPromo } from "@/lib/promotions";
 import { slugify, isUuid } from "@/lib/utils";
 import {
@@ -43,6 +50,24 @@ import {
 // src/db/schema.ts for what an addon is (a small separate catalog attached to
 // a product's checkout, never sold standalone on this site).
 //
+//   GET    /api/v1/categories        -> list, ordered by sort_order (no
+//                                       published/draft concept -- every row
+//                                       is returned). Supports `?limit` &
+//                                       `?offset`.
+//   GET    /api/v1/categories/{id}   -> one category
+//   POST   /api/v1/categories        -> create; body = { name, slug,
+//                                       image_url?, parent_id? } (write key
+//                                       required)
+//   PATCH  /api/v1/categories/{id}   -> partial update (write key required)
+//   DELETE /api/v1/categories/{id}   -> delete; children are detached
+//                                       (parent_id set to null), same as the
+//                                       admin UI's delete (write key required)
+//
+// Categories are this site's internal/back-office classification (see the
+// `categories` table comment in src/db/schema.ts) -- this API exists for
+// other systems (e.g. NOVA POS) to read or manage the same taxonomy without
+// a trip to this site's admin.
+//
 // Auth: send the key as `x-api-key: <key>` or `Authorization: Bearer <key>`.
 //   PUBLIC_API_KEY        — read access (GET). If PUBLIC_API_WRITE_KEY is unset,
 //                           this key also grants writes.
@@ -56,6 +81,7 @@ import {
 type ProductRow = typeof products.$inferSelect;
 type VariationRow = typeof product_variations.$inferSelect;
 type AddonRow = typeof addons.$inferSelect;
+type CategoryRow = typeof categories.$inferSelect;
 
 type ApiEnv = {
   PUBLIC_API_KEY?: string;
@@ -594,6 +620,106 @@ async function handleAddonDelete(request: Request, id: string): Promise<Response
   return json(request, { data: { id, deleted: true } });
 }
 
+// ---------- categories ----------
+
+async function handleCategoryList(request: Request, url: URL): Promise<Response> {
+  const limit = Math.min(Math.max(toNum(url.searchParams.get("limit")) ?? 500, 1), 1000);
+  const offset = Math.max(Math.trunc(toNum(url.searchParams.get("offset")) ?? 0), 0);
+
+  const data: CategoryRow[] = await getDb()
+    .select()
+    .from(categories)
+    .orderBy(asc(categories.sort_order), asc(categories.created_at))
+    .limit(limit)
+    .offset(offset);
+
+  return json(request, { data, count: data.length, limit, offset });
+}
+
+async function handleCategoryGetOne(request: Request, id: string): Promise<Response> {
+  const [row] = await getDb().select().from(categories).where(eq(categories.id, id));
+  if (!row) return json(request, { error: "Not found" }, 404);
+  return json(request, { data: row });
+}
+
+// Columns a client may set. `id`/`created_at` are server-managed.
+const CATEGORY_WRITABLE = ["name", "slug", "image_url", "parent_id", "sort_order"] as const;
+
+function buildCategoryFields(body: Record<string, unknown>, partial: boolean): FieldResult {
+  const fields: Record<string, unknown> = {};
+  for (const key of CATEGORY_WRITABLE) {
+    if (!(key in body)) continue;
+    const v = body[key];
+
+    if (key === "name" || key === "slug") {
+      if (typeof v !== "string" || v.trim() === "")
+        return { error: `${key} must be a non-empty string` };
+      fields[key] = v.trim();
+    } else if (key === "sort_order") {
+      if (v === null) return { error: "sort_order cannot be null" };
+      const n = toNum(v);
+      if (n === undefined) return { error: "sort_order must be a number" };
+      fields.sort_order = Math.trunc(n);
+    } else {
+      // nullable text columns (image_url, parent_id)
+      if (v === null) fields[key] = null;
+      else if (typeof v === "string") fields[key] = v;
+      else return { error: `${key} must be a string or null` };
+    }
+  }
+
+  if (!partial && (typeof fields.name !== "string" || typeof fields.slug !== "string")) {
+    return { error: "name and slug are required" };
+  }
+  return { fields };
+}
+
+async function handleCategoryCreate(request: Request): Promise<Response> {
+  const body = await readJsonBody(request);
+  if (!body) return json(request, { error: "Body must be a JSON object" }, 400);
+
+  const built = buildCategoryFields(body, false);
+  if ("error" in built) return json(request, { error: built.error }, 400);
+
+  const [created] = await getDb()
+    .insert(categories)
+    .values(built.fields as typeof categories.$inferInsert)
+    .returning();
+  return json(request, { data: created }, 201);
+}
+
+async function handleCategoryPatch(request: Request, id: string): Promise<Response> {
+  const [existing] = await getDb().select().from(categories).where(eq(categories.id, id));
+  if (!existing) return json(request, { error: "Not found" }, 404);
+
+  const body = await readJsonBody(request);
+  if (!body) return json(request, { error: "Body must be a JSON object" }, 400);
+
+  const built = buildCategoryFields(body, true);
+  if ("error" in built) return json(request, { error: built.error }, 400);
+  if (Object.keys(built.fields).length === 0) {
+    return json(request, { error: "No writable fields in body" }, 422);
+  }
+
+  await getDb().update(categories).set(built.fields).where(eq(categories.id, id));
+  const [row] = await getDb().select().from(categories).where(eq(categories.id, id));
+  return json(request, { data: row });
+}
+
+// Mirrors src/data/categories.ts's deleteCategory: detach children (set their
+// parent_id to null) rather than cascading, so a parent delete can't silently
+// wipe out its whole subtree.
+async function handleCategoryDelete(request: Request, id: string): Promise<Response> {
+  const db = getDb();
+  await db.update(categories).set({ parent_id: null }).where(eq(categories.parent_id, id));
+  const deleted = await db
+    .delete(categories)
+    .where(eq(categories.id, id))
+    .returning({ id: categories.id });
+  if (deleted.length === 0) return json(request, { error: "Not found" }, 404);
+  return json(request, { data: { id, deleted: true } });
+}
+
 async function readJsonBody(request: Request): Promise<Record<string, unknown> | null> {
   try {
     const parsed = await request.json();
@@ -835,6 +961,34 @@ export async function handlePublicApi(request: Request): Promise<Response | null
       if (request.method === "PATCH") return await handleAddonPatch(request, addonId);
       if (request.method === "DELETE") return await handleAddonDelete(request, addonId);
       return await handleAddonGetOne(request, addonId, level);
+    } catch (error) {
+      console.error("public-api error", error);
+      return json(request, { error: "Internal error" }, 500);
+    }
+  }
+
+  const isCategoryCollection = url.pathname === "/api/v1/categories";
+  const categoryIdMatch = url.pathname.match(/^\/api\/v1\/categories\/([^/]+)$/);
+  if (isCategoryCollection || categoryIdMatch) {
+    const isCategoryWrite = ["POST", "PATCH", "DELETE"].includes(request.method);
+    if (isCategoryWrite && level !== "write") {
+      return json(request, { error: "Write access required" }, 403);
+    }
+    if (isCategoryCollection && !["GET", "POST"].includes(request.method)) {
+      return json(request, { error: "Method not allowed" }, 405);
+    }
+    if (categoryIdMatch && !["GET", "PATCH", "DELETE"].includes(request.method)) {
+      return json(request, { error: "Method not allowed" }, 405);
+    }
+    try {
+      if (isCategoryCollection && request.method === "GET")
+        return await handleCategoryList(request, url);
+      if (isCategoryCollection && request.method === "POST")
+        return await handleCategoryCreate(request);
+      const categoryId = decodeURIComponent(categoryIdMatch![1]);
+      if (request.method === "PATCH") return await handleCategoryPatch(request, categoryId);
+      if (request.method === "DELETE") return await handleCategoryDelete(request, categoryId);
+      return await handleCategoryGetOne(request, categoryId);
     } catch (error) {
       console.error("public-api error", error);
       return json(request, { error: "Internal error" }, 500);
