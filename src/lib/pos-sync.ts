@@ -7,7 +7,17 @@ const POS_ORDER_SYNC_URL = `${POS_BASE_URL}/api/order-sync`;
 const POS_ORDER_STATUS_SYNC_URL = `${POS_BASE_URL}/api/order-status-sync`;
 const SITE_ID = "bosba-premium-foods";
 
-export type PosOrderItem = { siteProductId: string; quantity: number; unitPrice: number };
+// variationId is the specific size the customer bought, for a "variable"
+// product -- omitted for a simple product. POS links a variable product's
+// sizes under one shared siteProductId (one product_site_links row per size,
+// see its migration 0018), so without this POS can't tell which size the
+// order line was actually for.
+export type PosOrderItem = {
+  siteProductId: string;
+  quantity: number;
+  unitPrice: number;
+  variationId?: string;
+};
 
 // Push side of Phase 7's POS<->site stock sync: after an online order decrements
 // this site's own stock, tell POS so its count (source of truth for products
