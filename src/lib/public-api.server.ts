@@ -35,9 +35,6 @@ import {
 // Every product payload carries its `variations[]` and `images[]`. GET prices
 // reflect any live promotion discount, matching the storefront.
 //
-//   GET    /api/v1/categories    -> list all categories (no status filter --
-//                                   categories aren't published/draft).
-//
 //   GET    /api/v1/addons        -> list (published only by default; same
 //                                   `?status=all` + write-key rule as products).
 //                                   Supports `?limit` & `?offset`.
@@ -494,18 +491,6 @@ async function handleGetOne(
   return json(request, { data });
 }
 
-// ---------- categories ----------
-
-// Categories have no published/draft status, so this always returns the full
-// list -- no `?status` filter to gate, unlike products/addons.
-async function handleCategoryList(request: Request): Promise<Response> {
-  const data: CategoryRow[] = await getDb()
-    .select()
-    .from(categories)
-    .orderBy(asc(categories.created_at));
-  return json(request, { data, count: data.length });
-}
-
 // ---------- addons ----------
 
 async function handleAddonList(request: Request, url: URL, level: AuthLevel): Promise<Response> {
@@ -955,16 +940,6 @@ export async function handlePublicApi(request: Request): Promise<Response | null
 
   const level = authLevel(request);
   if (level === "none") return json(request, { error: "Unauthorized" }, 401);
-
-  if (url.pathname === "/api/v1/categories") {
-    if (request.method !== "GET") return json(request, { error: "Method not allowed" }, 405);
-    try {
-      return await handleCategoryList(request);
-    } catch (error) {
-      console.error("public-api error", error);
-      return json(request, { error: "Internal error" }, 500);
-    }
-  }
 
   const isAddonCollection = url.pathname === "/api/v1/addons";
   const addonIdMatch = url.pathname.match(/^\/api\/v1\/addons\/([^/]+)$/);
