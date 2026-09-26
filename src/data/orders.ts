@@ -358,9 +358,21 @@ export const createOrder = createServerFn({ method: "POST" })
     // linked in POS here -- same as the stock-sync loop just above -- so all
     // of them go, not just top-level products. Addons have no POS
     // counterpart, so they're excluded here too.
+    //
+    // POS links a variable product's sizes under one shared siteProductId
+    // (one product_site_link per size), so a variant line has to send the
+    // *parent* product's id as siteProductId plus its own id as variationId
+    // -- sending only the variation's own id (as this used to) never matches
+    // any linked product there at all, silently dropping the line.
+    const parentByVariation = new Map(varRows.map((v) => [v.id, v.product_id]));
     const posOrderItems = items
       .filter((i) => !addonIdSet.has(i.id))
-      .map((i) => ({ siteProductId: i.id, quantity: i.qty, unitPrice: i.price }));
+      .map((i) => {
+        const parentId = parentByVariation.get(i.id);
+        return parentId
+          ? { siteProductId: parentId, quantity: i.qty, unitPrice: i.price, variationId: i.id }
+          : { siteProductId: i.id, quantity: i.qty, unitPrice: i.price };
+      });
     if (posOrderItems.length > 0) {
       await notifyPosOfOrder({
         siteOrderId: row.id,
