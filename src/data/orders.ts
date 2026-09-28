@@ -17,7 +17,6 @@ import { notifyNewOrder, notifyOrderShipped } from "@/lib/notify";
 import {
   notifyPosOfOrder,
   notifyPosOfOrderStatus,
-  notifyPosOfSale,
   notifyPosOfStockEdit,
   notifyPosOfVariationEdit,
 } from "@/lib/pos-sync";
@@ -341,20 +340,15 @@ export const createOrder = createServerFn({ method: "POST" })
       }),
     );
 
-    // Phase 7 stock sync: fires for both plain products and size/variant
-    // lines -- POS links to whichever id it was given either way (see
-    // product_site_links) -- only skipped for untracked (null-stock) lines,
-    // matching the deduction guard just above. Addons have no POS counterpart,
-    // so they're skipped here too.
-    await Promise.all(
-      [...neededById].map(([id, need]) => {
-        if (stockById.get(id) == null || addonIdSet.has(id)) return null;
-        return notifyPosOfSale(id, need);
-      }),
-    );
-
-    // Phase 8: give this order a matching order + invoice in POS too, not
-    // just a stock nudge. Every line (plain product or variant) can be
+    // Phase 8: give this order a matching order + invoice in POS too. This is
+    // now the only path that pushes an online sale's stock to POS -- it used
+    // to run alongside a separate "Phase 7" notifyPosOfSale nudge for every
+    // tracked, non-addon line, which double-decremented POS's stock for
+    // every linked product sold online (create_online_order's own deduct,
+    // called below via notifyPosOfOrder, plus the Phase 7 nudge, both firing
+    // for the same unit -- Phase 7's condition was a subset of Phase 8's, so
+    // removing it changes nothing else about what gets sent to POS). Every
+    // line (plain product or variant) can be
     // linked in POS here -- same as the stock-sync loop just above -- so all
     // of them go, not just top-level products. Addons have no POS
     // counterpart, so they're excluded here too.
