@@ -12,11 +12,15 @@ const SITE_ID = "bosba-premium-foods";
 // sizes under one shared siteProductId (one product_site_links row per size,
 // see its migration 0018), so without this POS can't tell which size the
 // order line was actually for.
+// title lets POS name a brand-new product it has to auto-create when this
+// line doesn't match any existing product_site_links row (migration 0043)
+// -- omitted falls back to a generic placeholder name there.
 export type PosOrderItem = {
   siteProductId: string;
   quantity: number;
   unitPrice: number;
   variationId?: string;
+  title?: string;
 };
 
 // Push side of Phase 7's POS<->site stock sync: after an online order decrements
