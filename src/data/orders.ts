@@ -364,8 +364,8 @@ export const createOrder = createServerFn({ method: "POST" })
       .map((i) => {
         const parentId = parentByVariation.get(i.id);
         return parentId
-          ? { siteProductId: parentId, quantity: i.qty, unitPrice: i.price, variationId: i.id }
-          : { siteProductId: i.id, quantity: i.qty, unitPrice: i.price };
+          ? { siteProductId: parentId, quantity: i.qty, unitPrice: i.price, variationId: i.id, title: i.title }
+          : { siteProductId: i.id, quantity: i.qty, unitPrice: i.price, title: i.title };
       });
     if (posOrderItems.length > 0) {
       await notifyPosOfOrder({
