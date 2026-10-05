@@ -26,7 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, X, Search, Tag, Percent, Ticket } from "lucide-react";
+import { Plus, Pencil, Trash2, X, Search, Tag, Percent, DollarSign, Ticket } from "lucide-react";
 import { toast } from "sonner";
 import { KIND_LABEL } from "@/lib/promotions";
 import type { Promotion, PromoCode } from "@/lib/types";
@@ -38,7 +38,8 @@ const empty = {
   name: "",
   kind: "special",
   description: "",
-  discount_pct: "",
+  discount_type: "percent",
+  discount_value: "",
   starts_at: "",
   ends_at: "",
   active: "true",
@@ -144,12 +145,21 @@ function MarketingAdmin() {
     setOpen(true);
   };
   const openEdit = (p: Promotion) => {
+    const discountType = p.discount_type === "fixed" ? "fixed" : "percent";
     setForm({
       id: p.id,
       name: p.name,
       kind: p.kind,
       description: p.description ?? "",
-      discount_pct: p.discount_pct != null ? String(p.discount_pct) : "",
+      discount_type: discountType,
+      discount_value:
+        discountType === "fixed"
+          ? p.discount_amount != null
+            ? String(p.discount_amount)
+            : ""
+          : p.discount_pct != null
+            ? String(p.discount_pct)
+            : "",
       starts_at: p.starts_at ?? "",
       ends_at: p.ends_at ?? "",
       active: p.active ? "true" : "false",
@@ -160,11 +170,14 @@ function MarketingAdmin() {
 
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
+    const discountValue = form.discount_value.trim() === "" ? null : Number(form.discount_value);
     const payload = {
       name: form.name.trim(),
       kind: form.kind,
       description: form.description.trim() || null,
-      discount_pct: form.discount_pct.trim() === "" ? null : Number(form.discount_pct),
+      discount_type: form.discount_type,
+      discount_pct: form.discount_type === "percent" ? discountValue : null,
+      discount_amount: form.discount_type === "fixed" ? discountValue : null,
       starts_at: form.starts_at || null,
       ends_at: form.ends_at || null,
       active: form.active === "true",
@@ -274,7 +287,11 @@ function MarketingAdmin() {
                     <span className="inline-flex items-center gap-1">
                       <Tag className="size-3.5" /> {period(p)}
                     </span>
-                    {p.discount_pct ? (
+                    {p.discount_type === "fixed" && p.discount_amount ? (
+                      <span className="inline-flex items-center gap-1 text-brand font-semibold">
+                        <DollarSign className="size-3.5" /> ${p.discount_amount.toFixed(2)} off
+                      </span>
+                    ) : p.discount_pct ? (
                       <span className="inline-flex items-center gap-1 text-brand font-semibold">
                         <Percent className="size-3.5" /> {p.discount_pct}% off
                       </span>
@@ -515,15 +532,32 @@ function MarketingAdmin() {
                 </Select>
               </div>
               <div>
-                <Label>Discount % (optional)</Label>
+                <Label>Discount type</Label>
+                <Select
+                  value={form.discount_type}
+                  onValueChange={(v) => setForm({ ...form, discount_type: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="percent">% off</SelectItem>
+                    <SelectItem value="fixed">$ off</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>
+                  {form.discount_type === "fixed" ? "Amount ($, optional)" : "Percent (%, optional)"}
+                </Label>
                 <Input
                   type="number"
                   min="0"
-                  max="100"
-                  step="1"
-                  placeholder="e.g. 15"
-                  value={form.discount_pct}
-                  onChange={(e) => setForm({ ...form, discount_pct: e.target.value })}
+                  max={form.discount_type === "fixed" ? undefined : "100"}
+                  step={form.discount_type === "fixed" ? "0.01" : "1"}
+                  placeholder={form.discount_type === "fixed" ? "e.g. 5" : "e.g. 15"}
+                  value={form.discount_value}
+                  onChange={(e) => setForm({ ...form, discount_value: e.target.value })}
                 />
               </div>
               <div>

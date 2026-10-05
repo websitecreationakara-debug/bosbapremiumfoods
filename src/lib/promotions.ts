@@ -2,7 +2,10 @@ import type { Promotion, PromotionKind } from "./types";
 
 // Loose shape so raw DB rows (whose `kind` is a plain string) pass without
 // casting — the helpers only read timing + discount.
-type PromoTiming = Pick<Promotion, "active" | "starts_at" | "ends_at" | "discount_pct">;
+type PromoTiming = Pick<
+  Promotion,
+  "active" | "starts_at" | "ends_at" | "discount_type" | "discount_pct" | "discount_amount"
+>;
 
 // A promotion is "live" when it's active and today falls within its date
 // window. Bounds are inclusive: starts_at counts from the start of that day,
@@ -14,15 +17,19 @@ export function isPromoLive(p: PromoTiming | null | undefined, now: number = Dat
   return true;
 }
 
-// The fraction of the price a customer pays under this promotion (1 = no
-// change). Only live promotions with a positive discount move the price.
+// The fraction of the price a customer pays under a "percent" promotion (1 =
+// no change). Not meaningful for "fixed" promotions — use applyPromo for those.
 export function promoFactor(p: PromoTiming | null | undefined, now?: number): number {
-  if (!isPromoLive(p, now) || !p!.discount_pct) return 1;
+  if (!isPromoLive(p, now) || p!.discount_type === "fixed" || !p!.discount_pct) return 1;
   return Math.max(0, 1 - p!.discount_pct / 100);
 }
 
-// Apply a promotion to a base price, rounded to cents.
+// Apply a promotion to a base price, rounded to cents. Fixed-amount discounts
+// never take the price below zero.
 export function applyPromo(base: number, p: PromoTiming | null | undefined, now?: number): number {
+  if (isPromoLive(p, now) && p!.discount_type === "fixed" && p!.discount_amount) {
+    return Math.max(0, Math.round((base - p!.discount_amount) * 100) / 100);
+  }
   return Math.round(base * promoFactor(p, now) * 100) / 100;
 }
 

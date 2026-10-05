@@ -166,7 +166,7 @@ export const hero_slides = sqliteTable("hero_slides", {
 
 // Marketing campaigns / offers. A product points at one promotion; while the
 // promotion is active and within its date window, the product is featured in
-// that offer's storefront section and (if discount_pct is set) sells at a
+// that offer's storefront section and (if a discount is set) sells at a
 // discount. Dates are ISO YYYY-MM-DD; null bound = open-ended on that side.
 export const promotions = sqliteTable("promotions", {
   id: text("id").primaryKey().$defaultFn(uuid),
@@ -174,8 +174,12 @@ export const promotions = sqliteTable("promotions", {
   // "limited" | "seasonal" | "special" — drives the badge label/styling.
   kind: text("kind").notNull().default("special"),
   description: text("description"),
-  // Percent off assigned products while live. Null/0 = featured grouping only.
+  // "percent" | "fixed" — mirrors promo_codes. Picks which of the two columns below applies.
+  discount_type: text("discount_type").notNull().default("percent"),
+  // Percent off assigned products while live, when discount_type = "percent". Null/0 = featured grouping only.
   discount_pct: real("discount_pct"),
+  // Dollar amount off assigned products while live, when discount_type = "fixed".
+  discount_amount: real("discount_amount"),
   starts_at: text("starts_at"),
   ends_at: text("ends_at"),
   active: integer("active", { mode: "boolean" }).notNull().default(true),

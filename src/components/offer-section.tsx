@@ -27,7 +27,11 @@ export function OfferSection({
             <span className="text-[11px] font-bold uppercase tracking-widest text-brand">
               {kindLabel}
             </span>
-            {promotion.discount_pct ? (
+            {promotion.discount_type === "fixed" && promotion.discount_amount ? (
+              <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-bold text-brand">
+                -${promotion.discount_amount.toFixed(2)}
+              </span>
+            ) : promotion.discount_pct ? (
               <span className="rounded-full bg-brand/10 px-2 py-0.5 text-[11px] font-bold text-brand">
                 -{promotion.discount_pct}%
               </span>

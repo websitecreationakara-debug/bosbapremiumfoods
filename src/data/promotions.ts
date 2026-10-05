@@ -9,7 +9,9 @@ type PromotionInput = {
   name: string;
   kind: string;
   description: string | null;
+  discount_type: string;
   discount_pct: number | null;
+  discount_amount: number | null;
   starts_at: string | null;
   ends_at: string | null;
   active: boolean;

@@ -351,6 +351,13 @@
       "when": 1790144803470,
       "tag": "0049_square_avengers",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "6",
+      "when": 1791172610502,
+      "tag": "0050_green_jubilee",
+      "breakpoints": true
     }
   ]
 }
