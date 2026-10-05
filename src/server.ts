@@ -19,7 +19,7 @@ type ServerEntry = {
 // load scripts/connect/frame, and frame-ancestors/base-uri/object-src close the
 // clickjacking and base-tag vectors. Origins map to real usage: google/gstatic
 // = reCAPTCHA, analytics.tiktok = TikTok pixel, connect.facebook.net/facebook.com
-// = Meta Pixel (@adkit/meta-pixel-react in routes/__root.tsx), cloudflareinsights
+// = Meta Pixel (raw base snippet in routes/__root.tsx), cloudflareinsights
 // = CF Web Analytics (edge-injected), nominatim = checkout address lookup,
 // fonts.* = Google Fonts, youtube.com = product video embeds (src/lib/youtube.ts),
 // chumnouykar.bcietech.com = Chumnouykar AI sales chat widget (routes/__root.tsx).
