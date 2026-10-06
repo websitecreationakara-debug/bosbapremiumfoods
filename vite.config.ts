@@ -31,9 +31,17 @@ const clientCloudflareWorkersStub: Plugin = {
 // Lovable only applies the Cloudflare plugin at build time. We need it in dev too so
 // `vite dev` runs inside workerd with the local D1 binding available to server functions.
 // Disable Lovable's build-only cloudflare and add the plugin ourselves for serve + build.
+// `npm run dev:live` sets this so `vite dev` hits the real (production) D1 database
+// and other bindings instead of the local .wrangler/state ones — see `npm run dev:live`
+// in package.json.
+const useRemoteBindings = process.env.CF_VITE_REMOTE === "true";
+
 export default defineConfig({
   cloudflare: false,
-  plugins: [cloudflare({ viteEnvironment: { name: "ssr" } }), clientCloudflareWorkersStub],
+  plugins: [
+    cloudflare({ viteEnvironment: { name: "ssr" }, remoteBindings: useRemoteBindings }),
+    clientCloudflareWorkersStub,
+  ],
   tanstackStart: {
     spa: { enabled: true },
   },
