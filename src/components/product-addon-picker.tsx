@@ -16,6 +16,7 @@ import type { Addon, Product } from "@/lib/types";
 function addonToProduct(a: Addon): Product {
   return {
     id: a.id,
+    product_code: null,
     title: a.title,
     description: a.description,
     price: a.price,
