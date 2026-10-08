@@ -7,6 +7,7 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
+import { sendViewContentCapiEvent } from "@/data/meta-capi";
 import { renderFormattedDescription, renderTabBody, parseProductContent } from "@/lib/format-description";
 import type { Product, ProductVariation } from "@/lib/types";
 import {
@@ -212,16 +213,25 @@ function ProductDetail() {
   // view to the right catalog row. Fires the cheapest-priced-variation basis
   // (same as head()/product cards), not a selected variation — wait for the
   // variations query on variable products so this doesn't fire $0 before it
-  // resolves.
+  // resolves. Also dispatches a server-side Conversions API mirror with the
+  // same event_id (eventID on the browser call, event_id server-side) so Meta
+  // deduplicates the two into one verified event instead of relying on the
+  // browser pixel alone — see data/meta-capi.ts.
   useEffect(() => {
     if (!product) return;
     if (product.type === "variable" && !variationsFetched) return;
-    (window as any).fbq?.("track", "ViewContent", {
-      content_ids: [metaRetailerId(product)],
-      content_type: "product",
-      value: productFromPrice(product, variations),
-      currency: "USD",
-    });
+    const contentIds = [metaRetailerId(product)];
+    const value = productFromPrice(product, variations);
+    const eventId = crypto.randomUUID();
+    (window as any).fbq?.(
+      "track",
+      "ViewContent",
+      { content_ids: contentIds, content_type: "product", value, currency: "USD" },
+      { eventID: eventId },
+    );
+    sendViewContentCapiEvent({
+      data: { eventId, contentIds, value, eventSourceUrl: window.location.href },
+    }).catch(() => {});
   }, [product, variationsFetched, variations]);
   // "Read more" only appears once the description actually overflows 3 lines —
   // re-measured on resize since line-wrapping depends on the viewport width.
