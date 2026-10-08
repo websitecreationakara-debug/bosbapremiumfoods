@@ -72,7 +72,7 @@ const metaDescription = (p: Product) =>
 const metaAvailability = (p: Product): string =>
   p.pre_order ? "preorder" : p.stock === 0 ? "out of stock" : "in stock";
 
-// SKU Meta Catalog matches on (product:retailer_product_id / Pixel
+// SKU Meta Catalog matches on (product:retailer_item_id / Pixel
 // content_ids) — product_code when set, else the row id so it's always
 // unique even for products created before product_code existed.
 const metaRetailerId = (p: Product): string => p.product_code ?? p.id;
@@ -136,10 +136,10 @@ export const Route = createFileRoute("/_store/product/$id")({
         { name: "twitter:title", content: product.title },
         { name: "twitter:description", content: desc },
         // Meta Catalog product tags — content_ids in the Pixel ViewContent
-        // call below (ProductDetail) must match retailer_product_id exactly.
+        // call below (ProductDetail) must match retailer_item_id exactly.
         // Price tags are omitted (like ProductJsonLd's offers block) when
         // there's genuinely no valid price yet, rather than advertise $0.
-        { property: "product:retailer_product_id", content: metaRetailerId(product) },
+        { property: "product:retailer_item_id", content: metaRetailerId(product) },
         ...(price > 0
           ? [
               { property: "product:price:amount", content: price.toFixed(2) },
@@ -204,7 +204,7 @@ function ProductDetail() {
   useEffect(() => {
     setNativeShareAvailable(canNativeShare());
   }, []);
-  // Meta Catalog ViewContent — content_ids must match product:retailer_product_id
+  // Meta Catalog ViewContent — content_ids must match product:retailer_item_id
   // from the head() tags above exactly, so Commerce Manager can attribute the
   // view to the right catalog row. Fires the cheapest-priced-variation basis
   // (same as head()/product cards), not a selected variation — wait for the
