@@ -147,6 +147,9 @@ export const Route = createFileRoute("/_store/product/$id")({
             ]
           : []),
         { property: "product:availability", content: metaAvailability(product) },
+        // Required by Meta's catalog spec; every item here is a physical
+        // retail food product, never refurbished/used, so this is constant.
+        { property: "product:condition", content: "new" },
       ],
       links: [{ rel: "canonical", href: url }],
     };
