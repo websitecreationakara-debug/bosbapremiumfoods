@@ -43,6 +43,11 @@ declare global {
       // shared across all e-commerce sites and the to-do app that receives them.
       SECURITY_EVENTS_URL?: string;
       SECURITY_EVENTS_API_TOKEN?: string;
+      // Meta Conversions API — server-side mirror of browser Pixel events, for
+      // event_id deduplication (see src/data/meta-capi.ts). Generate from
+      // Events Manager > Data Sources > [pixel] > Settings > Conversions API >
+      // "Generate access token". Absent = CAPI dispatch is a no-op.
+      META_CAPI_ACCESS_TOKEN?: string;
     }
   }
 

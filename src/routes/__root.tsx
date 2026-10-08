@@ -20,6 +20,7 @@ import { getTranslations, getSiteLocale } from "@/data/translations";
 import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
+import { META_PIXEL_ID } from "@/lib/meta-pixel";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
 // 392fa229…), so no manual beacon is needed. Left empty intentionally.
@@ -51,7 +52,7 @@ const WEBSITE_JSON_LD = {
 // 2026-10-05 so the raw fbq script is what's actually in the page source, per
 // Meta's own install instructions). Initial PageView fires here; subsequent
 // client-side route changes are tracked via the fbq() call in RootComponent below.
-const META_PIXEL_ID = "557782553161482";
+// META_PIXEL_ID itself lives in lib/meta-pixel.ts, shared with data/meta-capi.ts.
 const META_PIXEL = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
