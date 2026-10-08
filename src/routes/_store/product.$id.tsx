@@ -6,9 +6,9 @@ import {
   useProducts,
   useAllVariations,
 } from "@/hooks/use-products";
-import { getProduct } from "@/data/products";
+import { getProduct, getVariations } from "@/data/products";
 import { renderFormattedDescription, renderTabBody, parseProductContent } from "@/lib/format-description";
-import type { Product } from "@/lib/types";
+import type { Product, ProductVariation } from "@/lib/types";
 import {
   Accordion,
   AccordionContent,
@@ -78,8 +78,22 @@ const metaAvailability = (p: Product): string =>
 const metaRetailerId = (p: Product): string => p.product_code ?? p.id;
 
 export const Route = createFileRoute("/_store/product/$id")({
-  loader: ({ params }) => getProduct({ data: { id: params.id } }) as Promise<Product | null>,
-  head: ({ loaderData: product, params }) => {
+  // Variable products carry no real price on the product row itself (price/
+  // sale_price are unused placeholders there — see lib/variants.ts) — fetch
+  // variations too so head()'s product:price:amount reflects the actual
+  // cheapest priced variation instead of $0.
+  loader: async ({ params }) => {
+    const product = (await getProduct({ data: { id: params.id } })) as Product | null;
+    if (!product) return { product: null, variations: [] as ProductVariation[] };
+    const variations =
+      product.type === "variable"
+        ? ((await getVariations({ data: { productId: product.id } })) as ProductVariation[])
+        : [];
+    return { product, variations };
+  },
+  head: ({ loaderData, params }) => {
+    const product = loaderData?.product ?? null;
+    const variations = loaderData?.variations ?? [];
     const url = `${SITE}/product/${product ? slugify(product.title) || product.id : params.id}`;
     if (!product) {
       return {
@@ -100,7 +114,11 @@ export const Route = createFileRoute("/_store/product/$id")({
     const absolute = (u: string) => (u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`);
     const rawImg = product.social_image_url ?? product.image_url;
     const img = rawImg ? absolute(rawImg) : undefined;
-    const price = product.sale_price ?? product.price;
+    // Same basis as the "from $X" price shown on product cards — for a
+    // variable product this is the cheapest *priced* variation, not the
+    // product row's own price/sale_price (those are unused placeholders on
+    // that type and would otherwise send Meta a false $0.00).
+    const price = productFromPrice(product, variations);
     return {
       meta: [
         { title: `${product.title} — BOSBA Premium Foods` },
@@ -119,9 +137,15 @@ export const Route = createFileRoute("/_store/product/$id")({
         { name: "twitter:description", content: desc },
         // Meta Catalog product tags — content_ids in the Pixel ViewContent
         // call below (ProductDetail) must match retailer_product_id exactly.
+        // Price tags are omitted (like ProductJsonLd's offers block) when
+        // there's genuinely no valid price yet, rather than advertise $0.
         { property: "product:retailer_product_id", content: metaRetailerId(product) },
-        { property: "product:price:amount", content: price.toFixed(2) },
-        { property: "product:price:currency", content: "USD" },
+        ...(price > 0
+          ? [
+              { property: "product:price:amount", content: price.toFixed(2) },
+              { property: "product:price:currency", content: "USD" },
+            ]
+          : []),
         { property: "product:availability", content: metaAvailability(product) },
       ],
       links: [{ rel: "canonical", href: url }],
@@ -159,8 +183,10 @@ function ProductJsonLd({ product }: { product: Product }) {
 }
 
 function ProductDetail() {
-  const product = Route.useLoaderData();
-  const { data: variations = [] } = useProductVariations(product?.id ?? "");
+  const { product } = Route.useLoaderData();
+  const { data: variations = [], isFetched: variationsFetched } = useProductVariations(
+    product?.id ?? "",
+  );
   const { data: galleryImages = [] } = useProductImages(product?.id ?? "");
   const { data: allProducts = [] } = useProducts();
   const { data: allVariations = [] } = useAllVariations();
@@ -180,17 +206,20 @@ function ProductDetail() {
   }, []);
   // Meta Catalog ViewContent — content_ids must match product:retailer_product_id
   // from the head() tags above exactly, so Commerce Manager can attribute the
-  // view to the right catalog row. Fires product-level price/id (not the
-  // selected variation's), same basis the OG tags use.
+  // view to the right catalog row. Fires the cheapest-priced-variation basis
+  // (same as head()/product cards), not a selected variation — wait for the
+  // variations query on variable products so this doesn't fire $0 before it
+  // resolves.
   useEffect(() => {
     if (!product) return;
+    if (product.type === "variable" && !variationsFetched) return;
     (window as any).fbq?.("track", "ViewContent", {
       content_ids: [metaRetailerId(product)],
       content_type: "product",
-      value: product.sale_price ?? product.price,
+      value: productFromPrice(product, variations),
       currency: "USD",
     });
-  }, [product?.id]);
+  }, [product, variationsFetched, variations]);
   // "Read more" only appears once the description actually overflows 3 lines —
   // re-measured on resize since line-wrapping depends on the viewport width.
   const descRef = useRef<HTMLParagraphElement>(null);
