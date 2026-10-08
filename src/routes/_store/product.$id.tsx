@@ -67,6 +67,16 @@ const metaDescription = (p: Product) =>
     .replace(/\s+/g, " ")
     .slice(0, 160);
 
+// Meta Catalog's product:availability tag wants a plain string, not the
+// schema.org URL ProductJsonLd uses below.
+const metaAvailability = (p: Product): string =>
+  p.pre_order ? "preorder" : p.stock === 0 ? "out of stock" : "in stock";
+
+// SKU Meta Catalog matches on (product:retailer_product_id / Pixel
+// content_ids) — product_code when set, else the row id so it's always
+// unique even for products created before product_code existed.
+const metaRetailerId = (p: Product): string => p.product_code ?? p.id;
+
 export const Route = createFileRoute("/_store/product/$id")({
   loader: ({ params }) => getProduct({ data: { id: params.id } }) as Promise<Product | null>,
   head: ({ loaderData: product, params }) => {
@@ -90,6 +100,7 @@ export const Route = createFileRoute("/_store/product/$id")({
     const absolute = (u: string) => (u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`);
     const rawImg = product.social_image_url ?? product.image_url;
     const img = rawImg ? absolute(rawImg) : undefined;
+    const price = product.sale_price ?? product.price;
     return {
       meta: [
         { title: `${product.title} — BOSBA Premium Foods` },
@@ -106,6 +117,12 @@ export const Route = createFileRoute("/_store/product/$id")({
           : []),
         { name: "twitter:title", content: product.title },
         { name: "twitter:description", content: desc },
+        // Meta Catalog product tags — content_ids in the Pixel ViewContent
+        // call below (ProductDetail) must match retailer_product_id exactly.
+        { property: "product:retailer_product_id", content: metaRetailerId(product) },
+        { property: "product:price:amount", content: price.toFixed(2) },
+        { property: "product:price:currency", content: "USD" },
+        { property: "product:availability", content: metaAvailability(product) },
       ],
       links: [{ rel: "canonical", href: url }],
     };
@@ -161,6 +178,19 @@ function ProductDetail() {
   useEffect(() => {
     setNativeShareAvailable(canNativeShare());
   }, []);
+  // Meta Catalog ViewContent — content_ids must match product:retailer_product_id
+  // from the head() tags above exactly, so Commerce Manager can attribute the
+  // view to the right catalog row. Fires product-level price/id (not the
+  // selected variation's), same basis the OG tags use.
+  useEffect(() => {
+    if (!product) return;
+    (window as any).fbq?.("track", "ViewContent", {
+      content_ids: [metaRetailerId(product)],
+      content_type: "product",
+      value: product.sale_price ?? product.price,
+      currency: "USD",
+    });
+  }, [product?.id]);
   // "Read more" only appears once the description actually overflows 3 lines —
   // re-measured on resize since line-wrapping depends on the viewport width.
   const descRef = useRef<HTMLParagraphElement>(null);
