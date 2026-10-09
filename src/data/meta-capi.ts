@@ -10,6 +10,13 @@ type ViewContentInput = {
   eventSourceUrl: string;
 };
 
+type CustomEventInput = {
+  eventId: string;
+  eventName: string;
+  contentName: string;
+  eventSourceUrl: string;
+};
+
 // _fbp/_fbc are Meta's own first-party cookies (set by the Pixel snippet /
 // ad-click redirect) — forwarded as-is, never hashed, to improve CAPI match
 // quality. Not present until the Pixel script has run at least once.
@@ -63,6 +70,50 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
                 value: data.value,
                 currency: "USD",
               },
+            },
+          ],
+        }),
+      });
+    } catch {
+      // best-effort — a CAPI dispatch failure must never break the product page
+    }
+  });
+
+// Server-side mirror of the browser Pixel's trackCustom button-click events
+// (see trackButtonClick in product.$id.tsx) — same event_id on both sides so
+// Meta dedupes the two into one verified event. Best-effort: never throws.
+export const sendCustomCapiEvent = createServerFn({ method: "POST" })
+  .inputValidator((d: CustomEventInput) => d)
+  .handler(async ({ data }) => {
+    const token = env.META_CAPI_ACCESS_TOKEN;
+    if (!token) return;
+
+    const request = getRequest();
+    const cookieHeader = request.headers.get("cookie") ?? "";
+    const userData: Record<string, string> = {
+      client_ip_address: request.headers.get("cf-connecting-ip") ?? "",
+      client_user_agent: request.headers.get("user-agent") ?? "",
+    };
+    const fbp = readCookie(cookieHeader, "_fbp");
+    if (fbp) userData.fbp = fbp;
+    const fbc = readCookie(cookieHeader, "_fbc");
+    if (fbc) userData.fbc = fbc;
+
+    try {
+      await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          access_token: token,
+          data: [
+            {
+              event_name: data.eventName,
+              event_time: Math.floor(Date.now() / 1000),
+              event_id: data.eventId,
+              event_source_url: data.eventSourceUrl,
+              action_source: "website",
+              user_data: userData,
+              custom_data: { content_name: data.contentName },
             },
           ],
         }),
