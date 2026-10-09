@@ -10,10 +10,10 @@ type ViewContentInput = {
   eventSourceUrl: string;
 };
 
-type CustomEventInput = {
+type CapiEventInput = {
   eventId: string;
   eventName: string;
-  contentName: string;
+  customData: Record<string, unknown>;
   eventSourceUrl: string;
 };
 
@@ -79,11 +79,12 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
     }
   });
 
-// Server-side mirror of the browser Pixel's trackCustom button-click events
-// (see trackButtonClick in product.$id.tsx) — same event_id on both sides so
-// Meta dedupes the two into one verified event. Best-effort: never throws.
-export const sendCustomCapiEvent = createServerFn({ method: "POST" })
-  .inputValidator((d: CustomEventInput) => d)
+// Generic server-side mirror for any named Pixel event (standard, e.g.
+// AddToCart/Purchase, or custom, e.g. trackButtonClick in product.$id.tsx) —
+// same event_id on both sides so Meta dedupes the two into one verified
+// event. Best-effort: never throws.
+export const sendCapiEvent = createServerFn({ method: "POST" })
+  .inputValidator((d: CapiEventInput) => d)
   .handler(async ({ data }) => {
     const token = env.META_CAPI_ACCESS_TOKEN;
     if (!token) return;
@@ -113,7 +114,7 @@ export const sendCustomCapiEvent = createServerFn({ method: "POST" })
               event_source_url: data.eventSourceUrl,
               action_source: "website",
               user_data: userData,
-              custom_data: { content_name: data.contentName },
+              custom_data: data.customData,
             },
           ],
         }),

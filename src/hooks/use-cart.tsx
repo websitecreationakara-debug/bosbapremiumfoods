@@ -1,5 +1,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import type { CartItem, Product, ProductVariation } from "@/lib/types";
+import { metaRetailerId } from "@/lib/meta-catalog";
+import { sendCapiEvent } from "@/data/meta-capi";
 
 // A cart line is identified by product + chosen variation, so the same product
 // in two weights is two distinct lines.
@@ -61,6 +63,28 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return [...prev, { product: p, variation, qty }];
     });
     if (opts.openDrawer !== false) setDrawerOpen(true);
+
+    // Standard Meta Pixel AddToCart, fired here so every add-to-cart entry
+    // point sitewide (product page, listing quick-add, addon picker) is
+    // covered from one place. content_ids must match the catalog feed's
+    // retailer_item_id (see lib/meta-catalog.ts) for catalogue ads matching.
+    // Browser + CAPI mirror like ViewContent, sharing one event_id so Meta
+    // dedupes them instead of double-counting.
+    const unitPrice = variation
+      ? (variation.sale_price ?? variation.price)
+      : (p.sale_price ?? p.price);
+    const eventId = crypto.randomUUID();
+    const eventSourceUrl = window.location.href;
+    const customData = {
+      content_ids: [metaRetailerId(p)],
+      content_type: "product",
+      value: unitPrice * qty,
+      currency: "USD",
+    };
+    (window as any).fbq?.("track", "AddToCart", customData, { eventID: eventId });
+    sendCapiEvent({
+      data: { eventId, eventName: "AddToCart", customData, eventSourceUrl },
+    }).catch(() => {});
   };
 
   const remove: CartCtx["remove"] = (key) =>
