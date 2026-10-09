@@ -109,7 +109,12 @@ async function handleStockSync(request: Request): Promise<Response> {
     });
   }
 
-  const stock = Math.max(0, Math.floor(body.stock));
+  // Not floored: a product sold by the gram (NOVA POS's weight_grams feature)
+  // can legitimately sit at a fractional quantity (e.g. 0.9 of a 1kg pack
+  // after a 100g sale) -- flooring that to 0 falsely showed "Out of stock"
+  // with real stock still on the shelf. Rounded to 2dp to match the POS's
+  // own numeric(12,2) precision instead of storing float noise.
+  const stock = Math.max(0, Math.round(body.stock * 100) / 100);
   const db = getDb();
   const updated = await db
     .update(products)
