@@ -8,7 +8,11 @@ import {
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
 import { sendViewContentCapiEvent } from "@/data/meta-capi";
-import { renderFormattedDescription, renderTabBody, parseProductContent } from "@/lib/format-description";
+import {
+  renderFormattedDescription,
+  renderTabBody,
+  parseProductContent,
+} from "@/lib/format-description";
 import type { Product, ProductVariation } from "@/lib/types";
 import {
   Accordion,
@@ -27,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { productFromPrice, groupVariations, hasValidPrice } from "@/lib/variants";
+import { metaDescription, metaAvailability, metaRetailerId } from "@/lib/meta-catalog";
 import {
   Star,
   ShoppingBag,
@@ -63,21 +68,6 @@ function relatedProducts(current: Product, all: Product[]): Product[] {
 
 const SITE = "https://bosbapremiumfoods.com";
 
-const metaDescription = (p: Product) =>
-  (p.description?.trim() || `${p.title} — premium quality foods from BOSBA Premium Foods.`)
-    .replace(/\s+/g, " ")
-    .slice(0, 160);
-
-// Meta Catalog's product:availability tag wants a plain string, not the
-// schema.org URL ProductJsonLd uses below.
-const metaAvailability = (p: Product): string =>
-  p.pre_order ? "preorder" : p.stock === 0 ? "out of stock" : "in stock";
-
-// SKU Meta Catalog matches on (product:retailer_item_id / Pixel
-// content_ids) — product_code when set, else the row id so it's always
-// unique even for products created before product_code existed.
-const metaRetailerId = (p: Product): string => p.product_code ?? p.id;
-
 export const Route = createFileRoute("/_store/product/$id")({
   // Variable products carry no real price on the product row itself (price/
   // sale_price are unused placeholders there — see lib/variants.ts) — fetch
@@ -112,7 +102,8 @@ export const Route = createFileRoute("/_store/product/$id")({
     // Facebook's link card crops the storefront's square image_url
     // awkwardly; fall back to the square photo for older products saved
     // before this existed.
-    const absolute = (u: string) => (u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`);
+    const absolute = (u: string) =>
+      u.startsWith("http") ? u : `${SITE}${u.startsWith("/") ? "" : "/"}${u}`;
     const rawImg = product.social_image_url ?? product.image_url;
     const img = rawImg ? absolute(rawImg) : undefined;
     // Same basis as the "from $X" price shown on product cards — for a
@@ -700,7 +691,11 @@ function ProductDetail() {
         </span>
         {preOrder ? (
           <Button asChild size="lg" className="flex-1 rounded-full font-bold">
-            <a href={preOrderChatUrl(product.title, weightLabel)} target="_blank" rel="noopener noreferrer">
+            <a
+              href={preOrderChatUrl(product.title, weightLabel)}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Chat to Pre-Order
             </a>
           </Button>
