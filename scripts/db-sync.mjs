@@ -1,9 +1,9 @@
 // On-demand product/category sync between the local D1 (vite dev) and the remote
-// D1 (camitc.com). The two databases are otherwise independent — run this when you
+// D1 (bosbapremiumfoods.com). The two databases are otherwise independent — run this when you
 // want one to match the other.
 //
-//   npm run db:pull            remote (camitc.com) -> local        (overwrites local)
-//   npm run db:push -- --yes   local -> remote (camitc.com)        (overwrites PROD)
+//   npm run db:pull            remote (bosbapremiumfoods.com) -> local        (overwrites local)
+//   npm run db:push -- --yes   local -> remote (bosbapremiumfoods.com)        (overwrites PROD)
 //
 // Only `categories` and `products` are synced. Media image blobs, users, sessions,
 // and orders are intentionally left alone. The destination is backed up to a SQL
@@ -26,12 +26,12 @@ if (dir !== "push" && dir !== "pull") {
 
 const srcFlag = dir === "push" ? "--local" : "--remote";
 const dstFlag = dir === "push" ? "--remote" : "--local";
-const srcName = dir === "push" ? "LOCAL" : "REMOTE (camitc.com)";
-const dstName = dir === "push" ? "REMOTE (camitc.com)" : "LOCAL";
+const srcName = dir === "push" ? "LOCAL" : "REMOTE (bosbapremiumfoods.com)";
+const dstName = dir === "push" ? "REMOTE (bosbapremiumfoods.com)" : "LOCAL";
 
 if (dir === "push" && !confirmed) {
   console.error(
-    `\n⚠️  This OVERWRITES production (camitc.com) products & categories with your LOCAL data.\n` +
+    `\n⚠️  This OVERWRITES production (bosbapremiumfoods.com) products & categories with your LOCAL data.\n` +
       `   There is no undo for live customers. If you're sure, run:\n\n` +
       `     npm run db:push -- --yes\n`,
   );
