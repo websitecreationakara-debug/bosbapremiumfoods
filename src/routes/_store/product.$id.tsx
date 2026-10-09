@@ -7,7 +7,7 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
-import { sendViewContentCapiEvent } from "@/data/meta-capi";
+import { sendViewContentCapiEvent, sendCustomCapiEvent } from "@/data/meta-capi";
 import {
   renderFormattedDescription,
   renderTabBody,
@@ -262,6 +262,27 @@ function ProductDetail() {
       </div>
     );
   }
+
+  // Marketing button-click tracking (Add to Cart / pre-order / product-question
+  // chat) — custom Pixel events, browser + CAPI mirror like the ViewContent
+  // effect above, so ad blockers don't silently drop these either.
+  const trackButtonClick = (eventName: string) => {
+    const eventId = crypto.randomUUID();
+    (window as any).fbq?.(
+      "trackCustom",
+      eventName,
+      { content_name: product.title },
+      { eventID: eventId },
+    );
+    sendCustomCapiEvent({
+      data: {
+        eventId,
+        eventName,
+        contentName: product.title,
+        eventSourceUrl: window.location.href,
+      },
+    }).catch(() => {});
+  };
 
   // A description can opt into a hero tagline/badges, offer callouts, and
   // accordion tabs via lightweight markers — see parseProductContent.
@@ -573,6 +594,7 @@ function ProductDetail() {
                   href={preOrderChatUrl(product.title, weightLabel)}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackButtonClick("PreOrderChatButtonClick")}
                 >
                   <MessageCircle className="size-4 mr-2" />
                   Chat to Pre-Order
@@ -582,7 +604,10 @@ function ProductDetail() {
               <Button
                 size="lg"
                 disabled={addDisabled}
-                onClick={() => add(product, variable ? selected : null, qty)}
+                onClick={() => {
+                  trackButtonClick("AddToCartButtonClick");
+                  add(product, variable ? selected : null, qty);
+                }}
                 className="flex-1 rounded-full font-bold"
               >
                 <ShoppingBag className="size-4 mr-2" />
@@ -657,6 +682,7 @@ function ProductDetail() {
               href={productQuestionChatUrl(product.title)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackButtonClick("ProductQuestionChatButtonClick")}
               className="inline-flex items-center gap-1.5 text-sm font-medium text-brand hover:underline mt-3 w-fit"
             >
               <MessageCircle className="size-3.5" />
@@ -695,6 +721,7 @@ function ProductDetail() {
               href={preOrderChatUrl(product.title, weightLabel)}
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackButtonClick("PreOrderChatButtonClick")}
             >
               Chat to Pre-Order
             </a>
@@ -703,7 +730,10 @@ function ProductDetail() {
           <Button
             size="lg"
             disabled={addDisabled}
-            onClick={() => add(product, variable ? selected : null, qty)}
+            onClick={() => {
+              trackButtonClick("AddToCartButtonClick");
+              add(product, variable ? selected : null, qty);
+            }}
             className="flex-1 rounded-full font-bold"
           >
             {soldOut ? "Out of Stock" : unpriced ? "Unavailable" : "Order Now"}
