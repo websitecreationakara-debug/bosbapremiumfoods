@@ -18,6 +18,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
+import { sendCapiEvent } from "@/data/meta-capi";
+import { metaRetailerId } from "@/lib/meta-catalog";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
@@ -313,6 +315,34 @@ function Checkout() {
       return;
     }
     setSubmitting(false);
+
+    // Standard Meta Pixel Purchase, browser + CAPI mirror like ViewContent/
+    // AddToCart — content_ids must match the catalog feed's retailer_item_id
+    // (lib/meta-catalog.ts), not the cart line's variation/product row id,
+    // so Commerce Manager can attribute the sale to the right catalog item.
+    const purchaseEventId = crypto.randomUUID();
+    const purchaseCustomData = {
+      content_ids: items.map((i) => metaRetailerId(i.product)),
+      content_type: "product",
+      contents: items.map((i) => ({
+        id: metaRetailerId(i.product),
+        quantity: i.qty,
+        item_price: itemUnitPrice(i),
+      })),
+      num_items: items.reduce((a, i) => a + i.qty, 0),
+      value: res.total,
+      currency: "USD",
+    };
+    (window as any).fbq?.("track", "Purchase", purchaseCustomData, { eventID: purchaseEventId });
+    sendCapiEvent({
+      data: {
+        eventId: purchaseEventId,
+        eventName: "Purchase",
+        customData: purchaseCustomData,
+        eventSourceUrl: window.location.href,
+      },
+    }).catch(() => {});
+
     // Persist a newly typed address to the customer's address book if they opted in.
     if (deliveryMethod === "delivery" && user && selectedAddressId === null && saveNewAddress) {
       try {

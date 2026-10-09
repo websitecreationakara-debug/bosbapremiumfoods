@@ -7,7 +7,7 @@ import {
   useAllVariations,
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
-import { sendViewContentCapiEvent, sendCustomCapiEvent } from "@/data/meta-capi";
+import { sendViewContentCapiEvent, sendCapiEvent } from "@/data/meta-capi";
 import {
   renderFormattedDescription,
   renderTabBody,
@@ -274,11 +274,11 @@ function ProductDetail() {
       { content_name: product.title },
       { eventID: eventId },
     );
-    sendCustomCapiEvent({
+    sendCapiEvent({
       data: {
         eventId,
         eventName,
-        contentName: product.title,
+        customData: { content_name: product.title },
         eventSourceUrl: window.location.href,
       },
     }).catch(() => {});
