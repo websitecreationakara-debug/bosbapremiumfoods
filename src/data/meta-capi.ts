@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { env } from "cloudflare:workers";
 import { META_PIXEL_ID } from "@/lib/meta-pixel";
+import { getAuth } from "@/lib/auth";
 
 type ViewContentInput = {
   eventId: string;
@@ -28,6 +29,80 @@ function readCookie(cookieHeader: string, name: string): string | undefined {
   return match?.slice(name.length + 1);
 }
 
+// The browser Pixel writes _fbc to document.cookie asynchronously on init,
+// and our ViewContent/trackButtonClick effects fire fbq("track", ...) and
+// this CAPI call back-to-back right after — so on a visitor's very first hit
+// from an ad click, the CAPI request can race ahead of that cookie write and
+// see no _fbc yet, even though the Pixel itself captured it fine (this is
+// exactly what Events Manager's "server is sending an empty fbc" diagnostic
+// flags). Meta's documented fallback: when the cookie is missing, derive the
+// same value from the fbclid query param instead of relying on cookie timing.
+// Format per Meta's spec: fb.<subdomain_index>.<creation_time_ms>.<fbclid>
+// (subdomain_index 1 = cookie set on the eTLD+1, true for this site).
+function deriveFbc(cookieHeader: string, eventSourceUrl: string): string | undefined {
+  const fromCookie = readCookie(cookieHeader, "_fbc");
+  if (fromCookie) return fromCookie;
+
+  try {
+    const fbclid = new URL(eventSourceUrl).searchParams.get("fbclid");
+    return fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function sha256Hex(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function hashField(value: string | null | undefined): Promise<string | undefined> {
+  if (!value) return undefined;
+  const cleaned = value.trim().toLowerCase();
+  return cleaned ? await sha256Hex(cleaned) : undefined;
+}
+
+function normalizePhone(raw: string | null | undefined): string | undefined {
+  if (!raw) return undefined;
+  const digits = raw.replace(/\D/g, "");
+  return digits || undefined;
+}
+
+// Email/phone/name are only legitimately known once a visitor is logged in —
+// an anonymous browser has given us nothing yet, and inventing data for them
+// would violate Meta's requirement that event data reflect real known facts.
+// So this only ever adds fields for a real, authenticated session; anonymous
+// traffic is unaffected and keeps relying on fbp/fbc/IP/UA alone.
+async function addIdentityUserData(
+  userData: Record<string, string>,
+  request: Request,
+): Promise<void> {
+  const session = await getAuth().api.getSession({ headers: request.headers });
+  const user = session?.user as
+    { id: string; email?: string | null; name?: string | null; phone?: string | null } | undefined;
+  if (!user) return;
+
+  const em = await hashField(user.email);
+  if (em) userData.em = em;
+
+  const phoneDigits = normalizePhone(user.phone);
+  if (phoneDigits) userData.ph = await sha256Hex(phoneDigits);
+
+  if (user.name) {
+    const parts = user.name.trim().split(/\s+/);
+    const fn = await hashField(parts[0]);
+    if (fn) userData.fn = fn;
+    if (parts.length > 1) {
+      const ln = await hashField(parts.slice(1).join(" "));
+      if (ln) userData.ln = ln;
+    }
+  }
+
+  userData.external_id = await sha256Hex(user.id);
+}
+
 // Server-side mirror of the browser Pixel's ViewContent call (see the
 // useEffect in product.$id.tsx) — passing the same event_id on both sides
 // lets Meta deduplicate the two signals into one verified event instead of
@@ -47,8 +122,9 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
     };
     const fbp = readCookie(cookieHeader, "_fbp");
     if (fbp) userData.fbp = fbp;
-    const fbc = readCookie(cookieHeader, "_fbc");
+    const fbc = deriveFbc(cookieHeader, data.eventSourceUrl);
     if (fbc) userData.fbc = fbc;
+    await addIdentityUserData(userData, request);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
@@ -97,8 +173,9 @@ export const sendCapiEvent = createServerFn({ method: "POST" })
     };
     const fbp = readCookie(cookieHeader, "_fbp");
     if (fbp) userData.fbp = fbp;
-    const fbc = readCookie(cookieHeader, "_fbc");
+    const fbc = deriveFbc(cookieHeader, data.eventSourceUrl);
     if (fbc) userData.fbc = fbc;
+    await addIdentityUserData(userData, request);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
