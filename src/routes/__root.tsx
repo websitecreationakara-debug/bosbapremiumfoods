@@ -21,6 +21,7 @@ import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
 import { META_PIXEL_ID } from "@/lib/meta-pixel";
+import { sendCapiEvent } from "@/data/meta-capi";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
 // 392fa229…), so no manual beacon is needed. Left empty intentionally.
@@ -53,6 +54,11 @@ const WEBSITE_JSON_LD = {
 // Meta's own install instructions). Initial PageView fires here; subsequent
 // client-side route changes are tracked via the fbq() call in RootComponent below.
 // META_PIXEL_ID itself lives in lib/meta-pixel.ts, shared with data/meta-capi.ts.
+// The event ID is stashed on window so RootComponent's effect can send the
+// matching server-side CAPI mirror for this same first PageView (see the
+// isFirstPageview branch below) -- Events Manager flagged server-side PageView
+// coverage as well below pixel-side, and this was the gap: the client pixel
+// fired every PageView but nothing mirrored it server-side at all.
 const META_PIXEL = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -62,7 +68,8 @@ t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
 fbq('init', '${META_PIXEL_ID}');
-fbq('track', 'PageView');`;
+window.__fbInitialPageviewEventId = crypto.randomUUID();
+fbq('track', 'PageView', {}, {eventID: window.__fbInitialPageviewEventId});`;
 
 // TikTok Pixel — fires a PageView on every page. Official base snippet (the
 // pasted copy had its `||` operators stripped, which is a syntax error).
@@ -275,13 +282,32 @@ function RootComponent() {
   const isFirstPageview = useRef(true);
 
   useEffect(() => {
-    // The inline head script already fires the first PageView on initial load —
-    // only track again on subsequent client-side route changes.
+    // The inline head script already fires the first PageView pixel call on
+    // initial load (with its own event ID stashed on window) — only the
+    // client-side pixel needs to skip re-firing here. The server-side CAPI
+    // mirror still needs to be sent for every PageView, first one included,
+    // using that same event ID so Meta dedupes the two into one event
+    // instead of double-counting.
+    const eventId = isFirstPageview.current
+      ? ((window as any).__fbInitialPageviewEventId as string | undefined)
+      : crypto.randomUUID();
+
     if (isFirstPageview.current) {
       isFirstPageview.current = false;
-      return;
+    } else {
+      (window as any).fbq?.("track", "PageView", {}, { eventID: eventId });
     }
-    (window as any).fbq?.("track", "PageView");
+
+    if (eventId) {
+      sendCapiEvent({
+        data: {
+          eventId,
+          eventName: "PageView",
+          customData: {},
+          eventSourceUrl: window.location.href,
+        },
+      }).catch(() => {});
+    }
   }, [pathname]);
 
   return (
