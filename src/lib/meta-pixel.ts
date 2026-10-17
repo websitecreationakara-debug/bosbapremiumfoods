@@ -57,10 +57,10 @@ export function normalizePhone(raw: string | null | undefined): string | undefin
 // checkout completes — see checkout.tsx. Read back by every CAPI dispatch in
 // data/meta-capi.ts and by the inline Pixel snippet in __root.tsx, so a
 // returning guest's PageView/ViewContent/AddToCart on a later visit carries
-// the same em/ph/fn/ln/ct/country their last order gave us, instead of only
-// the one Purchase event ever having that data.
+// the same em/ph/fn/ln/ct/st/country their last order gave us, instead of
+// only the one Purchase event ever having that data.
 export const RETURNING_GUEST_COOKIE = "_bid";
 
 export type ReturningGuestFields = Partial<
-  Record<"em" | "ph" | "fn" | "ln" | "ct" | "country", string>
+  Record<"em" | "ph" | "fn" | "ln" | "ct" | "st" | "country", string>
 >;

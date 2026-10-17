@@ -26,6 +26,7 @@ type CustomerInfo = {
   phone?: string;
   name?: string;
   city?: string;
+  state?: string;
   country?: string;
 };
 
@@ -135,7 +136,7 @@ function addReturningGuestUserData(userData: Record<string, string>, cookieHeade
     return;
   }
 
-  for (const key of ["em", "ph", "fn", "ln", "ct", "country"] as const) {
+  for (const key of ["em", "ph", "fn", "ln", "ct", "st", "country"] as const) {
     const value = fields[key];
     if (value && !userData[key]) userData[key] = value;
   }
@@ -180,6 +181,12 @@ async function addCustomerInfoUserData(
     // Meta's hashing spec for city: lowercase, whitespace stripped entirely.
     const ct = await hashField(info.city?.replace(/\s+/g, ""));
     if (ct) userData.ct = ct;
+  }
+
+  if (!userData.st) {
+    // Same normalization as city — Meta's spec for non-US state/region.
+    const st = await hashField(info.state?.replace(/\s+/g, ""));
+    if (st) userData.st = st;
   }
 
   if (!userData.country) {

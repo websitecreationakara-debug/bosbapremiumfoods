@@ -344,13 +344,15 @@ function Checkout() {
     // Most purchases are guest checkout (no account, so addIdentityUserData
     // on the server has nothing to pull) — forward what the customer just
     // typed into this form so CAPI isn't left with only fbp/fbc/IP for the
-    // single highest-value event. Store only delivers within Cambodia (see
-    // ORG_JSON_LD above), hence the fixed country code.
+    // single highest-value event. Store only delivers within Phnom Penh,
+    // Cambodia (see ORG_JSON_LD/STORE_ADDRESS above), hence the fixed
+    // state/country — there's no per-customer province to collect.
     const customerInfo = {
       email: customerEmail,
       phone: phoneRef.current?.value ?? "",
       name: customerName,
       city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
+      state: "Phnom Penh",
       country: "KH",
     };
     // Persist this order's identity (already hashed — never raw PII in a
@@ -376,6 +378,8 @@ function Checkout() {
         const ct = await hashField(customerInfo.city.replace(/\s+/g, ""));
         if (ct) fields.ct = ct;
       }
+      const st = await hashField(customerInfo.state.replace(/\s+/g, ""));
+      if (st) fields.st = st;
       const country = await hashField(customerInfo.country);
       if (country) fields.country = country;
 
