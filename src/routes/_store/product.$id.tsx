@@ -8,7 +8,7 @@ import {
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
 import { sendViewContentCapiEvent, sendCapiEvent } from "@/data/meta-capi";
-import { waitForFbp } from "@/lib/meta-pixel";
+import { waitForPixelCookies } from "@/lib/meta-pixel";
 import {
   renderFormattedDescription,
   renderTabBody,
@@ -221,7 +221,7 @@ function ProductDetail() {
       { content_ids: contentIds, content_type: "product", value, currency: "USD" },
       { eventID: eventId },
     );
-    waitForFbp().then(() => {
+    waitForPixelCookies().then(() => {
       sendViewContentCapiEvent({
         data: { eventId, contentIds, value, eventSourceUrl: window.location.href },
       }).catch(() => {});
@@ -277,7 +277,7 @@ function ProductDetail() {
       { content_name: product.title },
       { eventID: eventId },
     );
-    waitForFbp().then(() => {
+    waitForPixelCookies().then(() => {
       sendCapiEvent({
         data: {
           eventId,

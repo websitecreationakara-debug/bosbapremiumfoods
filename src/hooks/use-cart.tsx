@@ -2,7 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from "
 import type { CartItem, Product, ProductVariation } from "@/lib/types";
 import { metaRetailerId } from "@/lib/meta-catalog";
 import { sendCapiEvent } from "@/data/meta-capi";
-import { waitForFbp } from "@/lib/meta-pixel";
+import { waitForPixelCookies } from "@/lib/meta-pixel";
 
 // A cart line is identified by product + chosen variation, so the same product
 // in two weights is two distinct lines.
@@ -83,7 +83,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       currency: "USD",
     };
     (window as any).fbq?.("track", "AddToCart", customData, { eventID: eventId });
-    waitForFbp().then(() => {
+    waitForPixelCookies().then(() => {
       sendCapiEvent({
         data: { eventId, eventName: "AddToCart", customData, eventSourceUrl },
       }).catch(() => {});

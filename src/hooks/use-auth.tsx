@@ -1,6 +1,7 @@
-import { createContext, useContext, type ReactNode } from "react";
+import { createContext, useContext, useEffect, type ReactNode } from "react";
 import { authClient } from "@/lib/auth-client";
 import { withCaptcha } from "@/lib/recaptcha";
+import { META_PIXEL_ID, hashField, hashName, normalizePhone, sha256Hex } from "@/lib/meta-pixel";
 
 type AuthUser = {
   id: string;
@@ -71,6 +72,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         twoFactorEnabled: !!u.twoFactorEnabled,
       }
     : null;
+
+  // The inline Pixel snippet in __root.tsx always initializes Advanced
+  // Matching with the anonymous _banon id, since it runs before hydration —
+  // before this hook can know whether anyone's logged in. Left alone, a
+  // logged-in visitor's client Pixel keeps using that anonymous external_id
+  // forever, while every CAPI event for them (addIdentityUserData) sends
+  // external_id = hash(account id) instead — two different values for the
+  // same person across the two channels, which defeats external_id's whole
+  // purpose as a stable cross-channel match key. Once the session resolves,
+  // re-init with the account id (raw — fbq hashes it itself, same input CAPI
+  // hashes server-side) so both channels agree, and pre-hash em/ph/fn/ln
+  // ourselves (using the exact same normalization as meta-capi.ts) so this
+  // also gives logged-in sessions client-side Advanced Matching beyond just
+  // external_id, which they had none of before.
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const advancedMatching: Record<string, string> = { external_id: user.id };
+      const em = await hashField(user.email);
+      if (em) advancedMatching.em = em;
+      const phoneDigits = normalizePhone(user.phone);
+      if (phoneDigits) advancedMatching.ph = await sha256Hex(phoneDigits);
+      if (user.name) {
+        const parts = user.name.trim().split(/\s+/);
+        const fn = await hashName(parts[0]);
+        if (fn) advancedMatching.fn = fn;
+        if (parts.length > 1) {
+          const ln = await hashName(parts.slice(1).join(" "));
+          if (ln) advancedMatching.ln = ln;
+        }
+      }
+      (window as any).fbq?.("init", META_PIXEL_ID, advancedMatching);
+    })();
+  }, [user?.id, user?.email, user?.phone, user?.name]);
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
     const res = await authClient.signIn.email({

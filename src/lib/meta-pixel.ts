@@ -4,23 +4,39 @@
 export const META_PIXEL_ID = "557782553161482";
 
 // The Pixel script (connect.facebook.net/.../fbevents.js) loads via an async
-// <script> tag and only writes the _fbp cookie once it has actually executed
+// <script> tag and only writes _fbp/_fbc once it has actually executed
 // `fbq('init', ...)`. Our own fbq("track", ...)/CAPI-dispatch effects can run
 // before that happens — e.g. on a fast device, React hydration + the effect
 // can beat the async script download — so a CAPI call fired immediately after
-// mount sometimes ships with no _fbp even though the browser Pixel captured
-// it a moment later. Events Manager's EMQ "fbp" coverage (dropping well below
-// 100%) is exactly this race. Poll briefly for the cookie before dispatching
-// CAPI; give up after timeoutMs so a blocked/absent Pixel (ad blockers) can't
-// stall the event indefinitely.
-export function waitForFbp(timeoutMs = 1500): Promise<void> {
+// mount sometimes ships with no _fbp/_fbc even though the browser Pixel
+// captured it a moment later. Events Manager's EMQ "fbp" coverage (dropping
+// well below 100%) is exactly this race. _fbc matters even more here: when
+// the cookie isn't ready yet, data/meta-capi.ts derives its own fbc from the
+// fbclid URL param using the *current* timestamp — a different value than
+// the one the Pixel's own cookie will carry once it finally writes (set at
+// the moment fbevents.js itself processed the click), so a later event on
+// the same visit that reads the real cookie sends a *different* fbc string
+// for what should be the same click. Waiting here means we almost always
+// pick up the Pixel's authoritative cookie value instead of guessing our own.
+// Give up after timeoutMs so a blocked/absent Pixel (ad blockers) can't stall
+// the event indefinitely.
+export function waitForPixelCookies(timeoutMs = 1500): Promise<void> {
   if (typeof document === "undefined") return Promise.resolve();
   const hasFbp = () => /(?:^|; )_fbp=/.test(document.cookie);
-  if (hasFbp()) return Promise.resolve();
+  const hasFbc = () => /(?:^|; )_fbc=/.test(document.cookie);
+  const expectsFbc = () => {
+    try {
+      return new URL(window.location.href).searchParams.has("fbclid");
+    } catch {
+      return false;
+    }
+  };
+  const ready = () => hasFbp() && (!expectsFbc() || hasFbc());
+  if (ready()) return Promise.resolve();
   return new Promise((resolve) => {
     const start = Date.now();
     const poll = () => {
-      if (hasFbp() || Date.now() - start > timeoutMs) {
+      if (ready() || Date.now() - start > timeoutMs) {
         resolve();
         return;
       }
@@ -47,10 +63,56 @@ export async function hashField(value: string | null | undefined): Promise<strin
   return cleaned ? await sha256Hex(cleaned) : undefined;
 }
 
+// Meta's spec for fn/ln explicitly requires "no punctuation" before hashing
+// (e.g. a name like "Sok-Dara" or "O'Brien" must be hashed as "sokdara" /
+// "obrien"). Left as plain hashField (lowercase+trim only), an apostrophe or
+// hyphen survives into the hash, producing a different SHA-256 than the one
+// Meta computes from its own stripped-punctuation copy of the same name —
+// so, same failure mode as the unnormalized phone number: the field gets
+// sent but silently never matches. Internal spacing (multi-word last names)
+// is preserved since the spec only forbids punctuation here, not spaces.
+export async function hashName(value: string | null | undefined): Promise<string | undefined> {
+  if (!value) return undefined;
+  const cleaned = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return cleaned ? await sha256Hex(cleaned) : undefined;
+}
+
+// ct/st (city/state) have the stricter rule: no punctuation *and* no spaces
+// at all before hashing.
+export async function hashPlace(value: string | null | undefined): Promise<string | undefined> {
+  if (!value) return undefined;
+  const cleaned = value
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}]/gu, "");
+  return cleaned ? await sha256Hex(cleaned) : undefined;
+}
+
+// Meta's hashing spec requires the full country code with no leading zero
+// (e.g. a US number must be hashed as "1650...", not "0650..."). Customers
+// overwhelmingly type their own number the way they read it back home —
+// Cambodian mobile numbers as a national-format "012 345 678", no +855 —
+// even though the field's placeholder shows the international format. Left
+// unfixed, that hashes to a completely different string than the "855..."
+// form Meta's own records use for the same person, so the ph field gets
+// "sent" (counts toward coverage) but can never actually match. This is a
+// Cambodia-only delivery service (see STORE_ADDRESS/ORG_JSON_LD in
+// checkout.tsx), so a short number with no country code is safe to assume is
+// local and gets 855 prepended; anything already 10+ digits (its own country
+// code already included) is left alone.
 export function normalizePhone(raw: string | null | undefined): string | undefined {
   if (!raw) return undefined;
-  const digits = raw.replace(/\D/g, "");
-  return digits || undefined;
+  let digits = raw.replace(/\D/g, "");
+  if (!digits) return undefined;
+  if (digits.startsWith("855")) return digits;
+  if (digits.startsWith("0")) digits = digits.slice(1);
+  if (digits.length <= 9) digits = "855" + digits;
+  return digits;
 }
 
 // Persisted (already-hashed, so no raw PII sits in a cookie) after a guest

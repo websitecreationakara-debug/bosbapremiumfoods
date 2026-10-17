@@ -20,9 +20,11 @@ import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
 import { sendCapiEvent } from "@/data/meta-capi";
 import {
-  waitForFbp,
+  waitForPixelCookies,
   sha256Hex,
   hashField,
+  hashName,
+  hashPlace,
   normalizePhone,
   RETURNING_GUEST_COOKIE,
   type ReturningGuestFields,
@@ -367,18 +369,18 @@ function Checkout() {
       if (phoneDigits) fields.ph = await sha256Hex(phoneDigits);
       if (customerInfo.name) {
         const parts = customerInfo.name.trim().split(/\s+/);
-        const fn = await hashField(parts[0]);
+        const fn = await hashName(parts[0]);
         if (fn) fields.fn = fn;
         if (parts.length > 1) {
-          const ln = await hashField(parts.slice(1).join(" "));
+          const ln = await hashName(parts.slice(1).join(" "));
           if (ln) fields.ln = ln;
         }
       }
       if (customerInfo.city) {
-        const ct = await hashField(customerInfo.city.replace(/\s+/g, ""));
+        const ct = await hashPlace(customerInfo.city);
         if (ct) fields.ct = ct;
       }
-      const st = await hashField(customerInfo.state.replace(/\s+/g, ""));
+      const st = await hashPlace(customerInfo.state);
       if (st) fields.st = st;
       const country = await hashField(customerInfo.country);
       if (country) fields.country = country;
@@ -389,7 +391,7 @@ function Checkout() {
     })();
 
     (window as any).fbq?.("track", "Purchase", purchaseCustomData, { eventID: purchaseEventId });
-    waitForFbp().then(() => {
+    waitForPixelCookies().then(() => {
       sendCapiEvent({
         data: {
           eventId: purchaseEventId,

@@ -6,6 +6,8 @@ import {
   RETURNING_GUEST_COOKIE,
   sha256Hex,
   hashField,
+  hashName,
+  hashPlace,
   normalizePhone,
   type ReturningGuestFields,
 } from "@/lib/meta-pixel";
@@ -93,10 +95,10 @@ async function addIdentityUserData(
 
   if (user.name) {
     const parts = user.name.trim().split(/\s+/);
-    const fn = await hashField(parts[0]);
+    const fn = await hashName(parts[0]);
     if (fn) userData.fn = fn;
     if (parts.length > 1) {
-      const ln = await hashField(parts.slice(1).join(" "));
+      const ln = await hashName(parts.slice(1).join(" "));
       if (ln) userData.ln = ln;
     }
   }
@@ -168,24 +170,22 @@ async function addCustomerInfoUserData(
   if (info.name && (!userData.fn || !userData.ln)) {
     const parts = info.name.trim().split(/\s+/);
     if (!userData.fn) {
-      const fn = await hashField(parts[0]);
+      const fn = await hashName(parts[0]);
       if (fn) userData.fn = fn;
     }
     if (!userData.ln && parts.length > 1) {
-      const ln = await hashField(parts.slice(1).join(" "));
+      const ln = await hashName(parts.slice(1).join(" "));
       if (ln) userData.ln = ln;
     }
   }
 
   if (!userData.ct) {
-    // Meta's hashing spec for city: lowercase, whitespace stripped entirely.
-    const ct = await hashField(info.city?.replace(/\s+/g, ""));
+    const ct = await hashPlace(info.city);
     if (ct) userData.ct = ct;
   }
 
   if (!userData.st) {
-    // Same normalization as city — Meta's spec for non-US state/region.
-    const st = await hashField(info.state?.replace(/\s+/g, ""));
+    const st = await hashPlace(info.state);
     if (st) userData.st = st;
   }
 

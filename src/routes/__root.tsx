@@ -20,7 +20,7 @@ import { getTranslations, getSiteLocale } from "@/data/translations";
 import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
-import { META_PIXEL_ID, RETURNING_GUEST_COOKIE, waitForFbp } from "@/lib/meta-pixel";
+import { META_PIXEL_ID, RETURNING_GUEST_COOKIE, waitForPixelCookies } from "@/lib/meta-pixel";
 import { sendCapiEvent } from "@/data/meta-capi";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
@@ -314,7 +314,7 @@ function RootComponent() {
     }
 
     if (eventId) {
-      waitForFbp().then(() => {
+      waitForPixelCookies().then(() => {
         sendCapiEvent({
           data: {
             eventId,
