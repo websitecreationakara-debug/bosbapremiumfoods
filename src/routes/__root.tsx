@@ -20,7 +20,7 @@ import { getTranslations, getSiteLocale } from "@/data/translations";
 import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
-import { META_PIXEL_ID } from "@/lib/meta-pixel";
+import { META_PIXEL_ID, waitForFbp } from "@/lib/meta-pixel";
 import { sendCapiEvent } from "@/data/meta-capi";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
@@ -59,6 +59,15 @@ const WEBSITE_JSON_LD = {
 // isFirstPageview branch below) -- Events Manager flagged server-side PageView
 // coverage as well below pixel-side, and this was the gap: the client pixel
 // fired every PageView but nothing mirrored it server-side at all.
+//
+// _banon is a long-lived first-party cookie holding a random id for visitors
+// who've never logged in — email/phone/name genuinely don't exist for them,
+// but Meta's external_id match key doesn't need real PII, just a stable
+// per-visitor identifier. Minting one here (and echoing it into both the
+// client Pixel's advanced matching and the CAPI payload in data/meta-capi.ts)
+// is what actually moves external_id coverage beyond the ~6% of sessions that
+// happen to be logged in, which is what Events Manager's Event Match Quality
+// page was flagging for PageView.
 const META_PIXEL = `!function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};
@@ -67,7 +76,10 @@ n.queue=[];t=b.createElement(e);t.async=!0;
 t.src=v;s=b.getElementsByTagName(e)[0];
 s.parentNode.insertBefore(t,s)}(window, document,'script',
 'https://connect.facebook.net/en_US/fbevents.js');
-fbq('init', '${META_PIXEL_ID}');
+var __banonMatch = document.cookie.match(/(?:^|; )_banon=([^;]+)/);
+var __banonId = __banonMatch ? __banonMatch[1] : crypto.randomUUID();
+if (!__banonMatch) document.cookie = '_banon=' + __banonId + '; path=/; max-age=63072000; samesite=lax';
+fbq('init', '${META_PIXEL_ID}', {external_id: __banonId});
 window.__fbInitialPageviewEventId = crypto.randomUUID();
 fbq('track', 'PageView', {}, {eventID: window.__fbInitialPageviewEventId});`;
 
@@ -299,14 +311,16 @@ function RootComponent() {
     }
 
     if (eventId) {
-      sendCapiEvent({
-        data: {
-          eventId,
-          eventName: "PageView",
-          customData: {},
-          eventSourceUrl: window.location.href,
-        },
-      }).catch(() => {});
+      waitForFbp().then(() => {
+        sendCapiEvent({
+          data: {
+            eventId,
+            eventName: "PageView",
+            customData: {},
+            eventSourceUrl: window.location.href,
+          },
+        }).catch(() => {});
+      });
     }
   }, [pathname]);
 

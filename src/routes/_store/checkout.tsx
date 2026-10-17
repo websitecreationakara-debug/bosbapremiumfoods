@@ -19,6 +19,7 @@ import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
 import { sendCapiEvent } from "@/data/meta-capi";
+import { waitForFbp } from "@/lib/meta-pixel";
 import { metaRetailerId } from "@/lib/meta-catalog";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
@@ -333,15 +334,30 @@ function Checkout() {
       value: res.total,
       currency: "USD",
     };
+    // Most purchases are guest checkout (no account, so addIdentityUserData
+    // on the server has nothing to pull) — forward what the customer just
+    // typed into this form so CAPI isn't left with only fbp/fbc/IP for the
+    // single highest-value event. Store only delivers within Cambodia (see
+    // ORG_JSON_LD above), hence the fixed country code.
+    const customerInfo = {
+      email: customerEmail,
+      phone: phoneRef.current?.value ?? "",
+      name: customerName,
+      city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
+      country: "KH",
+    };
     (window as any).fbq?.("track", "Purchase", purchaseCustomData, { eventID: purchaseEventId });
-    sendCapiEvent({
-      data: {
-        eventId: purchaseEventId,
-        eventName: "Purchase",
-        customData: purchaseCustomData,
-        eventSourceUrl: window.location.href,
-      },
-    }).catch(() => {});
+    waitForFbp().then(() => {
+      sendCapiEvent({
+        data: {
+          eventId: purchaseEventId,
+          eventName: "Purchase",
+          customData: purchaseCustomData,
+          eventSourceUrl: window.location.href,
+          customerInfo,
+        },
+      }).catch(() => {});
+    });
 
     // Persist a newly typed address to the customer's address book if they opted in.
     if (deliveryMethod === "delivery" && user && selectedAddressId === null && saveNewAddress) {

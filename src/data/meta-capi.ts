@@ -11,11 +11,23 @@ type ViewContentInput = {
   eventSourceUrl: string;
 };
 
+// Self-reported at checkout — only ever used to fill in fields the logged-in
+// session (addIdentityUserData) didn't already provide, i.e. the guest-
+// checkout path where there's no account to pull verified data from.
+type CustomerInfo = {
+  email?: string;
+  phone?: string;
+  name?: string;
+  city?: string;
+  country?: string;
+};
+
 type CapiEventInput = {
   eventId: string;
   eventName: string;
   customData: Record<string, unknown>;
   eventSourceUrl: string;
+  customerInfo?: CustomerInfo;
 };
 
 // _fbp/_fbc are Meta's own first-party cookies (set by the Pixel snippet /
@@ -103,6 +115,67 @@ async function addIdentityUserData(
   userData.external_id = await sha256Hex(user.id);
 }
 
+// Fallback for the ~94% of sessions that never log in: the Pixel snippet in
+// __root.tsx mints a long-lived `_banon` cookie per visitor and feeds it into
+// Advanced Matching client-side, so echoing the same (hashed) value here lets
+// CAPI's external_id line up with what the Pixel already sent, instead of
+// external_id only ever being populated for authenticated sessions.
+async function addAnonymousExternalId(
+  userData: Record<string, string>,
+  cookieHeader: string,
+): Promise<void> {
+  if (userData.external_id) return;
+  const anonId = readCookie(cookieHeader, "_banon");
+  if (anonId) userData.external_id = await sha256Hex(anonId);
+}
+
+// Most Purchases are guest checkouts, so addIdentityUserData (session-only)
+// leaves em/ph/fn/ln/ct/country empty for them even though the checkout form
+// just collected exactly that — name, email, phone, city. This was the single
+// biggest Event Match Quality gap: the highest-value event sending the least
+// PII. Only fills fields addIdentityUserData didn't already set, so a logged-
+// in session's verified account data always wins over whatever was typed in
+// the checkout form.
+async function addCustomerInfoUserData(
+  userData: Record<string, string>,
+  info: CustomerInfo | undefined,
+): Promise<void> {
+  if (!info) return;
+
+  if (!userData.em) {
+    const em = await hashField(info.email);
+    if (em) userData.em = em;
+  }
+
+  if (!userData.ph) {
+    const phoneDigits = normalizePhone(info.phone);
+    if (phoneDigits) userData.ph = await sha256Hex(phoneDigits);
+  }
+
+  if (info.name && (!userData.fn || !userData.ln)) {
+    const parts = info.name.trim().split(/\s+/);
+    if (!userData.fn) {
+      const fn = await hashField(parts[0]);
+      if (fn) userData.fn = fn;
+    }
+    if (!userData.ln && parts.length > 1) {
+      const ln = await hashField(parts.slice(1).join(" "));
+      if (ln) userData.ln = ln;
+    }
+  }
+
+  if (!userData.ct) {
+    // Meta's hashing spec for city: lowercase, whitespace stripped entirely.
+    const ct = await hashField(info.city?.replace(/\s+/g, ""));
+    if (ct) userData.ct = ct;
+  }
+
+  if (!userData.country) {
+    const country = await hashField(info.country);
+    if (country) userData.country = country;
+  }
+}
+
 // Server-side mirror of the browser Pixel's ViewContent call (see the
 // useEffect in product.$id.tsx) — passing the same event_id on both sides
 // lets Meta deduplicate the two signals into one verified event instead of
@@ -125,6 +198,7 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
     const fbc = deriveFbc(cookieHeader, data.eventSourceUrl);
     if (fbc) userData.fbc = fbc;
     await addIdentityUserData(userData, request);
+    await addAnonymousExternalId(userData, cookieHeader);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
@@ -176,6 +250,8 @@ export const sendCapiEvent = createServerFn({ method: "POST" })
     const fbc = deriveFbc(cookieHeader, data.eventSourceUrl);
     if (fbc) userData.fbc = fbc;
     await addIdentityUserData(userData, request);
+    await addAnonymousExternalId(userData, cookieHeader);
+    await addCustomerInfoUserData(userData, data.customerInfo);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {

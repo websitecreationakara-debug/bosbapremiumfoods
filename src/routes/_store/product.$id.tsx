@@ -8,6 +8,7 @@ import {
 } from "@/hooks/use-products";
 import { getProduct, getVariations } from "@/data/products";
 import { sendViewContentCapiEvent, sendCapiEvent } from "@/data/meta-capi";
+import { waitForFbp } from "@/lib/meta-pixel";
 import {
   renderFormattedDescription,
   renderTabBody,
@@ -220,9 +221,11 @@ function ProductDetail() {
       { content_ids: contentIds, content_type: "product", value, currency: "USD" },
       { eventID: eventId },
     );
-    sendViewContentCapiEvent({
-      data: { eventId, contentIds, value, eventSourceUrl: window.location.href },
-    }).catch(() => {});
+    waitForFbp().then(() => {
+      sendViewContentCapiEvent({
+        data: { eventId, contentIds, value, eventSourceUrl: window.location.href },
+      }).catch(() => {});
+    });
   }, [product, variationsFetched, variations]);
   // "Read more" only appears once the description actually overflows 3 lines —
   // re-measured on resize since line-wrapping depends on the viewport width.
@@ -274,14 +277,16 @@ function ProductDetail() {
       { content_name: product.title },
       { eventID: eventId },
     );
-    sendCapiEvent({
-      data: {
-        eventId,
-        eventName,
-        customData: { content_name: product.title },
-        eventSourceUrl: window.location.href,
-      },
-    }).catch(() => {});
+    waitForFbp().then(() => {
+      sendCapiEvent({
+        data: {
+          eventId,
+          eventName,
+          customData: { content_name: product.title },
+          eventSourceUrl: window.location.href,
+        },
+      }).catch(() => {});
+    });
   };
 
   // A description can opt into a hero tagline/badges, offer callouts, and
