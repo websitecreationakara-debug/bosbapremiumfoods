@@ -19,7 +19,14 @@ import { useRef, useState, useEffect } from "react";
 import { createOrder } from "@/data/orders";
 import { saveAddress } from "@/data/addresses";
 import { sendCapiEvent } from "@/data/meta-capi";
-import { waitForFbp } from "@/lib/meta-pixel";
+import {
+  waitForFbp,
+  sha256Hex,
+  hashField,
+  normalizePhone,
+  RETURNING_GUEST_COOKIE,
+  type ReturningGuestFields,
+} from "@/lib/meta-pixel";
 import { metaRetailerId } from "@/lib/meta-catalog";
 import { validatePromoCode } from "@/data/promo-codes";
 import { promoCodeDiscount } from "@/lib/promo-code";
@@ -346,6 +353,37 @@ function Checkout() {
       city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
       country: "KH",
     };
+    // Persist this order's identity (already hashed — never raw PII in a
+    // cookie) so a *future* visit's PageView/ViewContent/AddToCart from this
+    // browser also carries em/ph/fn/ln/ct/country, not just this one Purchase
+    // event. See addReturningGuestUserData in data/meta-capi.ts.
+    (async () => {
+      const fields: ReturningGuestFields = {};
+      const em = await hashField(customerInfo.email);
+      if (em) fields.em = em;
+      const phoneDigits = normalizePhone(customerInfo.phone);
+      if (phoneDigits) fields.ph = await sha256Hex(phoneDigits);
+      if (customerInfo.name) {
+        const parts = customerInfo.name.trim().split(/\s+/);
+        const fn = await hashField(parts[0]);
+        if (fn) fields.fn = fn;
+        if (parts.length > 1) {
+          const ln = await hashField(parts.slice(1).join(" "));
+          if (ln) fields.ln = ln;
+        }
+      }
+      if (customerInfo.city) {
+        const ct = await hashField(customerInfo.city.replace(/\s+/g, ""));
+        if (ct) fields.ct = ct;
+      }
+      const country = await hashField(customerInfo.country);
+      if (country) fields.country = country;
+
+      if (Object.keys(fields).length) {
+        document.cookie = `${RETURNING_GUEST_COOKIE}=${encodeURIComponent(JSON.stringify(fields))}; path=/; max-age=63072000; samesite=lax`;
+      }
+    })();
+
     (window as any).fbq?.("track", "Purchase", purchaseCustomData, { eventID: purchaseEventId });
     waitForFbp().then(() => {
       sendCapiEvent({

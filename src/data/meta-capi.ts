@@ -1,7 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { env } from "cloudflare:workers";
-import { META_PIXEL_ID } from "@/lib/meta-pixel";
+import {
+  META_PIXEL_ID,
+  RETURNING_GUEST_COOKIE,
+  sha256Hex,
+  hashField,
+  normalizePhone,
+  type ReturningGuestFields,
+} from "@/lib/meta-pixel";
 import { getAuth } from "@/lib/auth";
 
 type ViewContentInput = {
@@ -63,25 +70,6 @@ function deriveFbc(cookieHeader: string, eventSourceUrl: string): string | undef
   }
 }
 
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
-
-async function hashField(value: string | null | undefined): Promise<string | undefined> {
-  if (!value) return undefined;
-  const cleaned = value.trim().toLowerCase();
-  return cleaned ? await sha256Hex(cleaned) : undefined;
-}
-
-function normalizePhone(raw: string | null | undefined): string | undefined {
-  if (!raw) return undefined;
-  const digits = raw.replace(/\D/g, "");
-  return digits || undefined;
-}
-
 // Email/phone/name are only legitimately known once a visitor is logged in —
 // an anonymous browser has given us nothing yet, and inventing data for them
 // would violate Meta's requirement that event data reflect real known facts.
@@ -127,6 +115,30 @@ async function addAnonymousExternalId(
   if (userData.external_id) return;
   const anonId = readCookie(cookieHeader, "_banon");
   if (anonId) userData.external_id = await sha256Hex(anonId);
+}
+
+// Fills remaining gaps from a guest's last completed order on this browser
+// (see checkout.tsx, which writes RETURNING_GUEST_COOKIE as already-hashed
+// JSON — never raw PII — right after checkout succeeds). This is what lets
+// em/ph/fn/ln/ct/country reach PageView/ViewContent/AddToCart too, not just
+// the Purchase event itself, for anyone who has ever checked out as a guest
+// on this device. Only fills fields nothing earlier in the chain (session,
+// this same request's customerInfo) already set.
+function addReturningGuestUserData(userData: Record<string, string>, cookieHeader: string): void {
+  const raw = readCookie(cookieHeader, RETURNING_GUEST_COOKIE);
+  if (!raw) return;
+
+  let fields: ReturningGuestFields;
+  try {
+    fields = JSON.parse(decodeURIComponent(raw));
+  } catch {
+    return;
+  }
+
+  for (const key of ["em", "ph", "fn", "ln", "ct", "country"] as const) {
+    const value = fields[key];
+    if (value && !userData[key]) userData[key] = value;
+  }
 }
 
 // Most Purchases are guest checkouts, so addIdentityUserData (session-only)
@@ -199,6 +211,7 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
     if (fbc) userData.fbc = fbc;
     await addIdentityUserData(userData, request);
     await addAnonymousExternalId(userData, cookieHeader);
+    addReturningGuestUserData(userData, cookieHeader);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
@@ -252,6 +265,7 @@ export const sendCapiEvent = createServerFn({ method: "POST" })
     await addIdentityUserData(userData, request);
     await addAnonymousExternalId(userData, cookieHeader);
     await addCustomerInfoUserData(userData, data.customerInfo);
+    addReturningGuestUserData(userData, cookieHeader);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {

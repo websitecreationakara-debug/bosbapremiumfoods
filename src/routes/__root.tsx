@@ -20,7 +20,7 @@ import { getTranslations, getSiteLocale } from "@/data/translations";
 import { CartDrawer } from "@/components/cart-drawer";
 import { InstallPrompt } from "@/components/install-prompt";
 import { Toaster } from "@/components/ui/sonner";
-import { META_PIXEL_ID, waitForFbp } from "@/lib/meta-pixel";
+import { META_PIXEL_ID, RETURNING_GUEST_COOKIE, waitForFbp } from "@/lib/meta-pixel";
 import { sendCapiEvent } from "@/data/meta-capi";
 
 // Web Analytics is auto-injected by Cloudflare for this proxied domain (site tag
@@ -79,7 +79,10 @@ s.parentNode.insertBefore(t,s)}(window, document,'script',
 var __banonMatch = document.cookie.match(/(?:^|; )_banon=([^;]+)/);
 var __banonId = __banonMatch ? __banonMatch[1] : crypto.randomUUID();
 if (!__banonMatch) document.cookie = '_banon=' + __banonId + '; path=/; max-age=63072000; samesite=lax';
-fbq('init', '${META_PIXEL_ID}', {external_id: __banonId});
+var __bidMatch = document.cookie.match(/(?:^|; )${RETURNING_GUEST_COOKIE}=([^;]+)/);
+var __bidFields = {};
+if (__bidMatch) { try { __bidFields = JSON.parse(decodeURIComponent(__bidMatch[1])); } catch (e) {} }
+fbq('init', '${META_PIXEL_ID}', Object.assign({external_id: __banonId}, __bidFields));
 window.__fbInitialPageviewEventId = crypto.randomUUID();
 fbq('track', 'PageView', {}, {eventID: window.__fbInitialPageviewEventId});`;
 
