@@ -21,6 +21,7 @@ import {
   notifyPosOfVariationEdit,
 } from "@/lib/pos-sync";
 import { getSessionUser, requireOrderViewer, requireStaff, requireUser } from "./_auth";
+import { validateCheckoutCustomer } from "@/lib/customer-validation";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -142,7 +143,19 @@ export const listOrders = createServerFn({ method: "GET" }).handler(async () => 
 });
 
 export const createOrder = createServerFn({ method: "POST" })
-  .inputValidator((d: CreateOrderInput) => d)
+  .inputValidator((d: CreateOrderInput) => {
+    // The real guard against fake/gibberish contact info — never trust that
+    // the client already checked this (a scripted request skips it entirely).
+    const err = validateCheckoutCustomer({
+      customer_name: d.customer_name,
+      customer_phone: d.customer_phone,
+      address: d.address,
+      city: d.city,
+      delivery_method: d.delivery_method,
+    });
+    if (err) throw new Error(err.message);
+    return d;
+  })
   .handler(async ({ data }) => {
     // Guest checkout: a session is optional. Logged-in orders are stamped with
     // the user id; guest orders carry null and rely on the typed contact fields.

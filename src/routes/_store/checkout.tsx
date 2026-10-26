@@ -31,6 +31,7 @@ import {
 } from "@/lib/meta-pixel";
 import { metaRetailerId } from "@/lib/meta-catalog";
 import { validatePromoCode } from "@/data/promo-codes";
+import { validateCheckoutCustomer } from "@/lib/customer-validation";
 import { promoCodeDiscount } from "@/lib/promo-code";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -289,6 +290,33 @@ function Checkout() {
     // lapsed while the form sat open).
     if (scheduledAt && new Date(scheduledAt).getTime() <= Date.now()) {
       toast.error("That delivery time has already passed — please pick a later time.");
+      return;
+    }
+    // Instant feedback before the round trip — createOrder re-checks this
+    // same way server-side, since a scripted request would skip this entirely.
+    const customerErr = validateCheckoutCustomer({
+      customer_name: nameRef.current?.value?.trim() || (user?.name ?? ""),
+      customer_phone: phoneRef.current?.value ?? "",
+      address: deliveryMethod === "pickup" ? "" : (addressRef.current?.value ?? ""),
+      city: deliveryMethod === "pickup" ? "" : (cityRef.current?.value ?? ""),
+      delivery_method: deliveryMethod,
+    });
+    if (customerErr) {
+      toast.error(customerErr.message);
+      switch (customerErr.field) {
+        case "customer_name":
+          nameRef.current?.focus();
+          break;
+        case "customer_phone":
+          phoneRef.current?.focus();
+          break;
+        case "address":
+          addressRef.current?.focus();
+          break;
+        case "city":
+          cityRef.current?.focus();
+          break;
+      }
       return;
     }
     setSubmitting(true);
