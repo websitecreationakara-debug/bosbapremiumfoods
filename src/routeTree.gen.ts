@@ -24,6 +24,7 @@ import { Route as StoreOffersRouteImport } from './routes/_store/offers'
 import { Route as StoreOrdersRouteImport } from './routes/_store/orders'
 import { Route as StorePrivacyRouteImport } from './routes/_store/privacy'
 import { Route as StoreRefundPolicyRouteImport } from './routes/_store/refund-policy'
+import { Route as StoreSeafoodRouteImport } from './routes/_store/seafood'
 import { Route as StoreShippingPolicyRouteImport } from './routes/_store/shipping-policy'
 import { Route as StoreShopRouteImport } from './routes/_store/shop'
 import { Route as StoreStoreLocatorRouteImport } from './routes/_store/store-locator'
@@ -121,6 +122,11 @@ const StorePrivacyRoute = StorePrivacyRouteImport.update({
 const StoreRefundPolicyRoute = StoreRefundPolicyRouteImport.update({
   id: '/refund-policy',
   path: '/refund-policy',
+  getParentRoute: () => StoreRoute,
+} as any)
+const StoreSeafoodRoute = StoreSeafoodRouteImport.update({
+  id: '/seafood',
+  path: '/seafood',
   getParentRoute: () => StoreRoute,
 } as any)
 const StoreShippingPolicyRoute = StoreShippingPolicyRouteImport.update({
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/orders': typeof StoreOrdersRoute
   '/privacy': typeof StorePrivacyRoute
   '/refund-policy': typeof StoreRefundPolicyRoute
+  '/seafood': typeof StoreSeafoodRoute
   '/shipping-policy': typeof StoreShippingPolicyRoute
   '/shop': typeof StoreShopRoute
   '/store-locator': typeof StoreStoreLocatorRoute
@@ -297,6 +304,7 @@ export interface FileRoutesByTo {
   '/orders': typeof StoreOrdersRoute
   '/privacy': typeof StorePrivacyRoute
   '/refund-policy': typeof StoreRefundPolicyRoute
+  '/seafood': typeof StoreSeafoodRoute
   '/shipping-policy': typeof StoreShippingPolicyRoute
   '/shop': typeof StoreShopRoute
   '/store-locator': typeof StoreStoreLocatorRoute
@@ -339,6 +347,7 @@ export interface FileRoutesById {
   '/_store/orders': typeof StoreOrdersRoute
   '/_store/privacy': typeof StorePrivacyRoute
   '/_store/refund-policy': typeof StoreRefundPolicyRoute
+  '/_store/seafood': typeof StoreSeafoodRoute
   '/_store/shipping-policy': typeof StoreShippingPolicyRoute
   '/_store/shop': typeof StoreShopRoute
   '/_store/store-locator': typeof StoreStoreLocatorRoute
@@ -382,6 +391,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/privacy'
     | '/refund-policy'
+    | '/seafood'
     | '/shipping-policy'
     | '/shop'
     | '/store-locator'
@@ -420,6 +430,7 @@ export interface FileRouteTypes {
     | '/orders'
     | '/privacy'
     | '/refund-policy'
+    | '/seafood'
     | '/shipping-policy'
     | '/shop'
     | '/store-locator'
@@ -461,6 +472,7 @@ export interface FileRouteTypes {
     | '/_store/orders'
     | '/_store/privacy'
     | '/_store/refund-policy'
+    | '/_store/seafood'
     | '/_store/shipping-policy'
     | '/_store/shop'
     | '/_store/store-locator'
@@ -600,6 +612,13 @@ declare module '@tanstack/react-router' {
       path: '/refund-policy'
       fullPath: '/refund-policy'
       preLoaderRoute: typeof StoreRefundPolicyRouteImport
+      parentRoute: typeof StoreRoute
+    }
+    '/_store/seafood': {
+      id: '/_store/seafood'
+      path: '/seafood'
+      fullPath: '/seafood'
+      preLoaderRoute: typeof StoreSeafoodRouteImport
       parentRoute: typeof StoreRoute
     }
     '/_store/shipping-policy': {
@@ -784,6 +803,7 @@ interface StoreRouteChildren {
   StoreOrdersRoute: typeof StoreOrdersRoute
   StorePrivacyRoute: typeof StorePrivacyRoute
   StoreRefundPolicyRoute: typeof StoreRefundPolicyRoute
+  StoreSeafoodRoute: typeof StoreSeafoodRoute
   StoreShippingPolicyRoute: typeof StoreShippingPolicyRoute
   StoreShopRoute: typeof StoreShopRoute
   StoreStoreLocatorRoute: typeof StoreStoreLocatorRoute
@@ -806,6 +826,7 @@ const StoreRouteChildren: StoreRouteChildren = {
   StoreOrdersRoute: StoreOrdersRoute,
   StorePrivacyRoute: StorePrivacyRoute,
   StoreRefundPolicyRoute: StoreRefundPolicyRoute,
+  StoreSeafoodRoute: StoreSeafoodRoute,
   StoreShippingPolicyRoute: StoreShippingPolicyRoute,
   StoreShopRoute: StoreShopRoute,
   StoreStoreLocatorRoute: StoreStoreLocatorRoute,
