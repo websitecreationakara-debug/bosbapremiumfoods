@@ -195,6 +195,41 @@ async function addCustomerInfoUserData(
   }
 }
 
+// Cloudflare populates `request.cf` with edge-geolocation data on every real
+// Cloudflare-routed request (same pattern as lib/audit.ts) — country, region,
+// city and postal code are available for ~100% of visitors, logged in or not.
+// Events Manager's EMQ page flagged exactly these four fields as unsent for
+// the vast majority of events (checkout only ever supplies them for the ~6%
+// of hits tied to an actual order); this is what gets them above sub-5%
+// coverage without asking anonymous browsers for PII they'd never give up.
+// Only fills gaps real customer-provided data didn't already set, since a
+// typed checkout address is always more precise than an IP-based guess.
+async function addGeoUserData(userData: Record<string, string>, request: Request): Promise<void> {
+  const cf = (
+    request as unknown as {
+      cf?: { country?: string; region?: string; city?: string; postalCode?: string };
+    }
+  ).cf;
+  if (!cf) return;
+
+  if (!userData.country && cf.country) {
+    const country = await hashField(cf.country);
+    if (country) userData.country = country;
+  }
+  if (!userData.st && cf.region) {
+    const st = await hashPlace(cf.region);
+    if (st) userData.st = st;
+  }
+  if (!userData.ct && cf.city) {
+    const ct = await hashPlace(cf.city);
+    if (ct) userData.ct = ct;
+  }
+  if (!userData.zp && cf.postalCode) {
+    const zp = await hashPlace(cf.postalCode);
+    if (zp) userData.zp = zp;
+  }
+}
+
 // Server-side mirror of the browser Pixel's ViewContent call (see the
 // useEffect in product.$id.tsx) — passing the same event_id on both sides
 // lets Meta deduplicate the two signals into one verified event instead of
@@ -219,6 +254,7 @@ export const sendViewContentCapiEvent = createServerFn({ method: "POST" })
     await addIdentityUserData(userData, request);
     await addAnonymousExternalId(userData, cookieHeader);
     addReturningGuestUserData(userData, cookieHeader);
+    await addGeoUserData(userData, request);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
@@ -273,6 +309,7 @@ export const sendCapiEvent = createServerFn({ method: "POST" })
     await addAnonymousExternalId(userData, cookieHeader);
     await addCustomerInfoUserData(userData, data.customerInfo);
     addReturningGuestUserData(userData, cookieHeader);
+    await addGeoUserData(userData, request);
 
     try {
       await fetch(`https://graph.facebook.com/v19.0/${META_PIXEL_ID}/events`, {
