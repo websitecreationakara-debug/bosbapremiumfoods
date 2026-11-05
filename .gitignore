@@ -40,3 +40,4 @@ d1-restore-*.sql
 *.sw?
 .vercel
 .env*
+!.env.deploy.example
