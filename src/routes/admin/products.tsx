@@ -1044,12 +1044,12 @@ function ProductsAdmin() {
                     </button>
                   )}
                 </td>
+                <td className="px-6 py-3 text-muted-foreground">{p.view_count.toLocaleString()}</td>
                 <td className="px-6 py-3">
                   <span className="px-2 py-0.5 bg-muted rounded text-xs font-bold uppercase">
                     {p.status}
                   </span>
                 </td>
-                <td className="px-6 py-3 text-muted-foreground">{p.view_count.toLocaleString()}</td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-1">
                     <Button
