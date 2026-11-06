@@ -36,6 +36,7 @@ function addonToProduct(a: Addon): Product {
     pre_order: false,
     promotion_id: null,
     video_url: null,
+    view_count: 0,
     created_at: a.created_at,
     updated_at: a.created_at,
   };

@@ -6,7 +6,7 @@ import {
   useProducts,
   useAllVariations,
 } from "@/hooks/use-products";
-import { getProduct, getVariations } from "@/data/products";
+import { getProduct, getVariations, incrementProductView } from "@/data/products";
 import { sendViewContentCapiEvent, sendCapiEvent } from "@/data/meta-capi";
 import { waitForPixelCookies } from "@/lib/meta-pixel";
 import {
@@ -226,6 +226,9 @@ function ProductDetail() {
         data: { eventId, contentIds, value, eventSourceUrl: window.location.href },
       }).catch(() => {});
     });
+    // Same real-visit trigger as the Meta events above -- a local count so the
+    // admin can see "most viewed" without needing to check Meta.
+    incrementProductView({ data: { id: product.id } }).catch(() => {});
   }, [product, variationsFetched, variations]);
   // "Read more" only appears once the description actually overflows 3 lines —
   // re-measured on resize since line-wrapping depends on the viewport width.
