@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { eq, asc, desc, inArray, like } from "drizzle-orm";
+import { eq, asc, desc, inArray, like, sql } from "drizzle-orm";
 import { getDb } from "@/db";
 import { products, product_variations, product_images, promotions } from "@/db/schema";
 import { slugify, isUuid } from "@/lib/utils";
@@ -119,6 +119,23 @@ export const getProduct = createServerFn({ method: "GET" })
     const all = await db.select().from(products);
     const match = all.find((p) => slugify(p.title) === data.id);
     return match ? (await applyProductPromos([match]))[0] : null;
+  });
+
+// Fired from the same real-visit trigger as the Meta Pixel/CAPI ViewContent event
+// (see the useEffect in product.$id.tsx) -- public, no auth, so a storefront visitor
+// can call it. Best-effort: swallows the error so a DB hiccup can't break the product
+// page, same as the CAPI dispatch it runs alongside.
+export const incrementProductView = createServerFn({ method: "POST" })
+  .inputValidator((d: { id: string }) => d)
+  .handler(async ({ data }) => {
+    try {
+      await getDb()
+        .update(products)
+        .set({ view_count: sql`${products.view_count} + 1` })
+        .where(eq(products.id, data.id));
+    } catch {
+      // best-effort -- a view-count failure must never break the product page
+    }
   });
 
 // Every variation row across the catalog — small table, fetched once so the

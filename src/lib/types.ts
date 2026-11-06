@@ -23,6 +23,8 @@ export type Product = {
   promotion_id: string | null;
   // Optional YouTube link shown as an autoplaying clip in the product gallery.
   video_url: string | null;
+  // Product page views, incremented once per real visit (see incrementProductView).
+  view_count: number;
   created_at: string;
   updated_at: string;
 };

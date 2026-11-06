@@ -223,6 +223,10 @@ export const products = sqliteTable("products", {
   promotion_id: text("promotion_id").references(() => promotions.id, { onDelete: "set null" }),
   // Optional YouTube link shown as an autoplaying clip in the product gallery.
   video_url: text("video_url"),
+  // Product page views, incremented once per real visit (see incrementProductView) --
+  // the same trigger point as the Meta Pixel/CAPI ViewContent event in product.$id.tsx,
+  // so this count and Meta's ViewContent count represent the same real visits.
+  view_count: integer("view_count").notNull().default(0),
   created_at: text("created_at").notNull().$defaultFn(nowIso),
   updated_at: text("updated_at").notNull().$defaultFn(nowIso),
 });

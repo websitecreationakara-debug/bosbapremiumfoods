@@ -183,9 +183,11 @@ function ProductsAdmin() {
   // Column-header sort — separate from the drag-to-reorder sort_order below.
   // A column sort is just a view; it doesn't touch the stored order, so
   // clearing it (third click) goes right back to the manual drag order.
-  const [sortKey, setSortKey] = useState<"title" | "category" | "price" | "stock" | null>(null);
+  const [sortKey, setSortKey] = useState<"title" | "category" | "price" | "stock" | "views" | null>(
+    null,
+  );
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
-  const toggleSort = (key: "title" | "category" | "price" | "stock") => {
+  const toggleSort = (key: "title" | "category" | "price" | "stock" | "views") => {
     if (sortKey !== key) {
       setSortKey(key);
       setSortDir("asc");
@@ -249,7 +251,8 @@ function ProductsAdmin() {
           return nameA.localeCompare(nameB) * dir;
         }
         if (sortKey === "price") return (priceValue(a) - priceValue(b)) * dir;
-        return (stockValue(a) - stockValue(b)) * dir;
+        if (sortKey === "stock") return (stockValue(a) - stockValue(b)) * dir;
+        return (a.view_count - b.view_count) * dir;
       })
     : filtered;
 
@@ -873,6 +876,24 @@ function ProductsAdmin() {
                   )}
                 </button>
               </th>
+              <th className="text-left px-6 py-3">
+                <button
+                  type="button"
+                  onClick={() => toggleSort("views")}
+                  className="flex items-center gap-1 hover:text-foreground transition-colors"
+                >
+                  Views
+                  {sortKey === "views" ? (
+                    sortDir === "asc" ? (
+                      <ArrowUp className="size-3" />
+                    ) : (
+                      <ArrowDown className="size-3" />
+                    )
+                  ) : (
+                    <ArrowUpDown className="size-3 opacity-40" />
+                  )}
+                </button>
+              </th>
               <th className="text-left px-6 py-3">Status</th>
               <th className="px-6 py-3"></th>
             </tr>
@@ -880,7 +901,7 @@ function ProductsAdmin() {
           <tbody>
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-6 py-12 text-center text-muted-foreground">
+                <td colSpan={9} className="px-6 py-12 text-center text-muted-foreground">
                   No products match your filters.
                 </td>
               </tr>
@@ -1028,6 +1049,7 @@ function ProductsAdmin() {
                     {p.status}
                   </span>
                 </td>
+                <td className="px-6 py-3 text-muted-foreground">{p.view_count.toLocaleString()}</td>
                 <td className="px-6 py-3 text-right">
                   <div className="flex justify-end gap-1">
                     <Button

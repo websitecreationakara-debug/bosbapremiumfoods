@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `view_count` integer DEFAULT 0 NOT NULL;
