@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { count, desc, eq, inArray } from "drizzle-orm";
 import { getDb } from "@/db";
 import {
@@ -22,6 +23,7 @@ import {
 } from "@/lib/pos-sync";
 import { getSessionUser, requireOrderViewer, requireStaff, requireUser } from "./_auth";
 import { validateCheckoutCustomer } from "@/lib/customer-validation";
+import { deriveFbc } from "./meta-capi";
 
 type OrderItem = { id: string; title: string; qty: number; price: number };
 
@@ -399,6 +401,16 @@ export const createOrder = createServerFn({ method: "POST" })
           : { siteProductId: i.id, quantity: i.qty, unitPrice: i.price, title: i.title };
       });
     if (posOrderItems.length > 0) {
+      // Best-effort: a missing/malformed cookie header must never block the order
+      // itself from reaching POS, so this is read defensively rather than thrown.
+      let fbc: string | undefined;
+      try {
+        const request = getRequest();
+        fbc = deriveFbc(request.headers.get("cookie") ?? "", request.url);
+      } catch {
+        fbc = undefined;
+      }
+
       await notifyPosOfOrder({
         siteOrderId: row.id,
         items: posOrderItems,
@@ -412,6 +424,7 @@ export const createOrder = createServerFn({ method: "POST" })
         total,
         paymentMethod: method === "khqr" ? "bank_qr" : "cash",
         deliveryAt: scheduledAtToIso(row.scheduled_at),
+        fbc,
       });
     }
 
