@@ -61,7 +61,7 @@ function readCookie(cookieHeader: string, name: string): string | undefined {
 // same value from the fbclid query param instead of relying on cookie timing.
 // Format per Meta's spec: fb.<subdomain_index>.<creation_time_ms>.<fbclid>
 // (subdomain_index 1 = cookie set on the eTLD+1, true for this site).
-function deriveFbc(cookieHeader: string, eventSourceUrl: string): string | undefined {
+export function deriveFbc(cookieHeader: string, eventSourceUrl: string): string | undefined {
   const fromCookie = readCookie(cookieHeader, "_fbc");
   if (fromCookie) return fromCookie;
 
