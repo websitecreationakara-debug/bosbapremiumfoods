@@ -197,6 +197,26 @@ export type ProductPayload = ProductRow & {
   images: { url: string; sort_order: number }[];
 };
 
+// D1 caps bound parameters per statement well below catalog size (the Google
+// Shopping feed calls assemble() with every published product at once,
+// unbounded by the pagination handleList applies). Each product's own id
+// lands in exactly one chunk, so per-product ordering below is unaffected.
+const D1_MAX_IDS_PER_QUERY = 90;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+async function queryInChunks<Row>(
+  ids: string[],
+  runQuery: (idsChunk: string[]) => Promise<Row[]>,
+): Promise<Row[]> {
+  const results = await Promise.all(chunk(ids, D1_MAX_IDS_PER_QUERY).map(runQuery));
+  return results.flat();
+}
+
 // `promoPrices` is off for write responses (POST/PATCH echo back the stored
 // values, not offer-adjusted ones — same reason the admin editor reads raw).
 // Exported for the Google Shopping feed (google-shopping-feed.server.ts), which
@@ -208,16 +228,20 @@ export async function assemble(rows: ProductRow[], promoPrices = true): Promise<
   const db = getDb();
 
   const [allVariations, allImages] = await Promise.all([
-    db
-      .select()
-      .from(product_variations)
-      .where(inArray(product_variations.product_id, ids))
-      .orderBy(asc(product_variations.sort_order), asc(product_variations.price)),
-    db
-      .select()
-      .from(product_images)
-      .where(inArray(product_images.product_id, ids))
-      .orderBy(asc(product_images.sort_order), asc(product_images.created_at)),
+    queryInChunks(ids, (idsChunk) =>
+      db
+        .select()
+        .from(product_variations)
+        .where(inArray(product_variations.product_id, idsChunk))
+        .orderBy(asc(product_variations.sort_order), asc(product_variations.price)),
+    ),
+    queryInChunks(ids, (idsChunk) =>
+      db
+        .select()
+        .from(product_images)
+        .where(inArray(product_images.product_id, idsChunk))
+        .orderBy(asc(product_images.sort_order), asc(product_images.created_at)),
+    ),
   ]);
 
   const vars = promoPrices ? await variationsWithPromoPrices(allVariations, priced) : allVariations;
