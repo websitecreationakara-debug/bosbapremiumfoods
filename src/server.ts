@@ -5,6 +5,7 @@ import { eq, like } from "drizzle-orm";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { handlePublicApi } from "./lib/public-api.server";
+import { buildGoogleShoppingFeedXml } from "./lib/google-shopping-feed.server";
 import { getDb } from "./db";
 import { products, product_variations, orders } from "./db/schema";
 
@@ -290,6 +291,21 @@ async function handlePosOrderDelete(request: Request): Promise<Response> {
   });
 }
 
+// Google Merchant Center scheduled-fetch source (Data sources -> Add product
+// source -> Scheduled fetch -> this URL, daily). Public and unauthenticated,
+// same as a sitemap -- there's nothing in a product feed that isn't already
+// visible on the storefront itself.
+async function handleGoogleShoppingFeed(): Promise<Response> {
+  const xml = await buildGoogleShoppingFeedXml();
+  return new Response(xml, {
+    status: 200,
+    headers: {
+      "content-type": "application/xml; charset=utf-8",
+      "Cache-Control": "public, max-age=600",
+    },
+  });
+}
+
 function brandedErrorResponse(): Response {
   return new Response(renderErrorPage(), {
     status: 500,
@@ -426,6 +442,17 @@ export default {
             status: 500,
             headers: { "content-type": "application/json" },
           }),
+        );
+      }
+    }
+
+    if (url.pathname === "/feed/google-shopping.xml" && request.method === "GET") {
+      try {
+        return withSecurityHeaders(await handleGoogleShoppingFeed());
+      } catch (error) {
+        console.error(error);
+        return withSecurityHeaders(
+          new Response("Internal error", { status: 500, headers: { "content-type": "text/plain" } }),
         );
       }
     }

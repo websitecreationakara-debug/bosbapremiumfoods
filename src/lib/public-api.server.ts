@@ -192,14 +192,16 @@ async function variationsWithPromoPrices(
   });
 }
 
-type ProductPayload = ProductRow & {
+export type ProductPayload = ProductRow & {
   variations: VariationRow[];
   images: { url: string; sort_order: number }[];
 };
 
 // `promoPrices` is off for write responses (POST/PATCH echo back the stored
 // values, not offer-adjusted ones — same reason the admin editor reads raw).
-async function assemble(rows: ProductRow[], promoPrices = true): Promise<ProductPayload[]> {
+// Exported for the Google Shopping feed (google-shopping-feed.server.ts), which
+// needs the same promo-adjusted prices and variations/images shape.
+export async function assemble(rows: ProductRow[], promoPrices = true): Promise<ProductPayload[]> {
   if (rows.length === 0) return [];
   const priced = promoPrices ? await withPromoPrices(rows) : rows;
   const ids = priced.map((p) => p.id);
