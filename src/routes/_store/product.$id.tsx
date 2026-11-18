@@ -455,11 +455,15 @@ function ProductDetail() {
           </h1>
 
           <div className="flex items-center gap-2 mt-3 text-sm text-muted-foreground">
-            <span className="inline-flex items-center gap-1">
-              <Star className="size-4 fill-warning text-warning" />
-              {product.rating ?? 4.5}
-            </span>
-            <span className="opacity-50">·</span>
+            {product.rating != null && (
+              <>
+                <span className="inline-flex items-center gap-1">
+                  <Star className="size-4 fill-warning text-warning" />
+                  {product.rating}
+                </span>
+                <span className="opacity-50">·</span>
+              </>
+            )}
             {preOrder ? (
               <span className="text-brand font-medium">Available for Pre-Order</span>
             ) : soldOut ? (
