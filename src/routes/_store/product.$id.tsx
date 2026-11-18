@@ -171,6 +171,12 @@ function ProductJsonLd({ product }: { product: Product }) {
           ? "https://schema.org/OutOfStock"
           : "https://schema.org/InStock",
       url: `${SITE}/product/${slugify(product.title) || product.id}`,
+      // We only deliver within Cambodia — without this, Google Merchant Center
+      // defaults ambiguous USD-priced offers to also showing in the US.
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "KH" },
+      },
     };
   }
   return (
